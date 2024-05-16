@@ -1,0 +1,47 @@
+{
+  "name": "nuxt-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@nimiq/core-web": "2.0.0-alpha.21.1",
+    "@nuxt/eslint": "^0.3.12",
+    "@nuxthub/core": "^0.5.17",
+    "nimiq-rpc-client-ts": "^0.3.0",
+    "nuxt": "^3.11.2",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.27",
+    "vue-router": "^4.3.2"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.17.0",
+    "@nuxt/eslint": "^0.3.12",
+    "@nuxtjs/color-mode": "^3.4.1",
+    "@pinia/nuxt": "^0.5.1",
+    "@unocss/eslint-config": "^0.60.0",
+    "@unocss/nuxt": "^0.60.2",
+    "@unocss/preset-rem-to-px": "^0.60.2",
+    "@unocss/reset": "^0.60.2",
+    "@vueuse/nuxt": "^10.9.0",
+    "eslint": "^9.2.0",
+    "eslint-plugin-format": "^0.1.1",
+    "nimiq-css": "^0.0.96",
+    "vite-plugin-top-level-await": "^1.4.1",
+    "vite-plugin-wasm": "^3.3.0",
+    "wrangler": "^3.56.0"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
+  }
+}
