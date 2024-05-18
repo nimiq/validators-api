@@ -7,8 +7,12 @@ export default defineConfig({
     presetUno({ attributifyPseudo: true }),
     presetNimiq({
       utilities: true,
+      typography: true,
     }),
     presetRemToPx({ baseFontSize: 4 }),
     presetAttributify(),
+  ],
+  rules: [
+    [/^view-transition-([\w-]+)$/, ([, name]: [string, string]) => ({ 'view-transition-name': name })],
   ],
 })

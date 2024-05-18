@@ -1,9 +1,7 @@
 <script setup lang="ts">
+const store = useValidatorsStore()
 </script>
 
 <template>
-  <!-- estlint-disable-line vue/no-multiple-templateRoots -->
-  <div>
-    Hola!
-  </div>
+  <ValidatorsTable :validators="store.validators || []" />
 </template>

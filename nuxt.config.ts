@@ -1,5 +1,5 @@
-import wasm from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
+import wasm from "vite-plugin-wasm"
+import topLevelAwait from "vite-plugin-top-level-await"
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -10,11 +10,13 @@ export default defineNuxtConfig({
     "@unocss/nuxt",
     "@nuxtjs/color-mode",
     "@nuxt/eslint",
-    "@nuxthub/core"
+    "@nuxthub/core",
+    '@nuxt/image',
+    '@nuxt/content',
   ],
 
   hub: {
-    database: true
+    database: true,
   },
 
   runtimeConfig: {
@@ -27,6 +29,7 @@ export default defineNuxtConfig({
     payloadExtraction: false,
     renderJsonPayloads: true,
     typedPages: true,
+    viewTransition: true
   },
 
   vite: {
@@ -45,6 +48,9 @@ export default defineNuxtConfig({
         target: 'esnext',
       },
     },
+    experimental: {
+      tasks: true
+    }
   },
 
   app: {
@@ -78,5 +84,16 @@ export default defineNuxtConfig({
 
   colorMode: {
     classSuffix: '',
+  },
+
+  imports: {
+    mergeExisting: true,
+    imports: [
+      {
+        from: './server/utils/drizzle.ts',
+        name: 'Validator',
+        type: true,
+      },
+    ]
   }
 })
