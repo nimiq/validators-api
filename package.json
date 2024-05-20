@@ -10,7 +10,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:delete": "drizzle-kit drop"
   },
   "dependencies": {
     "@nimiq/core-web": "2.0.0-alpha.21.1",

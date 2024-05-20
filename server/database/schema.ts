@@ -2,7 +2,7 @@ import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core'
 
 export const validators = sqliteTable('validators', {
   id: integer('id').primaryKey(),
-  name: text('name').notNull().unique(),
+  name: text('name').notNull(),
   address: text('address').notNull(),
   fee: real('fee').notNull(),
   payoutType: text('payoutType').notNull(),

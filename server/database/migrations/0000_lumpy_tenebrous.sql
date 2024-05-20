@@ -33,5 +33,4 @@ CREATE TABLE `validators` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `events_hash_unique` ON `events` (`hash`);--> statement-breakpoint
-CREATE UNIQUE INDEX `scores_validator_id_unique` ON `scores` (`validator_id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `validators_name_unique` ON `validators` (`name`);
+CREATE UNIQUE INDEX `scores_validator_id_unique` ON `scores` (`validator_id`);

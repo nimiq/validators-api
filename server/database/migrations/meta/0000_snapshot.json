@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "33f917b5-46a0-48de-b099-570c3ae310be",
+  "id": "71e6b94c-f3e2-4a9a-b1b1-40d3c2081c91",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "events": {
@@ -231,15 +231,7 @@
           "autoincrement": false
         }
       },
-      "indexes": {
-        "validators_name_unique": {
-          "name": "validators_name_unique",
-          "columns": [
-            "name"
-          ],
-          "isUnique": true
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}

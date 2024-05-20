@@ -19,6 +19,12 @@ export default defineNuxtConfig({
     database: true,
   },
 
+  $development: {
+    hub: {
+      remote: true
+    }
+  },
+
   runtimeConfig: {
     rpcUrl: '' // Set in .env
   },
