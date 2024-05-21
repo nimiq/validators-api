@@ -1,26 +1,12 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "71e6b94c-f3e2-4a9a-b1b1-40d3c2081c91",
+  "id": "9ca26dea-ee81-45e4-8a31-efeb1d728a96",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "events": {
-      "name": "events",
+    "activity": {
+      "name": "activity",
       "columns": {
-        "event_id": {
-          "name": "event_id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "event": {
-          "name": "event",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "validator_id": {
           "name": "validator_id",
           "type": "integer",
@@ -28,41 +14,33 @@
           "notNull": true,
           "autoincrement": false
         },
-        "hash": {
-          "name": "hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "timestamp": {
-          "name": "timestamp",
+        "epoch_index": {
+          "name": "epoch_index",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "block_number": {
-          "name": "block_number",
+        "assigned": {
+          "name": "assigned",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "missed": {
+          "name": "missed",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         }
       },
-      "indexes": {
-        "events_hash_unique": {
-          "name": "events_hash_unique",
-          "columns": [
-            "hash"
-          ],
-          "isUnique": true
-        }
-      },
+      "indexes": {},
       "foreignKeys": {
-        "events_validator_id_validators_id_fk": {
-          "name": "events_validator_id_validators_id_fk",
-          "tableFrom": "events",
+        "activity_validator_id_validators_id_fk": {
+          "name": "activity_validator_id_validators_id_fk",
+          "tableFrom": "activity",
           "tableTo": "validators",
           "columnsFrom": [
             "validator_id"
@@ -74,7 +52,15 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "activity_validator_id_epoch_index_pk": {
+          "columns": [
+            "epoch_index",
+            "validator_id"
+          ],
+          "name": "activity_validator_id_epoch_index_pk"
+        }
+      },
       "uniqueConstraints": {}
     },
     "scores": {
@@ -94,8 +80,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "score": {
-          "name": "score",
+        "total": {
+          "name": "total",
           "type": "real",
           "primaryKey": false,
           "notNull": true,
@@ -121,6 +107,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
         }
       },
       "indexes": {
@@ -158,14 +152,15 @@
           "type": "integer",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": true
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'Unknown validator'"
         },
         "address": {
           "name": "address",
@@ -178,15 +173,17 @@
           "name": "fee",
           "type": "real",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": false,
+          "autoincrement": false,
+          "default": -1
         },
-        "payoutType": {
-          "name": "payoutType",
+        "payout_type": {
+          "name": "payout_type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'unknown'"
         },
         "description": {
           "name": "description",
@@ -206,8 +203,9 @@
           "name": "tag",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'unknown'"
         },
         "website": {
           "name": "website",
@@ -215,23 +213,17 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "state": {
-          "name": "state",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "balance": {
-          "name": "balance",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "validators_address_unique": {
+          "name": "validators_address_unique",
+          "columns": [
+            "address"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}

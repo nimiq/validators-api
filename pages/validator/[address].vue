@@ -32,12 +32,12 @@ const validator = computed(() => {
 
     <div flex="~ col items-center justify-center" mt-96>
       <h3 text="center neutral-900" font-bold mb-0>{{ validator.name }}'s score is</h3>
-      <ScorePie mt-32 text-40 size-128 mx-auto :score="Math.random()"
+      <ScorePie mt-32 text-40 size-128 mx-auto :score="validator.total"
         :style="{ 'view-transition-name': `score-${validator.id}` }" />
       <div flex="~ items-center gap-48" mt-64>
-        <ScorePie text="28 neutral/70" size-80 mx-auto :score="Math.random()" />
-        <ScorePie text="28 neutral/70" size-80 mx-auto :score="Math.random()" />
-        <ScorePie text="28 neutral/70" size-80 mx-auto :score="Math.random()" />
+        <ScorePie text="28 neutral/70" size-80 mx-auto :score="validator.size" />
+        <ScorePie text="28 neutral/70" size-80 mx-auto :score="validator.liveness" />
+        <ScorePie text="28 neutral/70" size-80 mx-auto :score="validator.reliability" />
       </div>
       <!-- <div self-stretch  w-2 bg-neutral-300 mx-48 /> -->
     </div>

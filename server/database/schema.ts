@@ -1,33 +1,31 @@
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
+import { sqliteTable, text, integer, real, primaryKey } from 'drizzle-orm/sqlite-core'
 
 export const validators = sqliteTable('validators', {
-  id: integer('id').primaryKey(),
-  name: text('name').notNull(),
-  address: text('address').notNull(),
-  fee: real('fee').notNull(),
-  payoutType: text('payoutType').notNull(),
+  id: integer('id').primaryKey({ autoIncrement: true, onConflict: 'replace' }),
+  name: text('name').default('Unknown validator'),
+  address: text('address').notNull().unique(),
+  fee: real('fee').default(-1),
+  payoutType: text('payout_type').default('unknown'),
   description: text('description'),
   icon: text('icon').notNull(),
-  tag: text('tag').notNull(),
+  tag: text('tag').default('unknown'),
   website: text('website'),
-  state: text('state').notNull(),
-  balance: real('balance').notNull(),
-})
-
-export const events = sqliteTable('events', {
-  id: integer('event_id').notNull().primaryKey(),
-  event: text('event').notNull(),
-  validatorId: integer('validator_id').notNull().references(() => validators.id),
-  hash: text('hash').notNull().unique(),
-  timestamp: integer('timestamp', { mode: 'timestamp_ms' }).notNull(),
-  blockNumber: integer('block_number').notNull(),
 })
 
 export const scores = sqliteTable('scores', {
   id: integer('score_id').notNull().primaryKey(),
   validatorId: integer('validator_id').notNull().references(() => validators.id).unique(),
-  score: real('score').notNull(),
+  total: real('total').notNull(),
   liveness: real('liveness').notNull(),
   size: real('size').notNull(),
   reliability: real('reliability').notNull(),
+  updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
+
+export const activity = sqliteTable('activity', {
+  validatorId: integer('validator_id').notNull().references(() => validators.id),
+  epochIndex: integer('epoch_index').notNull(),
+  assigned: integer('assigned').notNull(),
+  missed: integer('missed').notNull(),
+}, ({ epochIndex, validatorId }) => ({ pk: primaryKey({ columns: [validatorId, epochIndex] }) }))

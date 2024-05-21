@@ -1,13 +1,10 @@
+import type { ValidatorInfo } from "~/server/api/types"
+
 export const useValidatorsStore = defineStore('validators', () => {
-  const validators = ref<Validator[]>()
+  const validators = ref<ValidatorInfo[]>()
 
   async function fetchValidators() {
-    const body = { query: 'SELECT * FROM validators', params: [] }
-    const { data, error } = await useFetch<{ results: Validator[] }>('/api/_hub/database/all', { body, method: 'POST' })
-    if (error || !data.value)
-      console.error(error)
-    validators.value = data.value?.results || []
-    return data
+    validators.value = await $fetch('/api/validators')
   }
 
   return {

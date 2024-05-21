@@ -23,7 +23,7 @@ const validatorDetail = computed(() => !!route.params.address)
       <NuxtPage />
     </main>
 
-    <footer pb-40>
+    <footer pb-40 self-center>
       Learn about the <NuxtLink to="/validator-trust-score" text-blue arrow>Validator Trust Score</NuxtLink>
     </footer>
   </div>
