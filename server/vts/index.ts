@@ -55,11 +55,26 @@ async function getValidatorsParams(client: Client) {
   const { data: head, error: errorHead } = await client.blockchain.getBlockNumber()
   if (errorHead || !head) throw new Error(errorHead?.message || 'No head block number')
 
-  const { blockSeparationTime } = policy as PolicyConstants & { blockSeparationTime: number }
+  const { blockSeparationTime, blocksPerEpoch } = policy as PolicyConstants & { blockSeparationTime: number }
 
-  const blocksDifference = Math.ceil(WINDOW_SIZE / blockSeparationTime)
-  const fromEpoch = head - blocksDifference
-  const toEpoch = head
+  const { data: currentEpoch, error: errorCurrentEpoch } = await client.blockchain.getEpochNumber()
+  if (errorCurrentEpoch || !currentEpoch) throw new Error(errorCurrentEpoch?.message || 'No current epoch')
+
+  const epochDifference = Math.ceil(WINDOW_SIZE / blockSeparationTime / blocksPerEpoch)
+  const fromEpoch = Math.max(0, currentEpoch - epochDifference)
+  const toEpoch = currentEpoch - 1
+
+  const epochIndexes = await useDrizzle()
+    .select({ epochIndex: tables.activity.epochIndex })
+    .from(tables.activity)
+    .where(and(lte(tables.activity.epochIndex, toEpoch), gte(tables.activity.epochIndex, fromEpoch)))
+    .then(r => r.map(e => e.epochIndex))
+
+  // see the differences between the two arrays
+  const missingEpochs = Array.from({ length: toEpoch - fromEpoch + 1 }, (_, i) => i + fromEpoch).filter(e => !epochIndexes.includes(e))
+
+  if (missingEpochs.length > 0)
+    throw new Error(`Missing epochs: ${missingEpochs.join(', ')}`)
 
   const defaultScoreParams: ComputeScoreConst = { size: { totalBalance }, liveness: { fromEpoch, toEpoch } }
   const params: { validatorId: number, params: ComputeScoreConst }[] = await Promise.all(knownValidators.map(async (v) => {

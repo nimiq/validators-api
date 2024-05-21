@@ -67,7 +67,7 @@ async function fetchActivity(client: Client, { epochIndex, blockNumber }: fetchB
   await storeActivity(epochIndex, epoch)
 }
 
-type fetchEpochOptions = { from?: number, to?: number };
+type fetchEpochOptions = { fromEpochIndex?: number, toEpochIndex?: number }
 export async function fetchEpochsActivity(client: Client, options: fetchEpochOptions = {}): AsyncOption<string> {
   // TODO Balance should be update somewhere
 
@@ -75,26 +75,20 @@ export async function fetchEpochsActivity(client: Client, options: fetchEpochOpt
   if (errorPolicy) return errorPolicy.message
   const { blocksPerEpoch, genesisBlockNumber } = policy as PolicyConstants & { genesisBlockNumber: number }
 
+  options.fromEpochIndex ||= 0
 
-  if (!options.from)
-    options.from = genesisBlockNumber
-  if (!options.to) {
+  if (!options.toEpochIndex) {
     const { data: epochNumber, error } = await client.blockchain.getEpochNumber()
     if (error) return error.message
-    options.to = genesisBlockNumber + (epochNumber - 1) * blocksPerEpoch
+    options.toEpochIndex = epochNumber - 1
   }
 
-  const blockToEpochIndex = (n: number) => Math.max(0, Math.floor((n - genesisBlockNumber + blocksPerEpoch - 1) / blocksPerEpoch))
-  const epochIndexToBlock = (i: number) => genesisBlockNumber + i * blocksPerEpoch
+  const totalEpochs = options.toEpochIndex - options.fromEpochIndex + 1
 
-  const fromEpoch = blockToEpochIndex(options.from)
-  const toEpoch = blockToEpochIndex(options.to)
-  const totalEpochs = toEpoch - fromEpoch + 1;
+  consola.info(`Retrieving epochs from ${options.fromEpochIndex} to ${options.toEpochIndex} (${totalEpochs} epochs)`)
 
-  consola.info(`Retrieving epochs from ${fromEpoch} to ${toEpoch} (${totalEpochs} epochs)`)
+  for (let epochIndex = options.toEpochIndex; epochIndex >= options.fromEpochIndex; epochIndex--)
+    await fetchActivity(client, { epochIndex, blockNumber: genesisBlockNumber + epochIndex * blocksPerEpoch })
 
-  for (let epochIndex = toEpoch; epochIndex >= fromEpoch; epochIndex--)
-    await fetchActivity(client, { epochIndex, blockNumber: epochIndexToBlock(epochIndex) })
-
-  consola.success(`fetchd ${totalEpochs} epochs`)
+  consola.success(`Fetched ${totalEpochs} epochs`)
 }

@@ -40,6 +40,10 @@ const validator = computed(() => {
         <ScorePie text="28 neutral/70" size-80 mx-auto :score="validator.reliability" />
       </div>
       <!-- <div self-stretch  w-2 bg-neutral-300 mx-48 /> -->
+
+      <p text-neutral-900 block max-w-700 mt-32>
+        {{ validator }}
+      </p>
     </div>
   </div>
 

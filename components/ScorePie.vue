@@ -8,6 +8,7 @@ const strokeWidth = 10
 const radius = center - strokeWidth / 2
 
 function generateArcPath(score: number) {
+  if (score === 1) score = 0.99
   const startAngle = -Math.PI / 2 // start at the top of the circle
   const endAngle = startAngle + score * 2 * Math.PI
 
@@ -30,11 +31,21 @@ const strokeColor = computed(() => {
 
 <template>
   <div grid="~ cols-1 rows-1 place-content-center *:row-span-full *:col-span-full">
-    <div font-bold size-full grid="~ place-content-center">{{ (score * 100).toFixed(0) }}</div>
-    <svg bg-transparent :viewBox="`0 0 ${viewBoxSize} ${viewBoxSize}`" height="100%" width="100%" 
-    preserveAspectRatio="xMidYMid slice">
-    <circle :r="radius" :cx="center" :cy="center" stroke-neutral-400 fill-none :stroke-width="strokeWidth" />
-    <path :d="generateArcPath(score)" :class="strokeColor" fill-none :stroke-width="strokeWidth" stroke-linecap="round" />
-  </svg>
-</div>
+    <template v-if="score > 0">
+      <div font-bold size-full grid="~ place-content-center">{{ (score * 100).toFixed(0) }}</div>
+      <svg bg-transparent :viewBox="`0 0 ${viewBoxSize} ${viewBoxSize}`" height="100%" width="100%"
+        preserveAspectRatio="xMidYMid slice">
+        <circle :r="radius" :cx="center" :cy="center" stroke-neutral-400 fill-none :stroke-width="strokeWidth" />
+        <path :d="generateArcPath(score)" :class="strokeColor" fill-none :stroke-width="strokeWidth"
+          stroke-linecap="round" />
+      </svg>
+    </template>
+    <template v-else>
+      <div font-bold size-full grid="~ place-content-center">NA</div>
+      <svg bg-transparent :viewBox="`0 0 ${viewBoxSize} ${viewBoxSize}`" height="100%" width="100%"
+        preserveAspectRatio="xMidYMid slice">
+        <circle :r="radius" :cx="center" :cy="center" stroke-neutral-400 fill-none :stroke-width="strokeWidth" />
+      </svg>
+    </template>
+  </div>
 </template>

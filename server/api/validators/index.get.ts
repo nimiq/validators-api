@@ -10,7 +10,6 @@ export default defineEventHandler(async (event) => {
       icon: tables.validators.icon,
       tag: tables.validators.tag,
       website: tables.validators.website,
-      balance: tables.validators.balance,
       total: tables.scores.total,
       liveness: tables.scores.liveness,
       size: tables.scores.size,
