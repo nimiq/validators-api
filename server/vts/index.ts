@@ -1,9 +1,7 @@
-import { Address, Client, PolicyConstants } from 'nimiq-rpc-client-ts'
+import { Client } from 'nimiq-rpc-client-ts'
 import { fetchEpochsActivity } from './fetcher'
-import { ComputeScoreConst, computeScore } from './score'
-import { consola } from 'consola'
-import { gte, lte } from 'drizzle-orm'
-import defu from 'defu'
+import { computeScore } from './score'
+import { getValidatorsParams } from './score-params'
 
 let client: Client
 function getClient(url: string) {
@@ -30,62 +28,3 @@ export async function computeVTSScore(url: string) {
   return scores
 }
 
-const WINDOW_SIZE = 9 * 30 * 24 * 60 * 60 * 1000 // 9 months
-
-async function getValidatorsParams(client: Client) {
-  const { data: activeValidators, error: errorActiveValdators } = await client.blockchain.getActiveValidators()
-  if (errorActiveValdators || !activeValidators) throw new Error(errorActiveValdators.message || 'No active validators')
-
-  const totalBalance = activeValidators.reduce((acc, v) => acc + v.balance, 0)
-
-  const getBalance = (address: Address) => activeValidators.find(v => v.address === address)?.balance || 0
-
-  const knownValidators = await useDrizzle()
-    .select()
-    .from(tables.validators)
-    .where(or(...activeValidators.map(v => eq(tables.validators.address, v.address))))
-
-  const unknownValidators = activeValidators.filter(v => !knownValidators.find(kv => kv.address === v.address))
-  if (unknownValidators.length > 0)
-    consola.warn(`Ignoring ${unknownValidators.length} unknown validators.`)
-
-  const { data: policy, error: errorPolicy } = await client.policy.getPolicyConstants()
-  if (errorPolicy || !policy) throw new Error(errorPolicy.message || 'No policy constants')
-
-  const { data: head, error: errorHead } = await client.blockchain.getBlockNumber()
-  if (errorHead || !head) throw new Error(errorHead?.message || 'No head block number')
-
-  const { blockSeparationTime, blocksPerEpoch } = policy as PolicyConstants & { blockSeparationTime: number }
-
-  const { data: currentEpoch, error: errorCurrentEpoch } = await client.blockchain.getEpochNumber()
-  if (errorCurrentEpoch || !currentEpoch) throw new Error(errorCurrentEpoch?.message || 'No current epoch')
-
-  const epochDifference = Math.ceil(WINDOW_SIZE / blockSeparationTime / blocksPerEpoch)
-  const fromEpoch = Math.max(0, currentEpoch - epochDifference)
-  const toEpoch = currentEpoch - 1
-
-  const epochIndexes = await useDrizzle()
-    .select({ epochIndex: tables.activity.epochIndex })
-    .from(tables.activity)
-    .where(and(lte(tables.activity.epochIndex, toEpoch), gte(tables.activity.epochIndex, fromEpoch)))
-    .then(r => r.map(e => e.epochIndex))
-
-  // see the differences between the two arrays
-  const missingEpochs = Array.from({ length: toEpoch - fromEpoch + 1 }, (_, i) => i + fromEpoch).filter(e => !epochIndexes.includes(e))
-
-  if (missingEpochs.length > 0)
-    throw new Error(`Missing epochs: ${missingEpochs.join(', ')}`)
-
-  const defaultScoreParams: ComputeScoreConst = { size: { totalBalance }, liveness: { fromEpoch, toEpoch } }
-  const params: { validatorId: number, params: ComputeScoreConst }[] = await Promise.all(knownValidators.map(async (v) => {
-    const activeEpochIndexes = await useDrizzle().select({ epochIndex: tables.activity.epochIndex }).from(tables.activity).where(and(
-      eq(tables.activity.validatorId, v.id),
-      lte(tables.activity.epochIndex, toEpoch),
-      gte(tables.activity.epochIndex, fromEpoch)
-    )).then(r => r.map(e => e.epochIndex))
-    const vParams: ComputeScoreConst = { liveness: { activeEpochIndexes }, size: { balance: getBalance(v.address as Address) } }
-    return { validatorId: v.id, params: defu(defaultScoreParams, vParams) }
-  }))
-
-  return params
-}

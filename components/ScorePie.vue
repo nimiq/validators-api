@@ -8,7 +8,7 @@ const strokeWidth = 10
 const radius = center - strokeWidth / 2
 
 function generateArcPath(score: number) {
-  if (score === 1) score = 0.99
+  if (score >= 0.999) score = 0.99 // TODO Improve this
   const startAngle = -Math.PI / 2 // start at the top of the circle
   const endAngle = startAngle + score * 2 * Math.PI
 
