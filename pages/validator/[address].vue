@@ -35,9 +35,18 @@ const validator = computed(() => {
       <ScorePie mt-32 text-40 size-128 mx-auto :score="validator.total"
         :style="{ 'view-transition-name': `score-${validator.id}` }" />
       <div flex="~ items-center gap-48" mt-64>
-        <ScorePie text="28 neutral/70" size-80 mx-auto :score="validator.size" />
-        <ScorePie text="28 neutral/70" size-80 mx-auto :score="validator.liveness" />
-        <ScorePie text="28 neutral/70" size-80 mx-auto :score="validator.reliability" />
+        <div>
+          <h4 label text="12 center">size</h4>
+          <ScorePie text="28 neutral/70" mt-6 size-80 mx-auto :score="validator.size" />
+        </div>
+        <div>
+          <h4 label text="12 center">liveness</h4>
+          <ScorePie text="28 neutral/70" mt-6 size-80 mx-auto :score="validator.liveness" />
+        </div>
+        <div>
+          <h4 label text="12 center">reliability</h4>
+          <ScorePie text="28 neutral/70" mt-6 size-80 mx-auto :score="validator.reliability" />
+        </div>
       </div>
       <!-- <div self-stretch  w-2 bg-neutral-300 mx-48 /> -->
 
