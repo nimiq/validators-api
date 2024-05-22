@@ -1,17 +1,16 @@
 import { Client, ElectionMacroBlock, PolicyConstants } from "nimiq-rpc-client-ts";
-import { consola } from 'consola'
-import { ActivityEpoch, AsyncResult } from "./types";
+import { ActivityEpoch } from "./types";
 
 /**
  * For a given block number, fetches the validator slots assignation.
  * The block number MUST be an election block otherwise it will throw an error.
  */
-export async function fetchValidatorSlotsAssignation(client: Client, blockNumber: number, missed: number): AsyncResult<ActivityEpoch> {
+export async function fetchValidatorSlotsAssignation(client: Client, blockNumber: number, missed: number) {
   const { data: block, error } = await client.blockchain.getBlockByNumber(blockNumber, { includeTransactions: true })
   if (error || !block) throw new Error(JSON.stringify({ blockNumber, error, block }))
   if (!('isElectionBlock' in block)) throw Error(JSON.stringify({ message: 'Block is not election block', blockNumber, block }))
-  const data = (block as ElectionMacroBlock).slots.map(({ numSlots, validator }) => ({ validator, assigned: numSlots, missed }))
-  return { data, error: undefined };
+  const assignation = (block as ElectionMacroBlock).slots.map(({ numSlots, validator }) => ({ validator, assigned: numSlots, missed }))
+  return assignation
 }
 
 /**
@@ -29,13 +28,10 @@ export async function fetchEpochsActivity(client: Client, epochsIndexes: number[
 
   const activities: Record<number, ActivityEpoch> = {}
 
-  for (const epochIndex of epochsIndexes) {
-    const blockNumber = genesisBlockNumber + epochIndex * blocksPerEpoch
-    const { data: activity, error } = await fetchValidatorSlotsAssignation(client, blockNumber, 0)
-    if (error || !activity) throw new Error(JSON.stringify({ epochIndex, blockNumber, error, activity }))
-    activities[epochIndex] = activity
-  }
+  const toBlockNumber = (epochIndex: number) => genesisBlockNumber + epochIndex * blocksPerEpoch
 
-  consola.success(`Fetched ${epochsIndexes.length} epochs`)
+  for (const epochIndex of epochsIndexes)
+    activities[epochIndex] = await fetchValidatorSlotsAssignation(client, toBlockNumber(epochIndex), 0)
+
   return activities
 }

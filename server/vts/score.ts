@@ -1,4 +1,4 @@
-import { AsyncResult, ScoreValues } from './types'
+import { ComputeScoreConst, ScoreValues } from './types'
 import { defu } from "defu"
 
 export function getSize({ balance, threshold, steepness, totalBalance }: Required<ComputeScoreConst['size']>) {
@@ -35,24 +35,20 @@ export function getLiveness({ activeEpochIndexes, fromEpoch, toEpoch, weightFact
   return liveness
 }
 
-// export async function getReliability({ }: Required<ComputeScoreConst['reliability']>): AsyncResult < number > {
-export async function getReliability({ }: any): AsyncResult<number> {
-  return { data: Math.random(), error: undefined }
+// export async function getReliability({ }: Required<ComputeScoreConst['reliability']>) {
+// TODO
+// }
+export async function getReliability({ }: any) {
+  return Math.random()
 }
 
 
 // The default values for the computeScore function
 // Negative values and empty arrays are used to indicate that the user must provide the values or an error will be thrown
-const defaultComputeScoreConst = {
+const defaultComputeScoreConst: ComputeScoreConst = {
   size: { threshold: 0.25, steepness: 4, balance: -1, totalBalance: -1 },
   liveness: { weightFactor: 0.5, fromEpoch: -1, toEpoch: -1, activeEpochIndexes: [] as number[] },
   reliability: {}
-}
-
-export type ComputeScoreConst = {
-  liveness: Partial<typeof defaultComputeScoreConst['liveness']>,
-  size: Partial<typeof defaultComputeScoreConst['size']>,
-  reliability?: Partial<typeof defaultComputeScoreConst['reliability']>
 }
 
 export function computeScore(params: ComputeScoreConst) {

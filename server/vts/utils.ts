@@ -1,6 +1,7 @@
 import { Client, PolicyConstants } from 'nimiq-rpc-client-ts'
-import { EpochRange } from './types'
-import { doValidatorsExists, getEpochIndexes } from '../database/utils'
+import { EpochRange, ScoreParams } from './types'
+// TODO REmove this
+import { getMissingValidators, getEpochIndexes } from '../database/utils'
 
 /**
  * It gets the list of active validators and all its required data in order to be able to compute the score.
@@ -9,39 +10,27 @@ import { doValidatorsExists, getEpochIndexes } from '../database/utils'
  * support the ability to compute the score for a given epoch. The main problem is that we need to fetch the
  * balances for each validators for the given epoch and currently there is no an easy way to do that.
  */
-export async function getValidatorsParams(client: Client) {
-  const { validatorBalances, totalBalance } = await getValidatorsInfo(client)
-  const range = await getEpochRange(client)
-  const validatorEpochs = await getEpochIndexes(range)
-
-  const params = Object.keys(validatorBalances).map(v => {
-    return {
-      validatorId: validatorEpochs[v].validatorId,
-      params: {
-        liveness: { activeEpochIndexes: validatorEpochs[v].activeEpochIndexes, ...range },
-        size: { balance: validatorBalances[v], totalBalance }
-      }
-    }
-  })
-
-  return params
-}
-
-/**
- * Gets the active validator list and its balances.
- * If there is a validator that is not in the database, it throws an error.
- */
-async function getValidatorsInfo(client: Client) {
+export async function getValidatorsParams(client: Client, range: EpochRange) {
   const { data: activeValidators, error: errorActiveValdators } = await client.blockchain.getActiveValidators()
   if (errorActiveValdators || !activeValidators) throw new Error(errorActiveValdators.message || 'No active validators')
 
-  const validatorsInDb = await doValidatorsExists(activeValidators.map(v => v.address))
-  if (!validatorsInDb) throw new Error('Not all validators are in the database. Make sure to run the fetcher')
+  const missingValidators = await getMissingValidators(activeValidators.map(v => v.address))
+  if (missingValidators.length > 0) throw new Error(`There are missing validators: ${missingValidators.join(', ')}`)
 
   const totalBalance = activeValidators.reduce((acc, v) => acc + v.balance, 0)
   const validatorBalances = Object.fromEntries(activeValidators.map(v => [v.address, v.balance]))
 
-  return { validatorBalances, totalBalance }
+  const validatorEpochs = await getEpochIndexes(range)
+
+  const params: ScoreParams[] = []
+  for (const { address } of activeValidators) {
+    const validatorId = validatorEpochs[address].validatorId
+    const activeEpochIndexes = validatorEpochs[address].activeEpochIndexes
+    const balance = validatorBalances[address]
+    params.push({ validatorId, params: { liveness: { activeEpochIndexes, ...range }, size: { balance, totalBalance } } })
+  }
+
+  return params
 }
 
 /**
