@@ -1,5 +1,4 @@
-import { AsyncResult } from './types'
-import { NewScore, Validator } from '../utils/drizzle'
+import { AsyncResult, ScoreValues } from './types'
 import { defu } from "defu"
 
 export function getSize({ balance, threshold, steepness, totalBalance }: Required<ComputeScoreConst['size']>) {
@@ -56,14 +55,14 @@ export type ComputeScoreConst = {
   reliability?: Partial<typeof defaultComputeScoreConst['reliability']>
 }
 
-export function computeScore(validatorId: Validator["id"], userParams: ComputeScoreConst) {
-  const computeScoreParams = defu(userParams, defaultComputeScoreConst)
+export function computeScore(params: ComputeScoreConst) {
+  const computeScoreParams = defu(params, defaultComputeScoreConst)
 
   const size = getSize(computeScoreParams.size)
   const liveness = getLiveness(computeScoreParams.liveness)
   const reliability = -1
 
   const total = size * liveness // * reliability
-  const score: NewScore = { validatorId, size, liveness, reliability, total }
+  const score: ScoreValues = { size, liveness, reliability, total }
   return score
 }

@@ -1,7 +1,9 @@
 import { Client } from 'nimiq-rpc-client-ts'
 import { fetchEpochsActivity } from './fetcher'
 import { computeScore } from './score'
-import { getValidatorsParams } from './score-params'
+import { getEpochRange, getValidatorsParams } from './utils'
+import { NewScore } from '../utils/drizzle'
+import { getMissingEpochs, storeActivities, storeScores } from '../database/utils'
 
 let client: Client
 function getClient(url: string) {
@@ -11,20 +13,30 @@ function getClient(url: string) {
 }
 
 export async function fetchVTSData(url: string) {
-  fetchEpochsActivity(getClient(url))
+  const client = getClient(url)
+
+  // The ranges that we will consider
+  const ranges = await getEpochRange(client)
+
+  // Only fetch the missing epochs that are not in the database
+  const epochsIndexes = await getMissingEpochs(ranges)
+
+  // Fetch the activity for the given epochs
+  const activities = await fetchEpochsActivity(client, epochsIndexes)
+
+  // Store the activities in the database
+  await storeActivities(activities)
 }
 
 export async function computeVTSScore(url: string) {
-  const params = await getValidatorsParams(getClient(url))
-  const scores = await Promise.all(params.map(p => computeScore(p.validatorId, p.params)))
+  const client = getClient(url)
 
-  const validatorIds = scores.map(s => s.validatorId)
+  // Get the parameters for the validators
+  const params = await getValidatorsParams(client)
 
-  // We need to insert the scores into the database
-  // I don't know if we can do an upsert. Some validators might not have a score yet so we delete and then insert
-  await useDrizzle().delete(tables.scores).where(or(...validatorIds.map(id => eq(tables.scores.validatorId, id))))
-  await useDrizzle().insert(tables.scores).values(scores)
-
-  return scores
+  // Compute the scores
+  const scoresValues = params.map(p => ({ validatorId: p.validatorId, ...computeScore(p.params) } satisfies NewScore))
+  await storeScores(scoresValues)
+  return scoresValues
 }
 

@@ -23,7 +23,6 @@ export const scores = sqliteTable('scores', {
   updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
 
-// rename to epcoh
 export const activity = sqliteTable('activity', {
   validatorId: integer('validator_id').notNull().references(() => validators.id),
   epochIndex: integer('epoch_index').notNull(),
