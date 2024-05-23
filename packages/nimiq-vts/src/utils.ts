@@ -36,10 +36,12 @@ export async function getRange(client: Client, options?: GetRangeOptions): Promi
   if (fromEpoch < 0 || toEpoch < 0 || fromEpoch > toEpoch) throw new Error(`Invalid epoch range: [${fromEpoch}, ${toEpoch}]`)
   if (fromEpoch === 0) throw new Error(`Invalid epoch range: [${fromEpoch}, ${toEpoch}]. The range should start from epoch 1`)
 
-  const { data: blockNumber, error: errorBlockNumber } = await client.blockchain.getBlockNumber()
-  if (errorBlockNumber || !blockNumber) throw new Error(errorBlockNumber?.message || 'No block number')
-  if (toEpoch >= blockNumber) throw new Error(`Invalid epoch range: [${fromEpoch}, ${toEpoch}]. The current head is ${blockNumber}`)
+  const { data: head, error: headError } = await client.blockchain.getBlockNumber()
+  if (headError || !head) throw new Error(headError?.message || 'No block number')
+  if (toEpoch >= head) throw new Error(`Invalid epoch range: [${fromEpoch}, ${toEpoch}]. The current head is ${head}`)
 
-  const range: Range = { fromEpoch, toEpoch, blocksPerEpoch }
+  const blockNumberToIndex = (blockNumber: number) => Math.floor((blockNumber - genesisBlockNumber) / blocksPerEpoch) - fromEpochIndex
+
+  const range: Range = { fromEpoch, toEpoch, blocksPerEpoch, blockNumberToIndex }
   return range
 }

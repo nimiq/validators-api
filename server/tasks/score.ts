@@ -2,7 +2,7 @@ import { consola } from 'consola'
 import { Client } from 'nimiq-rpc-client-ts'
 import { computeScore, getRange } from 'nimiq-vts'
 import { NewScore } from '../utils/drizzle'
-import { getActivityByValidator, storeScores } from '../database/utils'
+import { getValidatorParams, storeScores } from '../database/utils'
 
 export default defineTask({
   meta: {
@@ -22,7 +22,7 @@ export default defineTask({
     if (errorActiveValidators || !activeValidators) throw new Error(errorActiveValidators.message || 'No active validators')
 
     // Get the activity for the range. If there is missing validators or activity it will throw an error
-    const activity = await getActivityByValidator(activeValidators, range)
+    const activity = await getValidatorParams(activeValidators, range)
     const totalBalance = activeValidators.reduce((acc, v) => acc + v.balance, 0)
 
     consola.info(`Computing score for: ${Object.keys(activity).join(', ')}`)

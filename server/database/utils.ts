@@ -1,5 +1,5 @@
 import { gte, inArray, lte } from "drizzle-orm"
-import type { EpochActivity, Range, ValidatorActivity } from "nimiq-vts"
+import type { EpochActivity, Range, ValidatorParams } from "nimiq-vts"
 // @ts-expect-error no types
 import Identicons from '@nimiq/identicons'
 import { NewScore, NewValidator } from "../utils/drizzle"
@@ -47,7 +47,7 @@ export async function storeValidator(address: string, rest: Omit<NewValidator, '
  * Given a list of validator addresses and a range of epochs, it returns the activity for the given validators and epochs.
  * If there are missing validators or epochs, it will throw an error.
  */
-export async function getActivityByValidator(validators: { address: string, balance: number }[], range: Range) {
+export async function getValidatorParams(validators: { address: string, balance: number }[], range: Range) {
   const addresses = validators.map(v => v.address)
   const missingValidators = await getMissingValidators(addresses)
   if (missingValidators.length > 0) throw new Error(`Missing validators in database: ${missingValidators.join(', ')}. Run the fetch task first.`)
@@ -57,27 +57,33 @@ export async function getActivityByValidator(validators: { address: string, bala
 
   const activities = await useDrizzle()
     .select({
-      blockNumber: tables.activity.epochBlockNumber,
+      epoch: tables.activity.epochBlockNumber,
       address: tables.validators.address,
-      validatorId: tables.validators.id
+      validatorId: tables.validators.id,
     })
     .from(tables.activity)
     .innerJoin(tables.validators, eq(tables.activity.validatorId, tables.validators.id))
     .where(and(
-      // Get epochs in the range and for the given validators
-      gte(tables.activity.epochBlockNumber, range.fromEpoch), lte(tables.activity.epochBlockNumber, range.toEpoch),
+      gte(tables.activity.epochBlockNumber, range.fromEpoch),
+      lte(tables.activity.epochBlockNumber, range.toEpoch),
       inArray(tables.validators.address, addresses)
     ))
     .execute()
 
-  const activitiesByValidator = activities.reduce((acc, activity) => {
-    const balance = validators.find(v => v.address === activity.address)?.balance
-    if (!balance) throw new Error(`No balance for validator ${activity.address}`)
-    if (!acc[activity.address]) acc[activity.address] = { validatorId: activity.validatorId, balance, activeEpochBlockNumbers: [] }
-    acc[activity.address].activeEpochBlockNumbers.push(activity.blockNumber)
-    return acc
-  }, {} as ValidatorActivity)
-  return activitiesByValidator
+  // Create an array of all epochs in the range
+  const allEpochs = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => range.fromEpoch + i)
+  
+  // Reduce the activities to the desired format
+  const validatorParams: ValidatorParams = {}
+  for (const {address, balance} of validators) {
+    const validatorActivities = activities.filter(a => a.address === address)
+    const validatorId = validatorActivities[0].validatorId
+    const activeEpochStates = allEpochs.map(() => 0)
+    validatorActivities.forEach(activity => activeEpochStates[range.blockNumberToIndex(activity.epoch)] = 1)
+    validatorParams[address] = { validatorId, balance, activeEpochStates }
+  }
+  return validatorParams
+
 }
 
 /**

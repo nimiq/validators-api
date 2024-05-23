@@ -9,36 +9,29 @@ export function getSize({ balance, threshold, steepness, totalBalance }: ScorePa
   return s
 }
 
-// TODO: active epoch numbers convert to binary array
-export function getLiveness({ activeEpochBlockNumbers, blocksPerEpoch, fromEpoch, toEpoch, weightFactor }: ScoreParams['liveness']) {
-  if (!activeEpochBlockNumbers || !fromEpoch || !toEpoch || !weightFactor || !blocksPerEpoch)
-    throw new Error(`Invalid params: ${JSON.stringify({ activeEpochBlockNumbers, blocksPerEpoch, fromEpoch, toEpoch, weightFactor })}`)
-  if (fromEpoch === -1 || toEpoch === -1 || activeEpochBlockNumbers.length === 0)
-    throw new Error(`fromEpoch, toEpoch, or activeEpochBlockNumbers is not set: ${fromEpoch}, ${toEpoch}, ${activeEpochBlockNumbers}`)
-  if (toEpoch - fromEpoch + 1 <= 0) 
-    throw new Error(`Invalid epoch range. fromEpoch: ${fromEpoch}, toEpoch: ${toEpoch}`)
+export function getLiveness({ activeEpochStates, weightFactor }: ScoreParams['liveness']) {
+  if (!activeEpochStates || !weightFactor || activeEpochStates.length === 0)
+    throw new Error(`Invalid params: ${JSON.stringify({ activeEpochStates, weightFactor })}`)
 
   let weightedSum = 0
   let weightTotal = 0
 
-  const n = toEpoch - fromEpoch // Total number of epochs in the window
-  const indexToBlockNumber = (i: number) => fromEpoch + i * blocksPerEpoch
-  for (let i = 0; i <= n; i++) {
-    const index = indexToBlockNumber(i)
-    const isActive = activeEpochBlockNumbers.indexOf(index) ? 1 : 0
-    const weight = 1 - weightFactor * index / n
-    weightedSum += weight * isActive
+  for (const [i, state] of activeEpochStates.entries()) {
+    const weight = 1 - (weightFactor * i) / activeEpochStates.length
+    weightedSum += weight * state
     weightTotal += weight
   }
-  if (weightTotal === 0) throw new Error('Weight total is zero, cannot divide by zero')
 
-  const movingAverage = weightedSum / weightTotal
-  const liveness = -Math.pow(movingAverage, 2) + 2 * movingAverage
+  if (weightTotal === 0)
+    throw new Error('Weight total is zero, cannot divide by zero');
 
-  return liveness
+  const movingAverage = weightedSum / weightTotal;
+  const liveness = -Math.pow(movingAverage, 2) + 2 * movingAverage;
+
+  return liveness;
 }
 
-// export async function getReliability({ }: Required<ScoreParams['reliability']>) {
+// export async function getReliability({ }: ScoreParams['reliability']) {
 // TODO
 // }
 export async function getReliability({ }: any) {
@@ -50,7 +43,7 @@ export async function getReliability({ }: any) {
 // Negative values and empty arrays are used to indicate that the user must provide the values or an error will be thrown
 const defaultScoreParams: ScoreParams = {
   size: { threshold: 0.25, steepness: 4, balance: -1, totalBalance: -1 },
-  liveness: { weightFactor: 0.5, fromEpoch: -1, toEpoch: -1, activeEpochBlockNumbers: [] as number[] },
+  liveness: { weightFactor: 0.5, activeEpochStates: [] },
   reliability: {}
 }
 
