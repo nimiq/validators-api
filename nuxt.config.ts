@@ -111,5 +111,5 @@ export default defineNuxtConfig({
       remarkPlugins: ['remark-math'],
       rehypePlugins: ['rehype-mathjax'],
     }
-  }
+  },
 })

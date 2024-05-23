@@ -6,5 +6,6 @@ export default withNuxt(
   antfu({
     unocss: true,
     formatters: true,
+    files: ['**/*.ts', '**/*.vue', '**/*.md'],
   }),
 )

@@ -41,7 +41,6 @@ $$
 $$
 
 n = batches_in_a_day \* d
-
 $$
 
 ### **Adjusting for High-Reliability Expectations**
@@ -56,7 +55,6 @@ R=-c+1-\sqrt{-\bar{R}^{2}+2c\bar{R}+\left(c-1\right)^{2}}
 \\~\\
 \text{Center of circle at (c,-c+1), where }
 c=-0.16
-
 $$
 
 <iframe src="https://www.desmos.com/calculator/zqemsh7yay" width="100%" height="500px"></iframe>

@@ -44,9 +44,11 @@
     "drizzle-zod": "^0.5.1",
     "eslint": "^9.2.0",
     "eslint-plugin-format": "^0.1.1",
+    "lint-staged": "^15.2.4",
     "nimiq-css": "^0.0.96",
     "rehype-mathjax": "^6.0.0",
     "remark-math": "^6.0.0",
+    "simple-git-hooks": "^2.11.1",
     "vite-plugin-top-level-await": "^1.4.1",
     "vite-plugin-wasm": "^3.3.0",
     "wrangler": "^3.56.0"

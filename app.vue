@@ -10,10 +10,12 @@ const validatorDetail = computed(() => !!route.params.address)
 </script>
 
 <template>
-  <div flex="~ col gap-64" size-screen mx-auto max-h-screen max-w-1200 py-20 px-32>
+  <div flex="~ col gap-64" mx-auto size-screen max-h-screen max-w-1200 px-32 py-20>
     <header flex="~ gap-32 row items-center">
-      <div i-nimiq:logos-nimiq-horizontal dark:i-nimiq:logos-nimiq-white-horizontal !w-90 !h-24 ml-16 />
-      <NuxtLink v-if="validatorDetail" to="/" arrow-back block ghost-btn w-max>Go Back</NuxtLink>
+      <div i-nimiq:logos-nimiq-horizontal ml-16 h-24 w-90 dark:i-nimiq:logos-nimiq-white-horizontal />
+      <NuxtLink v-if="validatorDetail" to="/" block w-max arrow-back ghost-btn>
+        Go Back
+      </NuxtLink>
       <div flex-auto />
       <NuxtLink to="https://github.com/onmax/nimiq-validators" i-nimiq:logos-github-mono target="_blank" />
       <button i-nimiq:moon @click="() => toggleDark()" />
@@ -23,8 +25,10 @@ const validatorDetail = computed(() => !!route.params.address)
       <NuxtPage />
     </main>
 
-    <footer pb-40 self-center>
-      Learn about the <NuxtLink to="/validator-trust-score" text-blue arrow>Validator Trust Score</NuxtLink>
+    <footer self-center pb-40>
+      Learn about the <NuxtLink to="/validator-trust-score" text-blue arrow>
+        Validator Trust Score
+      </NuxtLink>
     </footer>
   </div>
 </template>
