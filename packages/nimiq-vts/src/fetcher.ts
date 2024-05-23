@@ -1,5 +1,5 @@
 import { Client, ElectionMacroBlock } from "nimiq-rpc-client-ts";
-import { ActivityEpoch } from "./types";
+import { EpochActivity } from "./types";
 
 /**
  * For a given block number, fetches the validator slots assignation.
@@ -16,7 +16,7 @@ export async function fetchValidatorSlotsAssignation(client: Client, blockNumber
 /**
  * Fetches the activity for the given block numbers. 
  */
-export async function fetchEpochsActivity(client: Client, epochBlockNumbers: number[]): Promise<Record<number, ActivityEpoch>> {
+export async function fetchEpochsActivity(client: Client, epochBlockNumbers: number[]): Promise<EpochActivity> {
   const promises = epochBlockNumbers.map(async blockNumber => [blockNumber, await fetchValidatorSlotsAssignation(client, blockNumber, 0)])
   return Object.fromEntries(await Promise.all(promises))
 }

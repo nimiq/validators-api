@@ -1,5 +1,5 @@
 import { gte, inArray, lte } from "drizzle-orm"
-import { EpochActivity, Range, ValidatorActivity } from "../vts/types"
+import type { EpochActivity, Range, ValidatorActivity } from "nimiq-vts"
 // @ts-expect-error no types
 import Identicons from '@nimiq/identicons'
 import { NewScore, NewValidator } from "../utils/drizzle"
@@ -39,7 +39,7 @@ export async function storeValidator(address: string, rest: Omit<NewValidator, '
 }
 
 /**
- * Give a list of validator addresses and a range of epochs, it returns the activity for the given validators and epochs.
+ * Given a list of validator addresses and a range of epochs, it returns the activity for the given validators and epochs.
  * If there are missing validators or epochs, it will throw an error.
  */
 export async function getActivityByValidator(validators: { address: string, balance: number }[], range: Range) {
@@ -75,7 +75,7 @@ export async function getActivityByValidator(validators: { address: string, bala
 }
 
 /**
- * Given a range of epochs, it returns the epochs that are missing in the database. 
+ * Given a range, it returns the epochs that are missing in the database. 
  */
 export async function getMissingEpochs(range: Range) {
   const existingEpochs = await useDrizzle()
@@ -96,7 +96,6 @@ export async function getMissingEpochs(range: Range) {
  * It will delete the activities for the given epochs and then insert the new activities.
  */
 export async function storeActivities(activities: EpochActivity) {
-
   const values: Newactivity[] = []
   const blockNumbers = Object.keys(activities).map(Number)
   for (const _epochBlockNumber of blockNumbers) {
@@ -109,7 +108,7 @@ export async function storeActivities(activities: EpochActivity) {
 
   await useDrizzle().delete(tables.activity).where(inArray(tables.activity.epochBlockNumber, blockNumbers))
 
-  // For some reason, D1 is hanging when inserting all the values at once. So dividing the values in chunks of 32
+  // For some reason, D1 is hanging when inserting all the values at once. So dividing the values in chunks
   // seems to work: https://github.com/prisma/prisma/discussions/23646#discussioncomment-9083299
   const chunkArray = (arr: any[], chunkSize: number) => Array.from({ length: Math.ceil(arr.length / chunkSize) }, (_, i) => arr.slice(i * chunkSize, i * chunkSize + chunkSize))
   for (const chunk of chunkArray(values, 16))

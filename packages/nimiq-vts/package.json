@@ -1,0 +1,60 @@
+{
+  "name": "nimiq-vts",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "The algorithm to compute the Nimiq's Validator Trust Score",
+  "license": "MIT",
+  "homepage": "https://github.com/onmax/nimiq-validators#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onmax/nimiq-validators.git"
+  },
+  "bugs": "https://github.com/onmax/nimiq-validators/issues",
+  "keywords": [],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "prepublishOnly": "nr build",
+    "release": "bumpp && npm publish",
+    "start": "esno src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "prepare": "simple-git-hooks"
+  },
+  "dependencies": {
+    "defu": "^6.1.4",
+    "nimiq-rpc-client-ts": "^0.3.0"
+  },
+  "devDependencies": {
+    "@antfu/ni": "^0.21.12",
+    "@antfu/utils": "^0.7.8",
+    "@types/node": "^20.12.12",
+    "bumpp": "^9.4.1",
+    "esno": "^4.7.0",
+    "pnpm": "^9.1.1",
+    "typescript": "^5.4.5",
+    "unbuild": "^2.0.0",
+    "vite": "^5.2.11"
+  }
+}

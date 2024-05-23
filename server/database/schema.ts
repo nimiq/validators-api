@@ -13,6 +13,8 @@ export const validators = sqliteTable('validators', {
   website: text('website'),
 })
 
+// TODO The score is calculated based on a window of epochs (default 9 months)
+// Maybe we could add those two parameters (fromEpochNumber and toEpochNumber) to the scores table to have more context
 export const scores = sqliteTable('scores', {
   id: integer('score_id').notNull().primaryKey(),
   validatorId: integer('validator_id').notNull().references(() => validators.id).unique(),

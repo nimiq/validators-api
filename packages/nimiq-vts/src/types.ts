@@ -6,7 +6,7 @@ export type ScoreParams = {
 export type ActivityEpoch = { validator: string, assigned: number, missed: number }[]
 export type ValidatorActivity = Record<string /* address */, { activeEpochBlockNumbers: number[], validatorId: number, balance: number }>
 export type EpochActivity = Record<number /* Election block number */, ActivityEpoch>
-export type ScoreValues = Pick<Score, 'liveness' | 'reliability' | 'size' | 'total'>
+export type ScoreValues = { liveness: number, reliability: number, size: number, total: number }
 export interface Range {
   // The first block number that we will consider
   fromEpoch: number,

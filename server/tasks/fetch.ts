@@ -1,6 +1,5 @@
 import { Client } from 'nimiq-rpc-client-ts'
-import { fetchEpochsActivity } from '../vts/fetcher'
-import { getRange } from '../vts/utils'
+import { fetchEpochsActivity, getRange } from 'nimiq-vts'
 import { getMissingEpochs, storeActivities } from '../database/utils'
 import { consola } from 'consola'
 

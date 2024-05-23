@@ -1,7 +1,6 @@
 import { consola } from 'consola'
 import { Client } from 'nimiq-rpc-client-ts'
-import { computeScore } from '../vts/score'
-import { getRange } from '../vts/utils'
+import { computeScore, getRange } from 'nimiq-vts'
 import { NewScore } from '../utils/drizzle'
 import { getActivityByValidator, storeScores } from '../database/utils'
 
