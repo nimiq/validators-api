@@ -1,16 +1,16 @@
-import wasm from "vite-plugin-wasm"
-import topLevelAwait from "vite-plugin-top-level-await"
+import wasm from 'vite-plugin-wasm'
+import topLevelAwait from 'vite-plugin-top-level-await'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: [
-    "@vueuse/nuxt",
-    "@pinia/nuxt",
-    "@unocss/nuxt",
-    "@nuxtjs/color-mode",
-    "@nuxt/eslint",
-    "@nuxthub/core",
+    '@vueuse/nuxt',
+    '@pinia/nuxt',
+    '@unocss/nuxt',
+    '@nuxtjs/color-mode',
+    '@nuxt/eslint',
+    '@nuxthub/core',
     '@nuxt/image',
     '@nuxt/content',
   ],
@@ -21,12 +21,12 @@ export default defineNuxtConfig({
 
   $development: {
     hub: {
-      remote: true
-    }
+      remote: true,
+    },
   },
 
   runtimeConfig: {
-    rpcUrl: '' // Set in .env
+    rpcUrl: '', // Set in .env
   },
 
   experimental: {
@@ -35,7 +35,7 @@ export default defineNuxtConfig({
     payloadExtraction: false,
     renderJsonPayloads: true,
     typedPages: true,
-    viewTransition: true
+    viewTransition: true,
   },
 
   vite: {
@@ -45,7 +45,7 @@ export default defineNuxtConfig({
     ],
     optimizeDeps: {
       exclude: ['@nimiq/core-web'],
-    }
+    },
   },
 
   nitro: {
@@ -55,20 +55,18 @@ export default defineNuxtConfig({
       },
     },
     experimental: {
-      tasks: true
-    }
+      tasks: true,
+    },
   },
 
   app: {
     head: {
       htmlAttrs: {
-        lang: 'en'
+        lang: 'en',
       },
       viewport: 'width=device-width,initial-scale=1',
       link: [
-        { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
-        { rel: 'icon', type: 'image/icon', href: '/favicon.ico' },
-        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'icon', type: 'image/image/svg+xml', href: '/favicon.svg' },
       ],
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -103,13 +101,13 @@ export default defineNuxtConfig({
         name: 'Validator',
         type: true,
       },
-    ]
+    ],
   },
 
   content: {
     markdown: {
       remarkPlugins: ['remark-math'],
       rehypePlugins: ['rehype-mathjax'],
-    }
+    },
   },
 })

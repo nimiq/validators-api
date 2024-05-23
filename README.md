@@ -1,8 +1,8 @@
 <h1 align="center">Nimiq Validators</h1>
 
 <p align="center">
-  <a href="https://github.com/onmax/nimiq-vue-template">
-    <img src="https://github.com/onmax/nimiq-vue-template/raw/main/public/brave_screenshot_localhost.png" alt="Nimiq Nuxt Template" width="644" />
+  <a href="https://nimiq-validators.nuxt.dev">
+    <img src="./public/favicon.svg" alt="Nimiq Validators" width="64" />
   </a>
 
 <p align="center">
