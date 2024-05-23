@@ -20,12 +20,11 @@ export const scores = sqliteTable('scores', {
   liveness: real('liveness').notNull(),
   size: real('size').notNull(),
   reliability: real('reliability').notNull(),
-  updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
 })
 
 export const activity = sqliteTable('activity', {
   validatorId: integer('validator_id').notNull().references(() => validators.id),
-  epochIndex: integer('epoch_index').notNull(),
+  epochBlockNumber: integer('epoch_block_number').notNull(),
   assigned: integer('assigned').notNull(),
   missed: integer('missed').notNull(),
-}, ({ epochIndex, validatorId }) => ({ pk: primaryKey({ columns: [validatorId, epochIndex] }) }))
+}, ({ epochBlockNumber, validatorId }) => ({ pk: primaryKey({ columns: [validatorId, epochBlockNumber] }) }))

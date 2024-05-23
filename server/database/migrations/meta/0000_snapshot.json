@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a933a4be-af11-4e85-af36-1103ab9c4196",
+  "id": "e0c818d9-d1cc-4bab-8acb-3da68fdbdb69",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -14,8 +14,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "epoch_index": {
-          "name": "epoch_index",
+        "epoch_block_number": {
+          "name": "epoch_block_number",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -53,12 +53,12 @@
         }
       },
       "compositePrimaryKeys": {
-        "activity_validator_id_epoch_index_pk": {
+        "activity_validator_id_epoch_block_number_pk": {
           "columns": [
-            "epoch_index",
+            "epoch_block_number",
             "validator_id"
           ],
-          "name": "activity_validator_id_epoch_index_pk"
+          "name": "activity_validator_id_epoch_block_number_pk"
         }
       },
       "uniqueConstraints": {}
@@ -107,14 +107,6 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
         }
       },
       "indexes": {

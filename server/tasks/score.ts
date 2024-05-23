@@ -1,9 +1,9 @@
 import { consola } from 'consola'
 import { Client } from 'nimiq-rpc-client-ts'
 import { computeScore } from '../vts/score'
-import { getEpochRange, getValidatorsParams } from '../vts/utils'
+import { getRange } from '../vts/utils'
 import { NewScore } from '../utils/drizzle'
-import { storeScores } from '../database/utils'
+import { getActivityByValidator, storeScores } from '../database/utils'
 
 export default defineTask({
   meta: {
@@ -15,18 +15,25 @@ export default defineTask({
     const client = new Client(new URL(useRuntimeConfig().rpcUrl))
 
     // The range that we will consider
-    const range = await getEpochRange(client)
+    const range = await getRange(client)
     consola.info(`Fetching data for range: ${JSON.stringify(range)}`)
 
-    // Get the parameters for the validators
-    const params = await getValidatorsParams(client, range)
-    consola.info(`Prepared params for score computation: ${JSON.stringify(params)}`)
+    // When we compute the score, we only compute the score for the current active validators
+    const { data: activeValidators, error: errorActiveValdators } = await client.blockchain.getActiveValidators()
+    if (errorActiveValdators || !activeValidators) throw new Error(errorActiveValdators.message || 'No active validators')
 
-    // Compute the scores
-    const scoresValues = params.map(p => ({ validatorId: p.validatorId, ...computeScore(p.params) } satisfies NewScore))
-    await storeScores(scoresValues)
-    consola.success(`Stored scores for ${scoresValues.length} validators`)
+    // Get the activity for the range. If there is missing validators or activity
+    const activity = await getActivityByValidator(activeValidators, range)
+    const totalBalance = activeValidators.reduce((acc, v) => acc + v.balance, 0)
 
-    return { result: scoresValues }
+    consola.info(`Computing score for: ${Object.keys(activity).join(', ')}`)
+    const scores = Object.values(activity).map(({ activeEpochBlockNumbers, validatorId, balance }) => {
+      const score = computeScore({ liveness: { activeEpochBlockNumbers, ...range }, size: { balance, totalBalance } })
+      return { validatorId, ...score } satisfies NewScore
+    })
+    await storeScores(scores)
+    consola.success(`Stored scores for ${scores.length} validators`)
+
+    return { result: scores }
   },
 })

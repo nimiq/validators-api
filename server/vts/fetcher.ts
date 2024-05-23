@@ -1,4 +1,4 @@
-import { Client, ElectionMacroBlock, PolicyConstants } from "nimiq-rpc-client-ts";
+import { Client, ElectionMacroBlock } from "nimiq-rpc-client-ts";
 import { ActivityEpoch } from "./types";
 
 /**
@@ -14,24 +14,9 @@ export async function fetchValidatorSlotsAssignation(client: Client, blockNumber
 }
 
 /**
- * Fetches the activity for a range of epochs and stores it in the database. 
- * 
- * It will fetch the activity epoch by epoch and store it in the database. It will go from the last epoch to the first epoch.
- * 
- * @param client The RPC client
- * @param customRange The range to fetch the activity. Optional.
+ * Fetches the activity for the given block numbers. 
  */
-export async function fetchEpochsActivity(client: Client, epochsIndexes: number[]) {
-  const { data: policy, error: errorPolicy } = await client.policy.getPolicyConstants()
-  if (errorPolicy) throw new Error(JSON.stringify({ errorPolicy, policy }))
-  const { blocksPerEpoch, genesisBlockNumber } = policy as PolicyConstants & { genesisBlockNumber: number }
-
-  const activities: Record<number, ActivityEpoch> = {}
-
-  const toBlockNumber = (epochIndex: number) => genesisBlockNumber + epochIndex * blocksPerEpoch
-
-  for (const epochIndex of epochsIndexes)
-    activities[epochIndex] = await fetchValidatorSlotsAssignation(client, toBlockNumber(epochIndex), 0)
-
-  return activities
+export async function fetchEpochsActivity(client: Client, epochBlockNumbers: number[]): Promise<Record<number, ActivityEpoch>> {
+  const promises = epochBlockNumbers.map(async blockNumber => [blockNumber, await fetchValidatorSlotsAssignation(client, blockNumber, 0)])
+  return Object.fromEntries(await Promise.all(promises))
 }

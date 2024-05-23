@@ -1,9 +1,9 @@
 CREATE TABLE `activity` (
 	`validator_id` integer NOT NULL,
-	`epoch_index` integer NOT NULL,
+	`epoch_block_number` integer NOT NULL,
 	`assigned` integer NOT NULL,
 	`missed` integer NOT NULL,
-	PRIMARY KEY(`epoch_index`, `validator_id`),
+	PRIMARY KEY(`epoch_block_number`, `validator_id`),
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
@@ -14,7 +14,6 @@ CREATE TABLE `scores` (
 	`liveness` real NOT NULL,
 	`size` real NOT NULL,
 	`reliability` real NOT NULL,
-	`updated_at` text DEFAULT (CURRENT_TIMESTAMP),
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint

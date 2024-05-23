@@ -1,6 +1,6 @@
 import { Client } from 'nimiq-rpc-client-ts'
 import { fetchEpochsActivity } from '../vts/fetcher'
-import { getEpochRange } from '../vts/utils'
+import { getRange } from '../vts/utils'
 import { getMissingEpochs, storeActivities } from '../database/utils'
 import { consola } from 'consola'
 
@@ -15,20 +15,20 @@ export default defineTask({
     const client = new Client(new URL(useRuntimeConfig().rpcUrl))
 
     // The range that we will consider
-    const range = await getEpochRange(client)
+    const range = await getRange(client)
     consola.info(`Fetching data for range: ${JSON.stringify(range)}`)
 
     // Only fetch the missing epochs that are not in the database
-    const epochsIndexes = await getMissingEpochs(range)
-    consola.info(`Fetching data for epochs: ${JSON.stringify(epochsIndexes)}`)
-    if (epochsIndexes.length === 0) return { success: "No epochs to fetch. Database is up to date" }
+    const epochBlockNumbers = await getMissingEpochs(range)
+    consola.info(`Fetching data for epochs: ${JSON.stringify(epochBlockNumbers)}`)
+    if (epochBlockNumbers.length === 0) return { success: "No epochs to fetch. Database is up to date" }
 
     // Fetch the activity for the given epochs
-    const activities = await fetchEpochsActivity(client, epochsIndexes)
-    consola.info(`Fetched data for ${epochsIndexes.length} epochs`)
+    const activities = await fetchEpochsActivity(client, epochBlockNumbers)
+    consola.info(`Fetched data for ${epochBlockNumbers.length} epochs`)
 
     await storeActivities(activities)
-    consola.success(`Stored data for ${epochsIndexes.length} epochs. (${range.totalEpochs - epochsIndexes.length} epochs were already in the database)`)
+    consola.success(`Stored data for ${epochBlockNumbers.length} epochs.`)
 
     return { result: "success" }
   },

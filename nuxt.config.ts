@@ -104,5 +104,12 @@ export default defineNuxtConfig({
         type: true,
       },
     ]
+  },
+
+  content: {
+    markdown: {
+      remarkPlugins: ['remark-math'],
+      rehypePlugins: ['rehype-mathjax'],
+    }
   }
 })

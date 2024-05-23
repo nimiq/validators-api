@@ -1,12 +1,15 @@
 import { NewValidator } from "../utils/drizzle";
 import { getMissingValidators, storeValidator } from "./utils";
+import { consola } from 'consola'
 
 export async function seedDatabase() {
+  consola.info('Seeding database with validators...')
   for (const validator of validators) {
-    if ((await getMissingValidators([validator.address])).length > 0)
+    const alreadyInDatabase = await getMissingValidators([validator.address]).then(r => r.length === 0)
+    if (alreadyInDatabase)
       await useDrizzle().update(tables.validators).set({ ...validator }).where(eq(tables.validators.address, validator.address)).execute()
     else
-      await storeValidator(validator.address)
+      await storeValidator(validator.address, validator)
   }
 }
 
