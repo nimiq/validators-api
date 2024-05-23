@@ -25,6 +25,7 @@ export async function getRange(client: Client, options?: GetRangeOptions): Promi
     if (errorCurrentEpoch || !currentEpoch) throw new Error(errorCurrentEpoch?.message || 'No current epoch')
     toEpochIndex = currentEpoch - 1
   }
+  // Don't go back more than the block after the genesis block
   const fromEpochIndex = Math.max(1, toEpochIndex - epochsCount)
 
   // Convert indexes to election blocks

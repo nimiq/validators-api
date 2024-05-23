@@ -4,6 +4,11 @@ import type { EpochActivity, Range, ValidatorActivity } from "nimiq-vts"
 import Identicons from '@nimiq/identicons'
 import { NewScore, NewValidator } from "../utils/drizzle"
 
+/**
+ * Given a list of validator addresses, it returns the addresses that are missing in the database.
+ * This is useful when we are fetching the activity for a range of epochs and we need to check if the validators are already in the database.
+ * They should be present in the database because the fetch function needs to be run in order to compute the score.
+ */
 export async function getMissingValidators(addresses: string[]) {
   const existingAddresses = await useDrizzle()
     .select({ address: tables.validators.address })
@@ -45,10 +50,10 @@ export async function storeValidator(address: string, rest: Omit<NewValidator, '
 export async function getActivityByValidator(validators: { address: string, balance: number }[], range: Range) {
   const addresses = validators.map(v => v.address)
   const missingValidators = await getMissingValidators(addresses)
-  if (missingValidators.length > 0) throw new Error(`Missing validators: ${missingValidators.join(', ')}`)
+  if (missingValidators.length > 0) throw new Error(`Missing validators in database: ${missingValidators.join(', ')}. Run the fetch task first.`)
 
   const missingEpochs = await getMissingEpochs(range)
-  if (missingEpochs.length > 0) throw new Error(`Missing epochs: ${missingEpochs.join(', ')}`)
+  if (missingEpochs.length > 0) throw new Error(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
 
   const activities = await useDrizzle()
     .select({
@@ -59,7 +64,8 @@ export async function getActivityByValidator(validators: { address: string, bala
     .from(tables.activity)
     .innerJoin(tables.validators, eq(tables.activity.validatorId, tables.validators.id))
     .where(and(
-      lte(tables.activity.epochBlockNumber, range.toEpoch), gte(tables.activity.epochBlockNumber, range.fromEpoch),
+      // Get epochs in the range and for the given validators
+      gte(tables.activity.epochBlockNumber, range.fromEpoch), lte(tables.activity.epochBlockNumber, range.toEpoch),
       inArray(tables.validators.address, addresses)
     ))
     .execute()

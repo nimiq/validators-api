@@ -18,10 +18,10 @@ export default defineTask({
     consola.info(`Fetching data for range: ${JSON.stringify(range)}`)
 
     // When we compute the score, we only compute the score for the current active validators
-    const { data: activeValidators, error: errorActiveValdators } = await client.blockchain.getActiveValidators()
-    if (errorActiveValdators || !activeValidators) throw new Error(errorActiveValdators.message || 'No active validators')
+    const { data: activeValidators, error: errorActiveValidators } = await client.blockchain.getActiveValidators()
+    if (errorActiveValidators || !activeValidators) throw new Error(errorActiveValidators.message || 'No active validators')
 
-    // Get the activity for the range. If there is missing validators or activity
+    // Get the activity for the range. If there is missing validators or activity it will throw an error
     const activity = await getActivityByValidator(activeValidators, range)
     const totalBalance = activeValidators.reduce((acc, v) => acc + v.balance, 0)
 

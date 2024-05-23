@@ -4,6 +4,7 @@ export type ScoreParams = {
   reliability?: {}
 }
 export type ActivityEpoch = { validator: string, assigned: number, missed: number }[]
+// TODO: rename ValidatorActivity to be more descriptive
 export type ValidatorActivity = Record<string /* address */, { activeEpochBlockNumbers: number[], validatorId: number, balance: number }>
 export type EpochActivity = Record<number /* Election block number */, ActivityEpoch>
 export type ScoreValues = { liveness: number, reliability: number, size: number, total: number }

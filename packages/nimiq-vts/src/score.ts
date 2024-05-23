@@ -9,28 +9,31 @@ export function getSize({ balance, threshold, steepness, totalBalance }: ScorePa
   return s
 }
 
+// TODO: active epoch numbers convert to binary array
 export function getLiveness({ activeEpochBlockNumbers, blocksPerEpoch, fromEpoch, toEpoch, weightFactor }: ScoreParams['liveness']) {
   if (!activeEpochBlockNumbers || !fromEpoch || !toEpoch || !weightFactor || !blocksPerEpoch)
-    throw new Error("Active epoch block numbers, from epoch, to epoch, blocks per epoch, or weight factor is not set")
+    throw new Error(`Invalid params: ${JSON.stringify({ activeEpochBlockNumbers, blocksPerEpoch, fromEpoch, toEpoch, weightFactor })}`)
   if (fromEpoch === -1 || toEpoch === -1 || activeEpochBlockNumbers.length === 0)
     throw new Error(`fromEpoch, toEpoch, or activeEpochBlockNumbers is not set: ${fromEpoch}, ${toEpoch}, ${activeEpochBlockNumbers}`)
+  if (toEpoch - fromEpoch + 1 <= 0) 
+    throw new Error(`Invalid epoch range. fromEpoch: ${fromEpoch}, toEpoch: ${toEpoch}`)
 
-  const n = toEpoch - fromEpoch + 1; // Total number of epochs in the window
-  if (n <= 0) throw new Error('Invalid epoch range');
+  let weightedSum = 0
+  let weightTotal = 0
 
-  let weightedSum = 0;
-  let weightTotal = 0;
-
-  for (let i = toEpoch; i >= fromEpoch; i--) {
-    const isActive = activeEpochBlockNumbers.includes(i) ? 1 : 0;
-    const weight = 1 - weightFactor * (i - fromEpoch) / (toEpoch - fromEpoch);
-    weightedSum += weight * isActive;
-    weightTotal += weight;
+  const n = toEpoch - fromEpoch // Total number of epochs in the window
+  const indexToBlockNumber = (i: number) => fromEpoch + i * blocksPerEpoch
+  for (let i = 0; i <= n; i++) {
+    const index = indexToBlockNumber(i)
+    const isActive = activeEpochBlockNumbers.indexOf(index) ? 1 : 0
+    const weight = 1 - weightFactor * index / n
+    weightedSum += weight * isActive
+    weightTotal += weight
   }
-  if (weightTotal === 0) throw new Error('Weight total is zero, cannot divide by zero');
+  if (weightTotal === 0) throw new Error('Weight total is zero, cannot divide by zero')
 
-  const movingAverage = weightedSum / weightTotal;
-  const liveness = -Math.pow(movingAverage, 2) + 2 * movingAverage;
+  const movingAverage = weightedSum / weightTotal
+  const liveness = -Math.pow(movingAverage, 2) + 2 * movingAverage
 
   return liveness
 }
