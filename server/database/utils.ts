@@ -33,7 +33,7 @@ export async function storeValidator(address: string, rest: Omit<NewValidator, '
   }
 
   const icon = await Identicons.default.toDataUrl(address) as string
-  const newValidator = await useDrizzle().insert(tables.validators).values({ address, icon, ...rest }).returning().get()
+  const newValidator = await useDrizzle().insert(tables.validators).values({ ...rest, address, icon }).returning().get()
   validators.set(address, newValidator.id)
   return newValidator.id
 }

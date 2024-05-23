@@ -1,15 +1,15 @@
 import { Client } from 'nimiq-rpc-client-ts'
 import { fetchEpochsActivity, getRange } from 'nimiq-vts'
-import { getMissingEpochs, storeActivities } from '../database/utils'
 import { consola } from 'consola'
+import { getMissingEpochs, storeActivities } from '../database/utils'
 
 export default defineTask({
   meta: {
-    name: "fetch",
-    description: "Fetches the necessary data from the blockchain",
+    name: 'fetch',
+    description: 'Fetches the necessary data from the blockchain',
   },
   async run() {
-    consola.info("Running fetch task...")
+    consola.info('Running fetch task...')
 
     const client = new Client(new URL(useRuntimeConfig().rpcUrl))
 
@@ -20,7 +20,8 @@ export default defineTask({
     // Only fetch the missing epochs that are not in the database
     const epochBlockNumbers = await getMissingEpochs(range)
     consola.info(`Fetching data for epochs: ${JSON.stringify(epochBlockNumbers)}`)
-    if (epochBlockNumbers.length === 0) return { success: "No epochs to fetch. Database is up to date" }
+    if (epochBlockNumbers.length === 0)
+      return { success: 'No epochs to fetch. Database is up to date' }
 
     // Fetch the activity for the given epochs
     const activities = await fetchEpochsActivity(client, epochBlockNumbers)
@@ -29,6 +30,6 @@ export default defineTask({
     await storeActivities(activities)
     consola.success(`Stored data for ${epochBlockNumbers.length} epochs.`)
 
-    return { result: "success" }
+    return { result: 'success' }
   },
 })

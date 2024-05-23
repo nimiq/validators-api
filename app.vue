@@ -12,7 +12,7 @@ const validatorDetail = computed(() => !!route.params.address)
 <template>
   <div flex="~ col gap-64" mx-auto size-screen max-h-screen max-w-1200 px-32 py-20>
     <header flex="~ gap-32 row items-center">
-      <div i-nimiq:logos-nimiq-horizontal ml-16 h-24 w-90 dark:i-nimiq:logos-nimiq-white-horizontal />
+      <NuxtLink to="/" i-nimiq:logos-nimiq-horizontal ml-16 h-24 w-90 dark:i-nimiq:logos-nimiq-white-horizontal />
       <NuxtLink v-if="validatorDetail" to="/" block w-max arrow-back ghost-btn>
         Go Back
       </NuxtLink>
@@ -26,7 +26,7 @@ const validatorDetail = computed(() => !!route.params.address)
     </main>
 
     <footer self-center pb-40>
-      Learn about the <NuxtLink to="/validator-trust-score" text-blue arrow>
+      Learn about the <NuxtLink :to="`/vts`" text-blue arrow>
         Validator Trust Score
       </NuxtLink>
     </footer>

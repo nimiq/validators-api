@@ -1,5 +1,4 @@
-import { sql } from 'drizzle-orm'
-import { sqliteTable, text, integer, real, primaryKey } from 'drizzle-orm/sqlite-core'
+import { integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const validators = sqliteTable('validators', {
   id: integer('id').primaryKey({ autoIncrement: true, onConflict: 'replace' }),

@@ -13,12 +13,12 @@ export async function seedDatabase() {
   }
 }
 
-const validators: NewValidator[] = [
+type InitialValidator = Omit<NewValidator, 'icon'> & Partial<Pick<NewValidator, 'icon'>>
+const validators: InitialValidator[] = [
   {
     name: 'Pooly McPoolface',
     address: 'NQ24 DJE3 KX3U HG5X 1BXP 8XQ3 SK7S X364 N7G7',
     fee: 0.09,
-    icon: '',
     payoutType: PayoutType.Restake,
     tag: ValidatorTag.Nimiq
   },
@@ -26,7 +26,6 @@ const validators: NewValidator[] = [
     name: 'Cool Pool',
     address: 'NQ87 FEGQ 01TF M29N T03J 3YCB JB5M X5VM XP8Q',
     fee: 0.09,
-    icon: '',
     payoutType: PayoutType.Direct,
     tag: ValidatorTag.Nimiq
   },
@@ -34,7 +33,6 @@ const validators: NewValidator[] = [
     name: 'Puddle',
     address: 'NQ82 BHPS UR9K 07X1 X6QH 3DY3 J325 UCSP UHV3',
     fee: 0.095,
-    icon: '',
     payoutType: PayoutType.Direct,
     tag: ValidatorTag.Nimiq
   },
@@ -42,7 +40,6 @@ const validators: NewValidator[] = [
     name: 'Swimming Pool',
     address: 'NQ38 YX2J GTMX 5XAU LKFU H0GS A4AA U26L MDA3',
     fee: 0.1,
-    icon: '',
     payoutType: PayoutType.Restake,
     tag: ValidatorTag.Nimiq
   },
@@ -50,7 +47,6 @@ const validators: NewValidator[] = [
     name: 'Kiddie Pool',
     address: 'NQ57 UQJL 5A3H N45M 1FHS 2454 C7L5 BTE6 KEU1',
     fee: 0.1,
-    icon: '',
     payoutType: PayoutType.Restake,
     tag: ValidatorTag.Nimiq
   },
@@ -58,7 +54,6 @@ const validators: NewValidator[] = [
     name: 'Pool Billard',
     address: 'NQ57 2F6C X3GB Y9B7 04U5 2BVA 4BVC M2T0 ELRL',
     fee: 0.105,
-    icon: '',
     payoutType: PayoutType.Restake,
     tag: ValidatorTag.Nimiq
   },
@@ -66,7 +61,6 @@ const validators: NewValidator[] = [
     name: 'Monopooly',
     address: 'NQ71 CK94 3V7U H62Y 4L0F GUUK DPA4 6SA6 DKKM',
     fee: 0.11,
-    icon: '',
     payoutType: PayoutType.Direct,
     tag: ValidatorTag.Nimiq
   },
@@ -74,7 +68,6 @@ const validators: NewValidator[] = [
     name: 'Not-A-Pool',
     address: 'NQ08 N4RH FQDL TE7S 8C66 65LT KYDU Q382 YG7U',
     fee: 0.11,
-    icon: '',
     payoutType: PayoutType.Restake,
     tag: ValidatorTag.Nimiq
   },
@@ -82,7 +75,6 @@ const validators: NewValidator[] = [
     name: 'AceStaking',
     address: 'NQ65 DHN8 4BSR 5YSX FC3V BB5J GKM2 GB2L H17C',
     fee: 0.1,
-    icon: '',
     payoutType: PayoutType.Direct,
     description: 'The Ace in staking',
     tag: ValidatorTag.Community
