@@ -36,6 +36,7 @@
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub",
+    "prepare": "pnpm run build",
     "prepublishOnly": "nr build",
     "release": "bumpp && npm publish",
     "start": "esno src/index.ts",
