@@ -27,7 +27,7 @@ export default defineTask({
 
     consola.info(`Computing score for: ${Object.keys(activity).join(', ')}`)
     const scores = Object.values(activity).map(({ activeEpochStates, validatorId, balance }) => {
-      const score = computeScore({ liveness: { activeEpochStates, ...range }, size: { balance, totalBalance } })
+      const score = computeScore({ liveness: { activeEpochStates }, size: { balance, totalBalance } })
       return { validatorId, ...score } satisfies NewScore
     })
     await storeScores(scores)

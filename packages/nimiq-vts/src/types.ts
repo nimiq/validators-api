@@ -56,5 +56,8 @@ export interface Range {
   blockNumberToIndex(blockNumber: number): number,
 
   blocksPerEpoch: number,
+  
+  // The amount of epochs in the range
+  epochCount: number
 }
 

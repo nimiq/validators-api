@@ -48,12 +48,13 @@ export async function storeValidator(address: string, rest: Omit<NewValidator, '
  * If there are missing validators or epochs, it will throw an error.
  */
 export async function getValidatorParams(validators: { address: string, balance: number }[], range: Range) {
-  const addresses = validators.map(v => v.address)
-  const missingValidators = await getMissingValidators(addresses)
-  if (missingValidators.length > 0) throw new Error(`Missing validators in database: ${missingValidators.join(', ')}. Run the fetch task first.`)
+  const addresses = validators.map(v => v.address);
 
-  const missingEpochs = await getMissingEpochs(range)
-  if (missingEpochs.length > 0) throw new Error(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
+  const missingValidators = await getMissingValidators(addresses);
+  if (missingValidators.length > 0) throw new Error(`Missing validators in database: ${missingValidators.join(', ')}. Run the fetch task first.`);
+
+  const missingEpochs = await getMissingEpochs(range);
+  if (missingEpochs.length > 0) throw new Error(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`);
 
   const activities = await useDrizzle()
     .select({
@@ -68,22 +69,23 @@ export async function getValidatorParams(validators: { address: string, balance:
       lte(tables.activity.epochBlockNumber, range.toEpoch),
       inArray(tables.validators.address, addresses)
     ))
-    .execute()
+    .execute();
 
-  // Create an array of all epochs in the range
-  const allEpochs = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => range.fromEpoch + i)
+  const epochCount = Math.ceil((range.toEpoch - range.fromEpoch) / range.blocksPerEpoch);
   
-  // Reduce the activities to the desired format
-  const validatorParams: ValidatorParams = {}
-  for (const {address, balance} of validators) {
-    const validatorActivities = activities.filter(a => a.address === address)
-    const validatorId = validatorActivities[0].validatorId
-    const activeEpochStates = allEpochs.map(() => 0)
-    validatorActivities.forEach(activity => activeEpochStates[range.blockNumberToIndex(activity.epoch)] = 1)
-    validatorParams[address] = { validatorId, balance, activeEpochStates }
+  const validatorParams: ValidatorParams = {};
+  for (const { address, balance } of validators) {
+    const validatorActivities = activities.filter(a => a.address === address);
+    const validatorId = validatorActivities[0]!.validatorId;
+    const activeEpochStates = Array(epochCount).fill(0);
+    validatorActivities.forEach(activity => {
+      const index = range.blockNumberToIndex(activity.epoch);
+      if (index >= 0 && index < epochCount) activeEpochStates[index] = 1;
+    });
+    validatorParams[address] = { validatorId, balance, activeEpochStates };
   }
-  return validatorParams
-
+  
+  return validatorParams;
 }
 
 /**

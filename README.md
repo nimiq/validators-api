@@ -52,3 +52,12 @@ Read more about the process of computing the score in the [nimiq-vts](./packages
 #### Database
 
 As well as storing the [Validator Details](#validator-details), we also store the data produced by the fetcher in a sqlite database. This data is then used in the score calculator to compute the score. You can see the file [schema.ts](./server/database/schema.ts).
+
+## Development
+
+Once it is cloned and installed the dependencies, you must run:
+
+```bash
+pnpm db:generate
+pnpm dev # or pnpm dev:remote to use the remote database
+```
