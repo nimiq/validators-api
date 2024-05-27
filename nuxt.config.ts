@@ -98,10 +98,10 @@ export default defineNuxtConfig({
     ],
   },
 
-  // content: {
-  //   markdown: {
-  //     remarkPlugins: ['remark-math'],
-  //     rehypePlugins: ['rehype-mathjax'],
-  //   },
-  // },
+  content: {
+    markdown: {
+      remarkPlugins: ['remark-math'],
+      rehypePlugins: ['rehype-mathjax'],
+    },
+  },
 })

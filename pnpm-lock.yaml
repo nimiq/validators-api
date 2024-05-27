@@ -94,8 +94,8 @@ importers:
         specifier: ^15.2.4
         version: 15.2.4
       nimiq-css:
-        specifier: ^0.0.101
-        version: 0.0.101(typescript@5.4.5)(unocss@0.60.3(@unocss/webpack@0.60.3(rollup@4.18.0)(webpack@5.91.0(esbuild@0.17.19)))(postcss@8.4.38)(rollup@4.18.0)(vite@5.2.11(@types/node@20.12.12)(terser@5.31.0)))(vite@5.2.11(@types/node@20.12.12)(terser@5.31.0))
+        specifier: ^0.0.103
+        version: 0.0.103(typescript@5.4.5)(unocss@0.60.3(@unocss/webpack@0.60.3(rollup@4.18.0)(webpack@5.91.0(esbuild@0.17.19)))(postcss@8.4.38)(rollup@4.18.0)(vite@5.2.11(@types/node@20.12.12)(terser@5.31.0)))(vite@5.2.11(@types/node@20.12.12)(terser@5.31.0))
       rehype-mathjax:
         specifier: ^6.0.0
         version: 6.0.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -4742,8 +4742,8 @@ packages:
   next-tick@1.1.0:
     resolution: {integrity: sha512-CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==}
 
-  nimiq-css@0.0.101:
-    resolution: {integrity: sha512-sOGA0X27lmqqZAQCCCsVsYmhCdthdqyWgDDw5YIX3+XY7wq/YWcpL+3/vjcHeO25SKVDzxUvI+O66751V46OWw==}
+  nimiq-css@0.0.103:
+    resolution: {integrity: sha512-0aZc5yoXreClBYWxxPcN80NLeQo60kIMCEUiWcYvfYuA4iCgoxELdmogQE0eh8tQksKd13tAcQ3VipzQC5aYrw==}
     engines: {node: '>=14'}
     peerDependencies:
       typescript: ^5.0.0
@@ -12451,7 +12451,7 @@ snapshots:
 
   next-tick@1.1.0: {}
 
-  nimiq-css@0.0.101(typescript@5.4.5)(unocss@0.60.3(@unocss/webpack@0.60.3(rollup@4.18.0)(webpack@5.91.0(esbuild@0.17.19)))(postcss@8.4.38)(rollup@4.18.0)(vite@5.2.11(@types/node@20.12.12)(terser@5.31.0)))(vite@5.2.11(@types/node@20.12.12)(terser@5.31.0)):
+  nimiq-css@0.0.103(typescript@5.4.5)(unocss@0.60.3(@unocss/webpack@0.60.3(rollup@4.18.0)(webpack@5.91.0(esbuild@0.17.19)))(postcss@8.4.38)(rollup@4.18.0)(vite@5.2.11(@types/node@20.12.12)(terser@5.31.0)))(vite@5.2.11(@types/node@20.12.12)(terser@5.31.0)):
     dependencies:
       '@unocss/reset': 0.59.0-beta.1
       ts-cssjson: 3.0.1
