@@ -12,7 +12,6 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxthub/core',
     '@nuxt/image',
-    '@nuxt/content',
   ],
 
   hub: {
@@ -96,12 +95,5 @@ export default defineNuxtConfig({
         type: true,
       },
     ],
-  },
-
-  content: {
-    markdown: {
-      remarkPlugins: ['remark-math'],
-      rehypePlugins: ['rehype-mathjax'],
-    },
   },
 })

@@ -24,11 +24,5 @@ const validatorDetail = computed(() => !!route.params.address)
     <main flex-1>
       <NuxtPage />
     </main>
-
-    <footer self-center pb-40>
-      Learn about the <NuxtLink :to="`/vts`" text-blue arrow>
-        Validator Trust Score
-      </NuxtLink>
-    </footer>
   </div>
 </template>
