@@ -46,7 +46,7 @@
     "eslint": "^9.2.0",
     "eslint-plugin-format": "^0.1.1",
     "lint-staged": "^15.2.4",
-    "nimiq-css": "^0.0.96",
+    "nimiq-css": "^0.0.101",
     "rehype-mathjax": "^6.0.0",
     "remark-math": "^6.0.0",
     "simple-git-hooks": "^2.11.1",
