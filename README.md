@@ -39,13 +39,13 @@ pnpm dev
 ```
 
 > [!Note]
-> We use [Nuxt Hub](https://hub.nuxt.dev) which uses Cloudfare Pages + Cloudfare D1 databases. The database is a sqlite instance and currently the database is remote for both development and production. You can change this behaviour in nuxt.config.ts.
+> We use [Nuxt Hub](https://hub.nuxt.dev) which uses Cloudflare Pages + Cloudflare D1 databases. The database is a sqlite instance and currently the database is remote for both development and production. You can change this behaviour in nuxt.config.ts.
 
 We use Drizzle to access the database.
 
 ### Calculating the score using Nitro Tasks
 
-To calculate the score, we need to run two processes: the fetcher and the score calculator. We do this using a Nitro Task, which is currently an experimental feature of Nitro. Nitro Task is a feature that allows you to trigger an action in the server programatically or manually from the Nuxt Dev Center(go to tasks page).
+To calculate the score, we need to run two processes: the fetcher and the score calculator. We do this using a Nitro Task, which is currently an experimental feature of Nitro. Nitro Task is a feature that allows you to trigger an action in the server programmatically or manually from the Nuxt Dev Center(go to tasks page).
 
 Read more about the process of computing the score in the [nimiq-vts](./packages/nimiq-vts/README.md) package.
 

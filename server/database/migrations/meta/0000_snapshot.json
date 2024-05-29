@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "16172759-8b5f-4971-a89d-780d399a5e66",
+  "id": "87501366-22d7-494a-a4a6-0b1966d0aea0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -23,6 +23,13 @@
         },
         "assigned": {
           "name": "assigned",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rewarded": {
+          "name": "rewarded",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,

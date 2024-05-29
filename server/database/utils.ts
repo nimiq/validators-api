@@ -2,7 +2,7 @@ import { gte, inArray, lte } from "drizzle-orm"
 import type { EpochActivity, Range, ValidatorParams } from "nimiq-vts"
 // @ts-expect-error no types
 import Identicons from '@nimiq/identicons'
-import { NewScore, NewValidator } from "../utils/drizzle"
+import { NewActivity, NewScore, NewValidator } from "../utils/drizzle"
 
 /**
  * Given a list of validator addresses, it returns the addresses that are missing in the database.
@@ -110,13 +110,13 @@ export async function getMissingEpochs(range: Range) {
  * It will delete the activities for the given epochs and then insert the new activities.
  */
 export async function storeActivities(activities: EpochActivity) {
-  const values: Newactivity[] = []
+  const values: NewActivity[] = []
   const blockNumbers = Object.keys(activities).map(Number)
   for (const _epochBlockNumber of blockNumbers) {
     const epochBlockNumber = Number(_epochBlockNumber)
-    for (const { assigned, missed, validator } of activities[epochBlockNumber]) {
+    for (const { assigned, rewarded, missed, validator } of activities[epochBlockNumber]) {
       const validatorId = await storeValidator(validator)
-      values.push({ assigned, missed, epochBlockNumber, validatorId })
+      values.push({ assigned, rewarded, missed, epochBlockNumber, validatorId })
     }
   }
 
@@ -129,8 +129,8 @@ export async function storeActivities(activities: EpochActivity) {
     await useDrizzle().insert(tables.activity).values(chunk)
 
 
-  // If we ever move out of cloudfare we could use transactions to avoid inconsistencies and improve performance
-  // Cloudfare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
+  // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
+  // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
   // await useDrizzle().transaction(async (tx) => {
   //  await tx.delete(tables.activity).where(inArray(tables.activity.epochBlockNumbers, blockNumbers))
   //  await Promise.all(values.map(v => tx.insert(tables.activity).values(v)))
@@ -144,8 +144,8 @@ export async function storeScores(scores: NewScore[]) {
   await useDrizzle().delete(tables.scores).where(or(...scores.map(({ validatorId }) => eq(tables.scores.validatorId, validatorId))))
   await useDrizzle().insert(tables.scores).values(scores)
 
-  // If we ever move out of cloudfare we could use transactions to avoid inconsistencies
-  // Cloudfare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
+  // If we ever move out of cloudflare we could use transactions to avoid inconsistencies
+  // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
   // await useDrizzle().transaction(async (tx) => {
   //   await tx.delete(tables.scores).where(or(...scores.map(({ validatorId }) => eq(tables.scores.validatorId, validatorId))))
   //   await tx.insert(tables.scores).values(scores.map(s => ({ ...s, updatedAt })))
