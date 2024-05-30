@@ -51,14 +51,25 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
 }
 
 /**
- * Fetches the activity for the given block numbers. 
+ * Fetches the activity for the given block numbers.
+ * This function is an asynchronous generator. It yields each activity one by one,
+ * allowing the caller to decide when to fetch the next activity.
+ *
+ * @param client - The client instance to use for fetching validator activities.
+ * @param epochBlockNumbers - An array of epoch block numbers to fetch activities for.
+ * @returns An asynchronous generator yielding objects containing the address, epoch block number, and activity.
+ *
+ * Usage:
+ * const activitiesGenerator = fetchValidatorsActivities(client, epochBlockNumbers);
+ * for await (const { key, activity } of activitiesGenerator) {
+ *   console.log(`Address: ${key.address}, Epoch: ${key.epochBlockNumber}, Activity: ${activity}`);
+ * }
  */
-// TODO Generator
-export async function fetchValidatorsActivities(client: Client, epochBlockNumbers: number[]) {
-  const validatorsActivities: ValidatorsActivities = new Map()
+export async function* fetchValidatorsActivities(client: Client, epochBlockNumbers: number[]) {
   for (const epochBlockNumber of epochBlockNumbers) {
-    const validatorActivities = await fetchValidatorsActivitiesInEpoch(client, epochBlockNumber)
-    Object.entries(validatorActivities).forEach(([address, activity]) => validatorsActivities.set({ address, epochBlockNumber }, activity))
+    const validatorActivities = await fetchValidatorsActivitiesInEpoch(client, epochBlockNumber);
+    for (const [address, activity] of Object.entries(validatorActivities)) {
+      yield { key: { address, epochBlockNumber }, activity };
+    }
   }
-  return validatorsActivities
 }

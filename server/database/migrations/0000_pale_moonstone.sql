@@ -1,7 +1,7 @@
 CREATE TABLE `activity` (
 	`validator_id` integer NOT NULL,
 	`epoch_block_number` integer NOT NULL,
-	`assigned` integer NOT NULL,
+	`likelihood` integer NOT NULL,
 	`rewarded` integer NOT NULL,
 	`missed` integer NOT NULL,
 	PRIMARY KEY(`epoch_block_number`, `validator_id`),

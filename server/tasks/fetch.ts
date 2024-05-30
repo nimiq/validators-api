@@ -1,19 +1,19 @@
 import { Client } from 'nimiq-rpc-client-ts'
-import { getRange } from 'nimiq-vts'
+import { ValidatorsActivities, fetchValidatorsActivities, getRange } from 'nimiq-vts'
 import { consola } from 'consola'
 import { getMissingEpochs, storeActivities } from '../database/utils'
-import { fetchValidatorsActivities, fetchValidatorsActivitiesInEpoch } from '~/packages/nimiq-vts/src'
+
+const EPOCHS_IN_PARALLEL = 3
 
 export default defineTask({
   meta: {
     name: 'fetch',
     description: 'Fetches the necessary data from the blockchain',
-  }, 
+  },
   async run() {
     consola.info('Running fetch task...')
     // TODO: check if the task is already running
-
-    const start = globalThis.performance.now()
+    // TODO it would be nice to catch some errors tbh
 
     const client = new Client(new URL(useRuntimeConfig().rpcUrl))
 
@@ -27,8 +27,25 @@ export default defineTask({
     if (epochBlockNumbers.length === 0)
       return { success: 'No epochs to fetch. Database is up to date' }
 
-    // Fetch the activity for the given epochs
-    fetchValidatorsActivities(client, epochBlockNumbers).then(storeActivities)
+    const activitiesGenerator = fetchValidatorsActivities(client, epochBlockNumbers);
+
+    // We fetch epochs 3 by 3 in parallel and store them in the database
+    while (true) {
+      const start = globalThis.performance.now()
+      const epochsActivities: ValidatorsActivities = new Map()
+      for (let i = 0; i < EPOCHS_IN_PARALLEL; i++) {
+        const { value: pair, done } = await activitiesGenerator.next();
+        if (done) break;
+        epochsActivities.set(pair.key, pair.activity)
+      }
+
+      const end = globalThis.performance.now()
+      const seconds = (end - start) / 1000
+      consola.info(`Fetched ${epochsActivities.size} epochs in ${seconds} seconds`)
+
+      if (epochsActivities.size === 0) break;
+      await storeActivities(epochsActivities);
+    }
 
     return { result: `Task initialized` }
   },

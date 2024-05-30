@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "522b4240-9c0e-462c-ba6c-4ec423101270",
+  "id": "b74dc22e-f8af-4974-95ea-9fc52b9b0c79",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -21,8 +21,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "assigned": {
-          "name": "assigned",
+        "likelihood": {
+          "name": "likelihood",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
