@@ -37,7 +37,7 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
       // TODO Add comment why this case can happen. e.g address: NQ57 M1NT JRQA FGD2  in election block 3075210
       if(!validatorsActivity[validatorAddress]) continue
       validatorsActivity[validatorAddress].rewarded += type === InherentType.Reward ? 1 : 0
-      validatorsActivity[validatorAddress].missed += type === InherentType.Penalize ? 1 : 0
+      validatorsActivity[validatorAddress].missed += [InherentType.Penalize, InherentType.Jail].includes(type) ? 1 : 0
       // TODO Maybe there are more states we need to consider
     }
   }

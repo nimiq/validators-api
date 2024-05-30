@@ -50,6 +50,10 @@ export default defineNuxtConfig({
     experimental: {
       tasks: true,
     },
+
+    scheduledTasks: {
+      '20 */13 * * *': ['fetch']
+    }
   },
 
   app: {

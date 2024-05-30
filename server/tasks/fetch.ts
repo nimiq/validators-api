@@ -8,7 +8,7 @@ export default defineTask({
   meta: {
     name: 'fetch',
     description: 'Fetches the necessary data from the blockchain',
-  },
+  }, 
   async run() {
     consola.info('Running fetch task...')
 

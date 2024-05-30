@@ -36,7 +36,7 @@ export type ScoreParams = {
 export type Activity = { likelihood: number, missed: number, rewarded: number }
 
 // A map of validator addresses to their activities in a single epoch
-export type ValidatorActivity = Record<string, Activity>
+export type ValidatorActivity = Record<string /* address */, Activity>
 
 // A map of validator addresses to their activities in a single epoch 
 export type ValidatorsActivities = Map<{ address: string, epochBlockNumber: number }, Activity>
