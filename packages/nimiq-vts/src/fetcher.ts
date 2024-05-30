@@ -8,6 +8,7 @@ import { getPolicyConstants } from "./utils"
  */
 export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumber: number) {
   const start = globalThis.performance.now()
+  // TODO: change this to fetching epoch n...
   console.info(`Fetching slots assignation for block ${blockNumber}`)
   const { batchesPerEpoch, genesisBlockNumber, blocksPerBatch } = await getPolicyConstants(client)
   const { data: block, error } = await client.blockchain.getBlockByNumber(blockNumber, { includeTransactions: true })

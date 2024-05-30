@@ -11,6 +11,7 @@ export default defineTask({
   }, 
   async run() {
     consola.info('Running fetch task...')
+    // TODO: check if the task is already running
 
     const start = globalThis.performance.now()
 
