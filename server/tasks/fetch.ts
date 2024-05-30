@@ -1,7 +1,8 @@
 import { Client } from 'nimiq-rpc-client-ts'
-import { fetchEpochsActivity, getRange } from 'nimiq-vts'
+import { getRange } from 'nimiq-vts'
 import { consola } from 'consola'
 import { getMissingEpochs, storeActivities } from '../database/utils'
+import { fetchValidatorsActivities, fetchValidatorsActivitiesInEpoch } from '~/packages/nimiq-vts/src'
 
 export default defineTask({
   meta: {
@@ -10,6 +11,8 @@ export default defineTask({
   },
   async run() {
     consola.info('Running fetch task...')
+
+    const start = globalThis.performance.now()
 
     const client = new Client(new URL(useRuntimeConfig().rpcUrl))
 
@@ -24,12 +27,8 @@ export default defineTask({
       return { success: 'No epochs to fetch. Database is up to date' }
 
     // Fetch the activity for the given epochs
-    const activities = await fetchEpochsActivity(client, epochBlockNumbers)
-    consola.info(`Fetched data for ${epochBlockNumbers.length} epochs`)
+    fetchValidatorsActivities(client, epochBlockNumbers).then(storeActivities)
 
-    await storeActivities(activities)
-    consola.success(`Stored data for ${epochBlockNumbers.length} epochs.`)
-
-    return { result: 'success' }
+    return { result: `Task initialized` }
   },
 })

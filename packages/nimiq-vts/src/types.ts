@@ -32,17 +32,14 @@ export type ScoreParams = {
   reliability?: {}
 }
 
-// The list of validators and their block production activity
-export type ActivityEpoch = { validator: string, assigned: number, missed: number }[]
+// The activity of the validator and their block production activity for a given election block
+export type Activity = { likelihood: number, missed: number, rewarded: number }
 
-// A map of validator addresses to their parameters
-export type ValidatorParams = Record<
-  string /* address */,
-  Pick<ScoreParams['liveness'], 'activeEpochStates'> & { validatorId: number, balance: number }
->
+// A map of validator addresses to their activities in a single epoch
+export type ValidatorActivity = Record<string, Activity>
 
-// A map of epoch numbers to the activity of the validators
-export type EpochActivity = Record<number /* Election block number */, ActivityEpoch>
+// A map of validator addresses to their activities in a single epoch 
+export type ValidatorsActivities = Map<{ address: string, epochBlockNumber: number }, Activity>
 
 export type ScoreValues = { liveness: number, reliability: number, size: number, total: number }
 
@@ -56,7 +53,7 @@ export interface Range {
   blockNumberToIndex(blockNumber: number): number,
 
   blocksPerEpoch: number,
-  
+
   // The amount of epochs in the range
   epochCount: number
 }

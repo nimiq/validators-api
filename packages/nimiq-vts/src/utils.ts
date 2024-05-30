@@ -1,4 +1,4 @@
-import { Client, PolicyConstants } from 'nimiq-rpc-client-ts'
+import { Client, type PolicyConstants } from 'nimiq-rpc-client-ts'
 import { Range } from './types'
 
 interface GetRangeOptions {
@@ -12,10 +12,7 @@ interface GetRangeOptions {
  * Given the amount of milliseconds we want to consider, it returns an object with the epoch range we will consider.
 */
 export async function getRange(client: Client, options?: GetRangeOptions): Promise<Range> {
-  const { data: policy, error: errorPolicy } = await client.policy.getPolicyConstants();
-  if (errorPolicy || !policy) throw new Error(errorPolicy?.message || 'No policy constants');
-
-  const { blockSeparationTime, blocksPerEpoch, genesisBlockNumber } = policy as PolicyConstants & { blockSeparationTime: number, genesisBlockNumber: number };
+  const { blockSeparationTime, blocksPerEpoch, genesisBlockNumber } = await getPolicyConstants(client);
   const durationMs = options?.durationMs || 1000 * 60 * 60 * 24 * 30 * 9;
   const epochsCount = Math.ceil(durationMs / (blockSeparationTime * blocksPerEpoch));
 
@@ -39,4 +36,15 @@ export async function getRange(client: Client, options?: GetRangeOptions): Promi
   const epochCount = toEpochIndex - fromEpochIndex;
 
   return { fromEpoch, toEpoch, blocksPerEpoch, blockNumberToIndex, epochCount };
+}
+
+export type PolicyConstantsPatch = PolicyConstants & { blockSeparationTime: number, genesisBlockNumber: number }
+let policy: PolicyConstantsPatch
+export async function getPolicyConstants(client: Client) {
+  if (!policy) {
+    const { data: _policy, error: errorPolicy } = await client.policy.getPolicyConstants()
+    if (errorPolicy || !_policy) throw new Error(errorPolicy?.message || 'No policy constants')
+    policy = _policy as PolicyConstants & { blockSeparationTime: number, genesisBlockNumber: number }
+  }
+  return policy
 }

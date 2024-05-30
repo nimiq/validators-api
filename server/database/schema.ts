@@ -26,7 +26,7 @@ export const scores = sqliteTable('scores', {
 export const activity = sqliteTable('activity', {
   validatorId: integer('validator_id').notNull().references(() => validators.id),
   epochBlockNumber: integer('epoch_block_number').notNull(),
-  assigned: integer('assigned').notNull(),
+  likelihood: integer('likelihood').notNull(),
   rewarded: integer('rewarded').notNull(),
   missed: integer('missed').notNull(),
 }, ({ epochBlockNumber, validatorId }) => ({ pk: primaryKey({ columns: [validatorId, epochBlockNumber] }) }))

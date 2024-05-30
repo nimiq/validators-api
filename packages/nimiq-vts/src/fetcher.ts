@@ -1,11 +1,15 @@
-import { Client, ElectionMacroBlock, PolicyConstants, InherentType } from "nimiq-rpc-client-ts";
-import { EpochActivity } from "./types";
+import { Client, type ElectionMacroBlock, InherentType } from "nimiq-rpc-client-ts"
+import type { Activity, ValidatorActivity, ValidatorsActivities } from "./types"
+import { getPolicyConstants } from "./utils"
 
 /**
  * For a given block number, fetches the validator slots assignation.
  * The block number MUST be an election block otherwise it will throw an error.
  */
-export async function fetchValidatorSlotsAssignation(client: Client, blockNumber: number, batchesPerEpoch: number, blocksPerBatch: number, genesisBlockNumber: number) {
+export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumber: number) {
+  const start = globalThis.performance.now()
+  console.info(`Fetching slots assignation for block ${blockNumber}`)
+  const { batchesPerEpoch, genesisBlockNumber, blocksPerBatch } = await getPolicyConstants(client)
   const { data: block, error } = await client.blockchain.getBlockByNumber(blockNumber, { includeTransactions: true })
   if (error || !block) throw new Error(JSON.stringify({ blockNumber, error, block }))
   if (!('isElectionBlock' in block)) throw Error(JSON.stringify({ message: 'Block is not election block', blockNumber, block }))
@@ -15,41 +19,45 @@ export async function fetchValidatorSlotsAssignation(client: Client, blockNumber
   const blockIndex = blockNumber - genesisBlockNumber
   // This is going to be an exact division since we are fetching election blocks
   const firstBatchIndex = blockIndex / blocksPerBatch
-  if(firstBatchIndex % 1 !== 0) throw new Error(JSON.stringify({ message: 'Something happened calculating batchIndex', blockIndex, firstBatchIndex, blockNumber, block }))
+  if (firstBatchIndex % 1 !== 0) throw new Error(JSON.stringify({ message: 'Something happened calculating batchIndex', blockIndex, firstBatchIndex, blockNumber, block }))
 
-  // Now we can get all the inherents from every batch in the epoch
-  const validatorInherents: Record<string, { rewarded: number, missed: number }> = {}
+  // Initialize the list of validators and their activity in the epoch
+  const validatorsActivity: ValidatorActivity = {}
+  for (const { numSlots: likelihood, validator } of (block as ElectionMacroBlock).slots) {
+    validatorsActivity[validator] = { likelihood, missed: 0, rewarded: 0 }
+  }
+
+  // Then, fetch each batch in the epoch and update the activity
   for (let i = 0; i < batchesPerEpoch; i++) {
     const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + i)
     if (errorBatch || !inherents) throw new Error(JSON.stringify({ blockNumber, errorBatch, i, firstBatchIndex, currentIndex: firstBatchIndex + i }))
-    // Inherents can be "reward", "penalize" or "jail". The penalize and jail will be counted as missed slots
-    for (const inherent of inherents) {
-      if (inherent.type === InherentType.Reward){
-        if (!validatorInherents[inherent.validatorAddress]) validatorInherents[inherent.validatorAddress] = { rewarded: 0, missed: 0 }
-        validatorInherents[inherent.validatorAddress].rewarded++
-      } else if (inherent.type === InherentType.Penalize || inherent.type === InherentType.Jail) {
-        if (!validatorInherents[inherent.validatorAddress]) validatorInherents[inherent.validatorAddress] = { rewarded: 0, missed: 0 }
-        validatorInherents[inherent.validatorAddress].missed++
-      }
+
+    for (const { type, validatorAddress } of inherents) {
+      if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000') continue
+      // TODO Add comment why this case can happen. e.g address: NQ57 M1NT JRQA FGD2  in election block 3075210
+      if(!validatorsActivity[validatorAddress]) continue
+      validatorsActivity[validatorAddress].rewarded += type === InherentType.Reward ? 1 : 0
+      validatorsActivity[validatorAddress].missed += type === InherentType.Penalize ? 1 : 0
+      // TODO Maybe there are more states we need to consider
     }
   }
 
-  const assignation = (block as ElectionMacroBlock).slots.map(({ numSlots, validator }) => ({ 
-    validator,
-    assigned: numSlots,
-    rewarded: validatorInherents[validator]?.rewarded || 0,
-    missed: validatorInherents[validator]?.missed || 0
-  }))
-  return assignation
+  const end = globalThis.performance.now()
+  const seconds = Math.floor((end - start) / 1000)
+  console.log(`Fetched slots assignation for block ${blockNumber} in ${seconds} seconds.`)
+
+  return validatorsActivity
 }
 
 /**
  * Fetches the activity for the given block numbers. 
  */
-export async function fetchEpochsActivity(client: Client, epochBlockNumbers: number[]): Promise<EpochActivity> {
-  const { data: policy, error: errorPolicy } = await client.policy.getPolicyConstants();
-  if (errorPolicy || !policy) throw new Error(errorPolicy?.message || 'No policy constants');
-  const { batchesPerEpoch, blocksPerBatch, genesisBlockNumber } = policy as PolicyConstants & { blockSeparationTime: number, genesisBlockNumber: number };
-  const promises = epochBlockNumbers.map(async blockNumber => [blockNumber, await fetchValidatorSlotsAssignation(client, blockNumber, batchesPerEpoch, blocksPerBatch, genesisBlockNumber)])
-  return Object.fromEntries(await Promise.all(promises))
+// TODO Generator
+export async function fetchValidatorsActivities(client: Client, epochBlockNumbers: number[]) {
+  const validatorsActivities: ValidatorsActivities = new Map()
+  for (const epochBlockNumber of epochBlockNumbers) {
+    const validatorActivities = await fetchValidatorsActivitiesInEpoch(client, epochBlockNumber)
+    Object.entries(validatorActivities).forEach(([address, activity]) => validatorsActivities.set({ address, epochBlockNumber }, activity))
+  }
+  return validatorsActivities
 }

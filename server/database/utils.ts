@@ -1,8 +1,8 @@
 import { gte, inArray, lte } from "drizzle-orm"
-import type { EpochActivity, Range, ValidatorParams } from "nimiq-vts"
+import type { ValidatorsActivities, Range, ScoreParams } from "nimiq-vts"
 // @ts-expect-error no types
 import Identicons from '@nimiq/identicons'
-import { NewActivity, NewScore, NewValidator } from "../utils/drizzle"
+import { NewScore, NewValidator } from "../utils/drizzle"
 
 /**
  * Given a list of validator addresses, it returns the addresses that are missing in the database.
@@ -73,6 +73,12 @@ export async function getValidatorParams(validators: { address: string, balance:
 
   const epochCount = Math.ceil((range.toEpoch - range.fromEpoch) / range.blocksPerEpoch);
   
+  // A map of validator addresses to their parameters
+type ValidatorParams = Record<
+  string /* address */,
+  Pick<ScoreParams['liveness'], 'activeEpochStates'> & { validatorId: number, balance: number }
+>
+
   const validatorParams: ValidatorParams = {};
   for (const { address, balance } of validators) {
     const validatorActivities = activities.filter(a => a.address === address);
@@ -106,35 +112,22 @@ export async function getMissingEpochs(range: Range) {
 }
 
 /**
- * It computes the score for a given range of epochs. It will fetch the activity for the given epochs and then compute the score for each validator. 
- * It will delete the activities for the given epochs and then insert the new activities.
+ * We loop over all the pairs activities/epochBlockNumber and store the validator.
+ * If the pair validator-epochBlockNumber is already in the database, we delete it and insert the new activity.
  */
-export async function storeActivities(activities: EpochActivity) {
-  const values: NewActivity[] = []
-  const blockNumbers = Object.keys(activities).map(Number)
-  for (const _epochBlockNumber of blockNumbers) {
-    const epochBlockNumber = Number(_epochBlockNumber)
-    for (const { assigned, rewarded, missed, validator } of activities[epochBlockNumber]) {
-      const validatorId = await storeValidator(validator)
-      values.push({ assigned, rewarded, missed, epochBlockNumber, validatorId })
-    }
-  }
+export async function storeActivities(activities: ValidatorsActivities) {
+  activities.forEach(async ({likelihood, missed, rewarded}, {address, epochBlockNumber}) => {
+    const validatorId = await storeValidator(address)
+    // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
+    // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
+    await useDrizzle().delete(tables.activity)
+      .where(and(
+        eq(tables.activity.epochBlockNumber, epochBlockNumber),
+        eq(tables.activity.validatorId, validatorId)
+    ))
+    await useDrizzle().insert(tables.activity).values({ likelihood, rewarded, missed, epochBlockNumber, validatorId })
+  })
 
-  await useDrizzle().delete(tables.activity).where(inArray(tables.activity.epochBlockNumber, blockNumbers))
-
-  // For some reason, D1 is hanging when inserting all the values at once. So dividing the values in chunks
-  // seems to work: https://github.com/prisma/prisma/discussions/23646#discussioncomment-9083299
-  const chunkArray = (arr: any[], chunkSize: number) => Array.from({ length: Math.ceil(arr.length / chunkSize) }, (_, i) => arr.slice(i * chunkSize, i * chunkSize + chunkSize))
-  for (const chunk of chunkArray(values, 16))
-    await useDrizzle().insert(tables.activity).values(chunk)
-
-
-  // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
-  // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
-  // await useDrizzle().transaction(async (tx) => {
-  //  await tx.delete(tables.activity).where(inArray(tables.activity.epochBlockNumbers, blockNumbers))
-  //  await Promise.all(values.map(v => tx.insert(tables.activity).values(v)))
-  // })
 }
 
 /**
