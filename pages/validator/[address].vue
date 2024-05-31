@@ -25,7 +25,7 @@ const validator = computed(() => {
       </div>
       <div flex-auto />
       <div
-        v-if="validator.tag === ValidatorTag.Nimiq" self-start bg-green-400 text-green-1100 pill-sm
+        v-if="validator.tag === ValidatorTag.Nimiq" self-start bg-green-400 text-green-1100 pill-sm pill-secondary
         flex="~ items-center gap-8"
       >
         <div aria-hidden i-nimiq:icons-lg-verified-filled />
