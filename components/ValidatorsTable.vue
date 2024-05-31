@@ -15,7 +15,7 @@ defineProps<{ validators: (Validator & Score)[] }>()
       border="t neutral-200" grid="~ rows-subgrid cols-subgrid col-span-full items-center"
       bg="transparent even:neutral-50 hocus:neutral-200 hocus:even:neutral-300" transition-colors py-16>
 
-      <NuxtImg :src="validator.icon" :alt="validator.name" size-32 mr--20 ml-20 object-contain
+      <NuxtImg :src="validator.icon" :alt="validator.name!" size-32 mr--20 ml-20 object-contain
         :style="{ 'view-transition-name': `logo-${validator.id}` }" />
 
       <div mr-24 flex="~ items-center gap-8">

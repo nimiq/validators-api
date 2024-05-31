@@ -67,7 +67,7 @@ export function computeScore(params: ScoreParams) {
   const liveness = getLiveness(computeScoreParams.liveness)
   const reliability = getReliability(computeScoreParams.reliability)
 
-  const total = size * liveness // * reliability
+  const total = size * liveness * reliability
   const score: ScoreValues = { size, liveness, reliability, total }
   return score
 }
