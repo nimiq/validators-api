@@ -49,6 +49,7 @@ export default defineNuxtConfig({
     },
     experimental: {
       tasks: true,
+      openAPI: true,
     },
 
     scheduledTasks: {
