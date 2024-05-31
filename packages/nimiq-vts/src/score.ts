@@ -31,11 +31,24 @@ export function getLiveness({ activeEpochStates, weightFactor }: ScoreParams['li
   return liveness;
 }
 
-// export async function getReliability({ }: ScoreParams['reliability']) {
-// TODO
-// }
-export async function getReliability({ }: any) {
-  return Math.random()
+export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }: ScoreParams['reliability']) {
+  if (!inherentsPerEpoch || !weightFactor || !curveCenter) throw new Error(`Invalid params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}`)
+  let numerator = 0, denominator = 0
+  const length = Object.keys(inherentsPerEpoch).length
+  for( let [epochIndex, inherents] of Object.entries(inherentsPerEpoch) ) {
+    const {rewarded,missed} = inherents
+    const totalBlocks = rewarded + missed
+    const x = rewarded / totalBlocks
+
+    numerator += (1 - weightFactor * Number(epochIndex) /  length) * x
+    denominator += 1 - weightFactor * Number(epochIndex) /  length
+  }
+  const reliability = numerator / denominator
+  // Could be the case that the division is NaN, so we return 0 in that case. That means there's no inherents, so no blocks, so not reliable because there's no data
+  if(isNaN(reliability)) return 0
+  
+  // Plot into the curve
+  return -curveCenter + 1 - Math.sqrt(-(reliability ** 2) + 2 * curveCenter * reliability + (curveCenter - 1) ** 2);
 }
 
 
@@ -44,7 +57,7 @@ export async function getReliability({ }: any) {
 const defaultScoreParams: ScoreParams = {
   size: { threshold: 0.25, steepness: 4, balance: -1, totalBalance: -1 },
   liveness: { weightFactor: 0.5, activeEpochStates: [] },
-  reliability: {}
+  reliability: { weightFactor: 0.5, curveCenter: -0.16, inherentsPerEpoch: {} }
 }
 
 export function computeScore(params: ScoreParams) {
@@ -52,7 +65,7 @@ export function computeScore(params: ScoreParams) {
 
   const size = getSize(computeScoreParams.size)
   const liveness = getLiveness(computeScoreParams.liveness)
-  const reliability = -1
+  const reliability = getReliability(computeScoreParams.reliability)
 
   const total = size * liveness // * reliability
   const score: ScoreValues = { size, liveness, reliability, total }

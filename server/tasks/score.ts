@@ -26,8 +26,8 @@ export default defineTask({
     const totalBalance = activeValidators.reduce((acc, v) => acc + v.balance, 0)
 
     consola.info(`Computing score for: ${Object.keys(activity).join(', ')}`)
-    const scores = Object.values(activity).map(({ activeEpochStates, validatorId, balance }) => {
-      const score = computeScore({ liveness: { activeEpochStates }, size: { balance, totalBalance } })
+    const scores = Object.values(activity).map(({ activeEpochStates, validatorId, balance, inherentsPerEpoch }) => {
+      const score = computeScore({ liveness: { activeEpochStates }, size: { balance, totalBalance }, reliability: { inherentsPerEpoch }})
       return { validatorId, ...score } satisfies NewScore
     })
     await storeScores(scores)

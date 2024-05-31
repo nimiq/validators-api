@@ -61,6 +61,8 @@ export async function getValidatorParams(validators: { address: string, balance:
       epoch: tables.activity.epochBlockNumber,
       address: tables.validators.address,
       validatorId: tables.validators.id,
+      rewarded: tables.activity.rewarded,
+      missed: tables.activity.missed,
     })
     .from(tables.activity)
     .innerJoin(tables.validators, eq(tables.activity.validatorId, tables.validators.id))
@@ -76,7 +78,7 @@ export async function getValidatorParams(validators: { address: string, balance:
   // A map of validator addresses to their parameters
 type ValidatorParams = Record<
   string /* address */,
-  Pick<ScoreParams['liveness'], 'activeEpochStates'> & { validatorId: number, balance: number }
+  Pick<ScoreParams['liveness'], 'activeEpochStates'> & { validatorId: number, balance: number } & ScoreParams['reliability']
 >
 
   const validatorParams: ValidatorParams = {};
@@ -84,11 +86,13 @@ type ValidatorParams = Record<
     const validatorActivities = activities.filter(a => a.address === address);
     const validatorId = validatorActivities[0]!.validatorId;
     const activeEpochStates = Array(epochCount).fill(0);
+    const inherentsPerEpoch: Record<number, {rewarded: number, missed: number}> = {};
     validatorActivities.forEach(activity => {
       const index = range.blockNumberToIndex(activity.epoch);
       if (index >= 0 && index < epochCount) activeEpochStates[index] = 1;
+      inherentsPerEpoch[index] = { rewarded: activity.rewarded, missed: activity.missed };
     });
-    validatorParams[address] = { validatorId, balance, activeEpochStates };
+    validatorParams[address] = { validatorId, balance, activeEpochStates, inherentsPerEpoch };
   }
   
   return validatorParams;

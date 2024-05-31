@@ -29,7 +29,14 @@ export type ScoreParams = {
     totalBalance: number
   },
 
-  reliability?: {}
+  reliability: {
+    weightFactor?: number,
+    curveCenter?: number,
+    inherentsPerEpoch?: Record<number, {
+        rewarded: number
+        missed: number
+    }>
+  }
 }
 
 // The activity of the validator and their block production activity for a given election block
