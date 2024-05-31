@@ -1,3 +1,5 @@
+import { desc } from 'drizzle-orm';
+
 export default defineEventHandler(async (event) => {
   const data = await useDrizzle()
     .select({
@@ -18,6 +20,7 @@ export default defineEventHandler(async (event) => {
     .from(tables.validators)
     .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
     .groupBy(tables.validators.id)
+    .orderBy(desc(tables.scores.total))
     .all()
 
   setResponseStatus(event, 200)
