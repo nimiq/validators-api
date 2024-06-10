@@ -38,10 +38,11 @@ export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }:
   for( let [epochIndex, inherents] of Object.entries(inherentsPerEpoch) ) {
     const {rewarded,missed} = inherents
     const totalBlocks = rewarded + missed
-    const x = rewarded / totalBlocks
+    const r = rewarded / totalBlocks
+    const weight = 1 - weightFactor * Number(epochIndex) /  length
 
-    numerator += (1 - weightFactor * Number(epochIndex) /  length) * x
-    denominator += 1 - weightFactor * Number(epochIndex) /  length
+    numerator += weight * r
+    denominator += weight
   }
   const reliability = numerator / denominator
   // Could be the case that the division is NaN, so we return 0 in that case. That means there's no inherents, so no blocks, so not reliable because there's no data
