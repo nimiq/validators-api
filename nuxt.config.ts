@@ -53,7 +53,7 @@ export default defineNuxtConfig({
     },
 
     scheduledTasks: {
-      '20 */13 * * *': ['fetch']
+      '0 */12 * * *': ['fetch']
     }
   },
 

@@ -1,5 +1,5 @@
 import { Client, type ElectionMacroBlock, InherentType } from "nimiq-rpc-client-ts"
-import type { Activity, ValidatorActivity, ValidatorsActivities } from "./types"
+import type { ValidatorActivity } from "./types"
 import { getPolicyConstants } from "./utils"
 
 /**
@@ -28,20 +28,76 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
     validatorsActivity[validator] = { likelihood, missed: 0, rewarded: 0 }
   }
 
-  // Then, fetch each batch in the epoch and update the activity
-  for (let i = 0; i < batchesPerEpoch; i++) {
-    const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + i)
-    if (errorBatch || !inherents) throw new Error(JSON.stringify({ blockNumber, errorBatch, i, firstBatchIndex, currentIndex: firstBatchIndex + i }))
+  const maxBatchSize = 120;
+  const minBatchSize = 10;
+  let batchSize = maxBatchSize;
+  for (let i = 0; i < batchesPerEpoch; i += batchSize) {
+    let batchPromises = Array.from({ length: Math.min(batchSize, batchesPerEpoch - i) }, (_, j) => createPromise(i + j));
 
-    for (const { type, validatorAddress } of inherents) {
-      if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000') continue
-      // TODO Add comment why this case can happen. e.g address: NQ57 M1NT JRQA FGD2  in election block 3075210
-      if(!validatorsActivity[validatorAddress]) continue
-      validatorsActivity[validatorAddress].rewarded += type === InherentType.Reward ? 1 : 0
-      validatorsActivity[validatorAddress].missed += [InherentType.Penalize, InherentType.Jail].includes(type) ? 1 : 0
-      // TODO Maybe there are more states we need to consider
+    let results = await Promise.allSettled(batchPromises);
+
+    let rejectedIndexes: number[] = results.reduce((acc: number[], result, index) => {
+      if (result.status === 'rejected') {
+        acc.push(index);
+      }
+      return acc;
+    }, []);
+
+    if (rejectedIndexes.length > 0) {
+      // Lowering the batch size to prevent more rejections
+      batchSize = Math.max(minBatchSize, Math.floor(batchSize / 2))
+      console.log(`Decreasing batch size to ${batchSize}`)
+    } else {
+      batchSize = Math.min(maxBatchSize,  Math.floor(batchSize + batchSize / 2))
+      if(batchSize !== maxBatchSize)
+        console.log(`Increasing batch size to ${batchSize}`)
+    }
+
+    while (rejectedIndexes.length > 0) {
+      let retryPromises = rejectedIndexes.map(index => createPromise(i + index));
+      console.log(`Retrying ${rejectedIndexes.length} batches for block ${blockNumber}`);
+      results = await Promise.allSettled(retryPromises);
+
+      rejectedIndexes = results.reduce((acc: number[], result, index) => {
+        if (result.status === 'rejected') {
+          acc.push(rejectedIndexes[index]);
+        }
+        return acc;
+      }, []);
     }
   }
+
+  function createPromise(index: number) {
+    return new Promise<void>(async (resolve, reject) => {
+      const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + index)
+      if (errorBatch || !inherents) {
+        reject(JSON.stringify({ blockNumber, errorBatch, index, firstBatchIndex, currentIndex: firstBatchIndex + index }));
+      } else {
+        for (const { type, validatorAddress } of inherents) {
+          if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000') continue
+          if (!validatorsActivity[validatorAddress]) continue
+          validatorsActivity[validatorAddress].rewarded += type === InherentType.Reward ? 1 : 0
+          validatorsActivity[validatorAddress].missed += [InherentType.Penalize, InherentType.Jail].includes(type) ? 1 : 0
+        }
+        resolve();
+      }
+    });
+  }
+
+  // Then, fetch each batch in the epoch and update the activity
+  // for (let i = 0; i < batchesPerEpoch; i++) {
+  //   const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + i)
+  //   if (errorBatch || !inherents) throw new Error(JSON.stringify({ blockNumber, errorBatch, i, firstBatchIndex, currentIndex: firstBatchIndex + i }))
+
+  //   for (const { type, validatorAddress } of inherents) {
+  //     if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000') continue
+  //     // TODO Add comment why this case can happen. e.g address: NQ57 M1NT JRQA FGD2  in election block 3075210
+  //     if(!validatorsActivity[validatorAddress]) continue
+  //     validatorsActivity[validatorAddress].rewarded += type === InherentType.Reward ? 1 : 0
+  //     validatorsActivity[validatorAddress].missed += [InherentType.Penalize, InherentType.Jail].includes(type) ? 1 : 0
+  //     // TODO Maybe there are more states we need to consider
+  //   }
+  // }
 
   const end = globalThis.performance.now()
   const seconds = Math.floor((end - start) / 1000)
