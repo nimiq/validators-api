@@ -84,21 +84,6 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
     });
   }
 
-  // Then, fetch each batch in the epoch and update the activity
-  // for (let i = 0; i < batchesPerEpoch; i++) {
-  //   const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + i)
-  //   if (errorBatch || !inherents) throw new Error(JSON.stringify({ blockNumber, errorBatch, i, firstBatchIndex, currentIndex: firstBatchIndex + i }))
-
-  //   for (const { type, validatorAddress } of inherents) {
-  //     if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000') continue
-  //     // TODO Add comment why this case can happen. e.g address: NQ57 M1NT JRQA FGD2  in election block 3075210
-  //     if(!validatorsActivity[validatorAddress]) continue
-  //     validatorsActivity[validatorAddress].rewarded += type === InherentType.Reward ? 1 : 0
-  //     validatorsActivity[validatorAddress].missed += [InherentType.Penalize, InherentType.Jail].includes(type) ? 1 : 0
-  //     // TODO Maybe there are more states we need to consider
-  //   }
-  // }
-
   const end = globalThis.performance.now()
   const seconds = Math.floor((end - start) / 1000)
   console.log(`Fetched slots assignation for block ${blockNumber} in ${seconds} seconds.`)

@@ -11,7 +11,6 @@ const validator = computed(() => {
 
 <template>
   <div v-if="validator">
-    <!-- TODO Remove w-max  -->
     <div flex="~ gap-16 items-center">
       <NuxtImg
         :src="validator.icon" :alt="validator.name" size-64 shrink-0 object-contain
