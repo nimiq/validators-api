@@ -16,21 +16,21 @@ const validator = computed(() => {
         :src="validator.icon" :alt="validator.name" size-64 shrink-0 object-contain
         :style="{ 'view-transition-name': `logo-${validator.id}` }"
       />
-      <div flex="~ col gap-2" relative>
-        <h1 pb-4 text-28 lh-none :style="{ 'view-transition-name': `h-${validator.id}` }">
+      <div flex="~ col gap-12" relative>
+        <h1 m-0 text-28 lh-none :style="{ 'view-transition-name': `h-${validator.id}` }">
           {{ validator.name }}
         </h1>
-        <Address :validator text-15 tracking-wide :style="{ 'view-transition-name': `address-${validator.id}` }" />
+        <Address :validator m-0 text-15 tracking-wide :style="{ 'view-transition-name': `address-${validator.id}` }" />
       </div>
       <div flex-auto />
       <div
-        v-if="validator.tag === ValidatorTag.Nimiq" self-start bg-green-400 text-green-1100 pill-sm pill-secondary
+        v-if="validator.tag === ValidatorTag.Nimiq" pill-sm self-start bg-green-400 text-green-1100 pill-secondary
         flex="~ items-center gap-8"
       >
         <div aria-hidden i-nimiq:icons-lg-verified-filled />
         <span>Maintained by Nimiq</span>
       </div>
-      <NuxtLink v-if="validator.website" :to="validator.website" ml-auto self-start arrow pill-sm pill-tertiary>
+      <NuxtLink v-if="validator.website" :to="validator.website" pill-sm ml-auto self-start arrow pill-tertiary>
         {{
           validator.website?.replace(/https?:\/\//, '') }}
       </NuxtLink>
