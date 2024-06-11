@@ -7,7 +7,7 @@ import { getValidatorParams, storeScores } from '../database/utils'
 export default defineTask({
   meta: {
     name: "db:compute-score",
-    description: "computes the VTS score",
+    description: "Computes the VTS score",
   },
   async run() {
     consola.info("Running db:compute-score task...")

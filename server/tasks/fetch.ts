@@ -47,6 +47,6 @@ export default defineTask({
       await storeActivities(epochsActivities);
     }
 
-    return { result: `Task initialized` }
+    return { result: `${epochBlockNumbers.length} epochs fetched` }
   },
 })

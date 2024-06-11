@@ -103,7 +103,7 @@ type ValidatorParams = Record<
  */
 export async function getMissingEpochs(range: Range) {
   const existingEpochs = await useDrizzle()
-    .select({ epochBlockNumber: tables.activity.epochBlockNumber })
+    .selectDistinct({ epochBlockNumber: tables.activity.epochBlockNumber })
     .from(tables.activity)
     .where(and(gte(tables.activity.epochBlockNumber, range.fromEpoch), lte(tables.activity.epochBlockNumber, range.toEpoch)))
     .execute().then(r => r.map(r => r.epochBlockNumber))
