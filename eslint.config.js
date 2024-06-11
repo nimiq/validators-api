@@ -6,5 +6,8 @@ export default withNuxt(
   antfu({
     unocss: true,
     formatters: true,
+    ignores: [
+      'server/database/migrations/*',
+    ],
   }),
 )
