@@ -31,7 +31,7 @@ const strokeColor = computed(() => {
 
 <template>
   <div grid="~ cols-1 rows-1 place-content-center *:row-span-full *:col-span-full">
-    <template v-if="score > 0">
+    <template v-if="score !== null">
       <div font-bold size-full grid="~ place-content-center">{{ (score * 100).toFixed(0) }}</div>
       <svg
 bg-transparent :viewBox="`0 0 ${viewBoxSize} ${viewBoxSize}`" height="100%" width="100%"
