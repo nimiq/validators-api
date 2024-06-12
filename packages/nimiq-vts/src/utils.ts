@@ -1,5 +1,5 @@
-import { Client, type PolicyConstants } from 'nimiq-rpc-client-ts'
-import { Range } from './types'
+import type { Client, PolicyConstants } from 'nimiq-rpc-client-ts';
+import type { Range } from './types'
 
 interface GetRangeOptions {
   // The last epoch number that we will consider. Default to the last finished epoch.

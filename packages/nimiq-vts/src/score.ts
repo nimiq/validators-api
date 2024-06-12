@@ -1,4 +1,4 @@
-import { ScoreParams, ScoreValues } from './types'
+import type { ScoreParams, ScoreValues } from './types'
 import { defu } from "defu"
 
 export function getSize({ balance, threshold, steepness, totalBalance }: ScoreParams['size']) {
@@ -35,7 +35,7 @@ export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }:
   if (!inherentsPerEpoch || !weightFactor || !curveCenter) throw new Error(`Invalid params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}`)
   let numerator = 0, denominator = 0
   const length = Object.keys(inherentsPerEpoch).length
-  for( let [epochIndex, inherents] of Object.entries(inherentsPerEpoch) ) {
+  for( const [epochIndex, inherents] of Object.entries(inherentsPerEpoch) ) {
     const {rewarded,missed} = inherents
     const totalBlocks = rewarded + missed
     const r = rewarded / totalBlocks

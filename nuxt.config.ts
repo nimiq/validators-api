@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxthub/core',
     '@nuxt/image',
+    'radix-vue/nuxt',
   ],
 
   hub: {
@@ -81,11 +82,11 @@ export default defineNuxtConfig({
     inlineStyles: false,
   },
 
-  eslint: {
-    config: {
-      standalone: false,
-    },
-  },
+  // eslint: {
+  //   config: {
+  //     standalone: false,
+  //   },
+  // },
 
   colorMode: {
     classSuffix: '',

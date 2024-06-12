@@ -1,4 +1,4 @@
-import { NewValidator } from "../utils/drizzle";
+import type { NewValidator } from "../utils/drizzle";
 import { getMissingValidators, storeValidator } from "./utils";
 import { consola } from 'consola'
 

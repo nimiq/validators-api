@@ -1,5 +1,6 @@
 import { Client } from 'nimiq-rpc-client-ts'
-import { ValidatorsActivities, fetchValidatorsActivities, getRange } from 'nimiq-vts'
+import type { ValidatorsActivities} from 'nimiq-vts';
+import { fetchValidatorsActivities, getRange } from 'nimiq-vts'
 import { consola } from 'consola'
 import { getMissingEpochs, storeActivities } from '../database/utils'
 

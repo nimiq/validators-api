@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getLiveness } from './score'
-import { ValidatorEpochState } from './types'
+import type { ValidatorEpochState } from './types'
 
 describe('should compute livenes correctly', () => {
   it('should be 1 with all epoch active', () => {

@@ -1,8 +1,8 @@
 import { gte, inArray, lte } from "drizzle-orm"
 import type { ValidatorsActivities, Range, ScoreParams } from "nimiq-vts"
-// @ts-expect-error no types
+// @ts-expect-error no types in the package
 import Identicons from '@nimiq/identicons'
-import { NewScore, NewValidator } from "../utils/drizzle"
+import type { NewScore, NewValidator } from "../utils/drizzle"
 
 /**
  * Given a list of validator addresses, it returns the addresses that are missing in the database.

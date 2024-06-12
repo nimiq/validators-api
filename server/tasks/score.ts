@@ -1,7 +1,7 @@
 import { consola } from 'consola'
 import { Client } from 'nimiq-rpc-client-ts'
 import { computeScore, getRange } from 'nimiq-vts'
-import { NewScore } from '../utils/drizzle'
+import type { NewScore } from '../utils/drizzle'
 import { getValidatorParams, storeScores } from '../database/utils'
 
 export default defineTask({

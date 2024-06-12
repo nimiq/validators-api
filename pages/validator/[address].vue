@@ -20,7 +20,7 @@ const validator = computed(() => {
         <h1 m-0 text-28 lh-none :style="{ 'view-transition-name': `h-${validator.id}` }">
           {{ validator.name }}
         </h1>
-        <Address :validator m-0 text-15 tracking-wide :style="{ 'view-transition-name': `address-${validator.id}` }" />
+        <AddressDisplay :validator :enable-clipboard="true" m-0 text-15 tracking-wide :style="{ 'view-transition-name': `address-${validator.id}` }" />
       </div>
       <div flex-auto />
       <div

@@ -1,4 +1,4 @@
-import { Client, type ElectionMacroBlock, InherentType } from "nimiq-rpc-client-ts"
+import { type Client, type ElectionMacroBlock, InherentType } from "nimiq-rpc-client-ts";
 import type { ValidatorActivity } from "./types"
 import { getPolicyConstants } from "./utils"
 
@@ -32,7 +32,7 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
   const minBatchSize = 10;
   let batchSize = maxBatchSize;
   for (let i = 0; i < batchesPerEpoch; i += batchSize) {
-    let batchPromises = Array.from({ length: Math.min(batchSize, batchesPerEpoch - i) }, (_, j) => createPromise(i + j));
+    const batchPromises = Array.from({ length: Math.min(batchSize, batchesPerEpoch - i) }, (_, j) => createPromise(i + j));
 
     let results = await Promise.allSettled(batchPromises);
 
@@ -54,7 +54,7 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
     }
 
     while (rejectedIndexes.length > 0) {
-      let retryPromises = rejectedIndexes.map(index => createPromise(i + index));
+      const retryPromises = rejectedIndexes.map(index => createPromise(i + index));
       console.log(`Retrying ${rejectedIndexes.length} batches for block ${blockNumber}`);
       results = await Promise.allSettled(retryPromises);
 
@@ -67,9 +67,9 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
     }
   }
 
-  function createPromise(index: number) {
-    return new Promise<void>(async (resolve, reject) => {
-      const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + index)
+  async function createPromise(index: number) {
+    const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + index)
+    return new Promise<void>((resolve, reject) => {
       if (errorBatch || !inherents) {
         reject(JSON.stringify({ blockNumber, errorBatch, index, firstBatchIndex, currentIndex: firstBatchIndex + index }));
       } else {
