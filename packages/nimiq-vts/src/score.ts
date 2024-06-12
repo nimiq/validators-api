@@ -16,6 +16,7 @@ export function getLiveness({ activeEpochStates, weightFactor }: ScoreParams['li
   let weightedSum = 0
   let weightTotal = 0
 
+  console.log(activeEpochStates.length)
   for (const [i, state] of activeEpochStates.entries()) {
     const weight = 1 - (weightFactor * i) / activeEpochStates.length
     weightedSum += weight * state
@@ -56,7 +57,7 @@ export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }:
 // The default values for the computeScore function
 // Negative values and empty arrays are used to indicate that the user must provide the values or an error will be thrown
 const defaultScoreParams: ScoreParams = {
-  size: { threshold: 0.25, steepness: 4, balance: -1, totalBalance: -1 },
+  size: { threshold: 0.1, steepness: 7.5, balance: -1, totalBalance: -1 },
   liveness: { weightFactor: 0.5, activeEpochStates: [] },
   reliability: { weightFactor: 0.5, curveCenter: -0.16, inherentsPerEpoch: {} }
 }
