@@ -5,35 +5,76 @@ export enum ValidatorEpochState {
 
 export type ScoreParams = {
   liveness: {
-    // How much the weight decreases for each epoch. 
-    //  - 0 means that all epochs have the same weight,
-    //  - 1 means that the weight decreases linearly from 1 to 0 over the range of epochs.
+    /**
+     * The weight factor is a number between 0 and 1 that controls how much the weight decreases for each epoch.
+     * - 0 means that all epochs have the same weight,
+     * - 1 means that the weight decreases linearly from 1 to 0 over the range of epochs.
+     */
     weightFactor?: number,
 
-    // A list of 0s and 1s indicating if the validator was active or inactive in each epoch.
-    // The amount of items in the list should be the same as the amount of epochs we are considering.
+    /**
+     * The activeEpochStates is an array of 0s and 1s indicating if the validator was active or inactive in each epoch.
+     * The amount of items in the list should be the same as the amount of epochs we are considering.
+     */
     activeEpochStates?: ValidatorEpochState[]
   },
 
   size: {
-    // TODO
-    threshold: number,
+    /**
+     * The threshold percentage of the total stake.
+     * Validators with a stake percentage below this threshold will receive a maximum score.
+     * Above this threshold, the score will start to decrease.
+     * @default 0.1
+     */
+    threshold: number
 
-    // TODO
+    /**
+     * It controls how quickly the score decreases once the stake percentage surpasses the threshold.
+     * A higher value will result in a steeper drop in score.
+     * @default 7.5
+     */
     steepness: number,
 
-    // The balance of the validator.
+    /**
+     * The balance of the validator.
+     */
     balance: number,
 
-    // The total balance of all validators.
+    /**
+     * The total balance of all validators.
+     */
     totalBalance: number
   },
 
   reliability: {
+     /**
+     * The weight factor is a number between 0 and 1 that controls how much the weight decreases for each epoch.
+     * - 0 means that all epochs have the same weight,
+     * - 1 means that the weight decreases linearly from 1 to 0 over the range of epochs.
+     * @default 0.5
+     */
     weightFactor?: number,
+
+    /**
+     * The curveCenter determines the adjustment applied to the reliability score.
+     * This value represents the x-coordinate of the circle's center in the adjustment graph.
+     * A more negative value penalizes low reliability scores more severely.
+     * @default -0.16
+     */
     curveCenter?: number,
+
+    /**
+     * A record that maps each epoch number to an object containing the number of rewarded blocks and missed blocks.
+     */
     inherentsPerEpoch?: Record<number, {
+        /**
+         * Number of blocks for which the validator received a reward in the epoch.
+         */
         rewarded: number
+
+        /**
+         * Number of blocks the validator was expected to produce but missed in the epoch.
+         */
         missed: number
     }>
   }
