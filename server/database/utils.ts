@@ -83,8 +83,15 @@ type ValidatorParams = Record<
 
   const validatorParams: ValidatorParams = {};
   for (const { address, balance } of validators) {
+    const validatorId = await useDrizzle().select({ id: tables.validators.id }).from(tables.validators).where(eq(tables.validators.address, address)).get().then(r => r?.id);
+    if (!validatorId) throw new Error(`Validator ${address} not found in database`);
+
     const validatorActivities = activities.filter(a => a.address === address);
-    const validatorId = validatorActivities[0]!.validatorId;
+    if (validatorActivities.length === 0) {
+      validatorParams[address] = { validatorId, balance, activeEpochStates: Array(epochCount).fill(0), inherentsPerEpoch: {} };
+      continue
+    }
+  
     const activeEpochStates = Array(epochCount).fill(0);
     const inherentsPerEpoch: Record<number, {rewarded: number, missed: number}> = {};
     validatorActivities.forEach(activity => {
