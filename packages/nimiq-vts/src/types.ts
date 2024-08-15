@@ -3,78 +3,74 @@ export enum ValidatorEpochState {
   Inactive = 0,
 }
 
-export type ScoreParams = {
+export interface ScoreParams {
   liveness: {
     /**
-     * The weight factor is a number between 0 and 1 that controls how much the weight decreases for each epoch.
-     * - 0 means that all epochs have the same weight,
-     * - 1 means that the weight decreases linearly from 1 to 0 over the range of epochs.
+     * The weight factor is a number between 0 and 1 that controls the rate at which the importance of each epoch decreases.
+     * - 0: All epochs have equal importance.
+     * - 1: Importance decreases linearly from 1 (most recent epoch) to 0 (oldest epoch).
      */
     weightFactor?: number,
 
     /**
-     * The activeEpochStates is an array of 0s and 1s indicating if the validator was active or inactive in each epoch.
-     * The amount of items in the list should be the same as the amount of epochs we are considering.
+     * An array of 0s and 1s representing the validator's activity in each epoch.
+     * - 1: The validator was active in the epoch.
+     * - 0: The validator was inactive in the epoch.
+     * The number of items in the array should match the total number of epochs being considered.
      */
     activeEpochStates?: ValidatorEpochState[]
   },
 
   size: {
     /**
-     * The threshold percentage of the total stake.
-     * Validators with a stake percentage below this threshold will receive a maximum score.
-     * Above this threshold, the score will start to decrease.
+     * The percentage of the total network stake at which a validator begins to receive a reduced score.
+     * Validators with a stake percentage below this threshold receive a maximum score.
      * @default 0.1
      */
     threshold: number
 
     /**
-     * It controls how quickly the score decreases once the stake percentage surpasses the threshold.
-     * A higher value will result in a steeper drop in score.
+     * Controls how quickly the size score decreases once the validator's stake percentage surpasses the threshold.
+     * A higher value results in a steeper decline in the score.
      * @default 7.5
      */
     steepness: number,
 
     /**
-     * The balance of the validator.
+     * The balance or stake amount of the validator.
      */
     balance: number,
 
     /**
-     * The total balance of all validators.
+     * The total balance or stake amount across all validators in the network.
      */
     totalBalance: number
   },
 
   reliability: {
-     /**
-     * The weight factor is a number between 0 and 1 that controls how much the weight decreases for each epoch.
-     * - 0 means that all epochs have the same weight,
-     * - 1 means that the weight decreases linearly from 1 to 0 over the range of epochs.
+    /**
+     * The weight factor is a number between 0 and 1 that controls the rate at which the importance of each epoch decreases over time.
+     * - 0: All epochs have equal importance.
+     * - 1: Importance decreases linearly from the most recent epoch to the oldest.
      * @default 0.5
      */
     weightFactor?: number,
 
     /**
-     * The curveCenter determines the adjustment applied to the reliability score.
-     * This value represents the x-coordinate of the circle's center in the adjustment graph.
-     * A more negative value penalizes low reliability scores more severely.
+     * Determines the adjustment applied to the reliability score based on a circular curve.
+     * This value represents the x-coordinate of the circle's center in the reliability adjustment graph.
+     * A more negative value increases the penalty for low reliability scores.
      * @default -0.16
      */
     curveCenter?: number,
 
     /**
-     * A record that maps each epoch number to an object containing the number of rewarded blocks and missed blocks.
+     * A mapping of each epoch number to an object containing the counts of rewarded and missed blocks.
+     * - `rewarded`: The number of blocks for which the validator received rewards in the epoch.
+     * - `missed`: The number of blocks the validator was expected to produce but did not.
      */
     inherentsPerEpoch?: Record<number, {
-        /**
-         * Number of blocks for which the validator received a reward in the epoch.
-         */
         rewarded: number
-
-        /**
-         * Number of blocks the validator was expected to produce but missed in the epoch.
-         */
         missed: number
     }>
   }
