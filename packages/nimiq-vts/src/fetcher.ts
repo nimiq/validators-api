@@ -1,6 +1,7 @@
 import { type Client, type ElectionMacroBlock, InherentType } from "nimiq-rpc-client-ts";
 import type { ValidatorActivity } from "./types"
 import { getPolicyConstants } from "./utils"
+import { consola } from 'consola'
 
 /**
  * For a given block number, fetches the validator slots assignation.
@@ -9,7 +10,7 @@ import { getPolicyConstants } from "./utils"
 export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumber: number) {
   const start = globalThis.performance.now()
   // TODO: change this to fetching epoch n...
-  console.info(`Fetching slots assignation for block ${blockNumber}`)
+  consola.info(`Fetching slots assignation for block ${blockNumber}`)
   const { batchesPerEpoch, genesisBlockNumber, blocksPerBatch } = await getPolicyConstants(client)
   const { data: block, error } = await client.blockchain.getBlockByNumber(blockNumber, { includeTransactions: true })
   if (error || !block) throw new Error(JSON.stringify({ blockNumber, error, block }))
@@ -46,16 +47,16 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
     if (rejectedIndexes.length > 0) {
       // Lowering the batch size to prevent more rejections
       batchSize = Math.max(minBatchSize, Math.floor(batchSize / 2))
-      console.log(`Decreasing batch size to ${batchSize}`)
+      consola.info(`Decreasing batch size to ${batchSize}`)
     } else {
       batchSize = Math.min(maxBatchSize,  Math.floor(batchSize + batchSize / 2))
       if(batchSize !== maxBatchSize)
-        console.log(`Increasing batch size to ${batchSize}`)
+        consola.info(`Increasing batch size to ${batchSize}`)
     }
 
     while (rejectedIndexes.length > 0) {
       const retryPromises = rejectedIndexes.map(index => createPromise(i + index));
-      console.log(`Retrying ${rejectedIndexes.length} batches for block ${blockNumber}`);
+      consola.info(`Retrying ${rejectedIndexes.length} batches for block ${blockNumber}`);
       results = await Promise.allSettled(retryPromises);
 
       rejectedIndexes = results.reduce((acc: number[], result, index) => {
@@ -86,7 +87,7 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
 
   const end = globalThis.performance.now()
   const seconds = Math.floor((end - start) / 1000)
-  console.log(`Fetched slots assignation for block ${blockNumber} in ${seconds} seconds.`)
+  consola.info(`Fetched slots assignation for block ${blockNumber} in ${seconds} seconds.`)
 
   return validatorsActivity
 }
@@ -103,7 +104,7 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
  * Usage:
  * const activitiesGenerator = fetchValidatorsActivities(client, epochBlockNumbers);
  * for await (const { key, activity } of activitiesGenerator) {
- *   console.log(`Address: ${key.address}, Epoch: ${key.epochBlockNumber}, Activity: ${activity}`);
+ *   consola.info(`Address: ${key.address}, Epoch: ${key.epochBlockNumber}, Activity: ${activity}`);
  * }
  */
 export async function* fetchValidatorsActivities(client: Client, epochBlockNumbers: number[]) {

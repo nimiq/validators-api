@@ -1,4 +1,5 @@
 import { desc } from 'drizzle-orm';
+import { consola } from 'consola'
 
 export default defineTask({
   meta: {
@@ -6,11 +7,11 @@ export default defineTask({
     description: 'Deletes all data from the database',
   },
   async run({ payload }: { payload: { latest?: string, epoch_block_number?: string } }) {
-    console.log('Deleting DB...')
+    consola.info('Deleting DB...')
     if (payload.latest && payload.latest === 'true') {
       const latest = await useDrizzle().selectDistinct({ epochBlockNumber: tables.activity.epochBlockNumber }).from(tables.activity).orderBy(desc(tables.activity.epochBlockNumber)).limit(1)
       if (latest.length > 0) {
-        console.log('Deleting data from latest epoch block number:', latest[0].epochBlockNumber)
+        consola.info('Deleting data from latest epoch block number:', latest[0].epochBlockNumber)
         await useDrizzle().delete(tables.activity).where(eq(tables.activity.epochBlockNumber, latest[0].epochBlockNumber)).get()
         return { result: `Deleted epoch_block_number: ${latest[0].epochBlockNumber}` }
       }
