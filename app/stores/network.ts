@@ -1,4 +1,4 @@
-import init, { Client, ClientConfiguration, type ConsensusState } from '@nimiq/core-web/web'
+import init, { Client, ClientConfiguration, type ConsensusState } from '@nimiq/core/web'
 
 export const useNimiqNetwork = defineStore('network', () => {
   const client = ref<Client>()

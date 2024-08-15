@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ValidatorTag, type Validator, type Score } from '~/server/utils/drizzle'
+import { ValidatorTag, type Validator, type Score } from '~~/server/utils/drizzle'
 
 defineProps<{ validators: (Validator & Score)[] }>()
 </script>
@@ -9,9 +9,9 @@ defineProps<{ validators: (Validator & Score)[] }>()
 v-if="validators.length > 0" grid="~ gap-x-32" :style="`grid-template-columns: 56px max-content 1fr max-content`"
     of-x-auto mx--32 px-32>
     <div/>
-    <div label font-bold text="11 neutral-700" py-2>Name</div>
-    <div label font-bold text="11 neutral-700" py-2>Address</div>
-    <div label font-bold text="11 neutral-700" py-2 text-center>Score</div>
+    <div nq-label font-bold text="11 neutral-700" py-2>Name</div>
+    <div nq-label font-bold text="11 neutral-700" py-2>Address</div>
+    <div nq-label font-bold text="11 neutral-700" py-2 text-center>Score</div>
     <NuxtLink
 v-for="validator in validators" :key="validator.address" :to="`/validator/${validator.address}`"
       border="t neutral-200" grid="~ rows-subgrid cols-subgrid col-span-full items-center"

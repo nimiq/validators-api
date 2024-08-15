@@ -13,8 +13,8 @@ const validatorDetail = computed(() => !!route.params.address)
   <div flex="~ col gap-64" mx-auto size-screen max-h-screen max-w-1200 px-32 py-20>
     <header flex="~ gap-32 row items-center">
       <NuxtLink to="/" i-nimiq:logos-nimiq-horizontal ml-16 h-24 w-90 dark:i-nimiq:logos-nimiq-white-horizontal />
-      <NuxtLink v-if="validatorDetail" to="/" block w-max arrow-back ghost-btn>
-        Go Back
+      <NuxtLink v-if="validatorDetail" to="/" block w-max nq-arrow-back nq-ghost-btn>
+        Go back
       </NuxtLink>
       <div flex-auto />
       <NuxtLink to="https://github.com/onmax/nimiq-validators" i-nimiq:logos-github-mono target="_blank" />

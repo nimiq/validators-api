@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ValidatorTag } from '~/server/utils/drizzle'
+import { ValidatorTag } from '~~/server/utils/drizzle'
 
 const { validators } = storeToRefs(useValidatorsStore())
 
@@ -20,17 +20,17 @@ const validator = computed(() => {
         <h1 m-0 text-28 lh-none :style="{ 'view-transition-name': `h-${validator.id}` }">
           {{ validator.name }}
         </h1>
-        <AddressDisplay :validator :enable-clipboard="true" m-0 text-15 tracking-wide :style="{ 'view-transition-name': `address-${validator.id}` }" />
+        <AddressDisplay :validator enable-clipboard m-0 text-15 tracking-wide :style="{ 'view-transition-name': `address-${validator.id}` }" />
       </div>
       <div flex-auto />
       <div
-        v-if="validator.tag === ValidatorTag.Nimiq" pill-sm self-start bg-green-400 text-green-1100 pill-secondary
+        v-if="validator.tag === ValidatorTag.Nimiq" nq-pill-sm self-start bg-green-400 text-green-1100 nq-pill-secondary
         flex="~ items-center gap-8"
       >
         <div aria-hidden i-nimiq:icons-lg-verified-filled />
         <span>Maintained by Nimiq</span>
       </div>
-      <NuxtLink v-if="validator.website" :to="validator.website" pill-sm ml-auto self-start arrow pill-tertiary>
+      <NuxtLink v-if="validator.website" :to="validator.website" nq-pill-sm ml-auto self-start nq-arrow nq-pill-tertiary>
         {{
           validator.website?.replace(/https?:\/\//, '') }}
       </NuxtLink>
@@ -47,19 +47,19 @@ const validator = computed(() => {
       />
       <div flex="~ items-center gap-48" mt-64>
         <div>
-          <h4 label text="12 center">
+          <h4 nq-label text="12 center">
             size
           </h4>
           <ScorePie text="28 neutral/70" mx-auto mt-6 size-80 :score="validator.size" />
         </div>
         <div>
-          <h4 label text="12 center">
+          <h4 nq-label text="12 center">
             liveness
           </h4>
           <ScorePie text="28 neutral/70" mx-auto mt-6 size-80 :score="validator.liveness" />
         </div>
         <div>
-          <h4 label text="12 center">
+          <h4 nq-label text="12 center">
             reliability
           </h4>
           <ScorePie text="28 neutral/70" mx-auto mt-6 size-80 :score="validator.reliability" />
@@ -77,7 +77,7 @@ const validator = computed(() => {
     <p text-center font-semibold>
       Validator {{ route.params.address }} not found
     </p>
-    <NuxtLink to="/" mx-auto mt-16 arrow-back pill-blue>
+    <NuxtLink to="/" mx-auto mt-16 nq-arrow-back nq-pill-blue>
       Go back
     </NuxtLink>
   </div>

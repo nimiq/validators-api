@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useClipboard } from '@vueuse/core'
-const props = defineProps<{ validator: Validator, enableClipboard: boolean }>()
+const props = withDefaults(defineProps<{ validator: Validator, enableClipboard?: boolean }>(),{enableClipboard: false})
 
 const { copy, isSupported } = useClipboard()
 

@@ -1,5 +1,5 @@
 import { consola } from 'consola'
-import { Client } from 'nimiq-rpc-client-ts'
+import { NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import { computeScore, getRange } from 'nimiq-vts'
 import type { NewScore } from '../utils/drizzle'
 import { getValidatorParams, storeScores } from '../database/utils'
@@ -11,7 +11,7 @@ export default defineTask({
   },
   async run() {
     consola.info("Running db:compute-score task...")
-    const client = new Client(new URL(useRuntimeConfig().rpcUrl))
+    const client = new NimiqRPCClient(new URL(useRuntimeConfig().rpcUrl))
 
     // The range that we will consider
     const range = await getRange(client)

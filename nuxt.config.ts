@@ -4,6 +4,7 @@ import topLevelAwait from 'vite-plugin-top-level-await'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
+
   modules: [
     '@vueuse/nuxt',
     '@pinia/nuxt',
@@ -94,6 +95,7 @@ export default defineNuxtConfig({
 
   imports: {
     mergeExisting: true,
+    presets: ['@vueuse/core'],
     imports: [
       {
         from: './server/utils/drizzle.ts',
@@ -102,4 +104,9 @@ export default defineNuxtConfig({
       },
     ],
   },
+
+  compatibilityDate: '2024-08-15',
+  future: {
+    compatibilityVersion: 4
+  }
 })

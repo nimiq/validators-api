@@ -1,4 +1,4 @@
-import type { Client, PolicyConstants } from 'nimiq-rpc-client-ts';
+import type { NimiqRPCClient, PolicyConstants } from 'nimiq-rpc-client-ts';
 import type { Range } from './types'
 
 interface GetRangeOptions {
@@ -11,7 +11,7 @@ interface GetRangeOptions {
 /**
  * Given the amount of milliseconds we want to consider, it returns an object with the epoch range we will consider.
 */
-export async function getRange(client: Client, options?: GetRangeOptions): Promise<Range> {
+export async function getRange(client: NimiqRPCClient, options?: GetRangeOptions): Promise<Range> {
   const { blockSeparationTime, blocksPerEpoch, genesisBlockNumber } = await getPolicyConstants(client);
   const durationMs = options?.durationMs || 1000 * 60 * 60 * 24 * 30 * 9;
   const epochsCount = Math.ceil(durationMs / (blockSeparationTime * blocksPerEpoch));
@@ -40,7 +40,7 @@ export async function getRange(client: Client, options?: GetRangeOptions): Promi
 
 export type PolicyConstantsPatch = PolicyConstants & { blockSeparationTime: number, genesisBlockNumber: number }
 let policy: PolicyConstantsPatch
-export async function getPolicyConstants(client: Client) {
+export async function getPolicyConstants(client: NimiqRPCClient) {
   if (!policy) {
     const { data: _policy, error: errorPolicy } = await client.policy.getPolicyConstants()
     if (errorPolicy || !_policy) throw new Error(errorPolicy?.message || 'No policy constants')

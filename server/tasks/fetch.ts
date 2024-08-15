@@ -1,4 +1,4 @@
-import { Client } from 'nimiq-rpc-client-ts'
+import { NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { ValidatorsActivities} from 'nimiq-vts';
 import { fetchValidatorsActivities, getRange } from 'nimiq-vts'
 import { consola } from 'consola'
@@ -16,7 +16,7 @@ export default defineTask({
     // TODO: check if the task is already running
     // TODO it would be nice to catch some errors tbh
 
-    const client = new Client(new URL(useRuntimeConfig().rpcUrl))
+    const client = new NimiqRPCClient(new URL(useRuntimeConfig().rpcUrl))
 
     // The range that we will consider
     const range = await getRange(client)
