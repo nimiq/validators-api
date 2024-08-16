@@ -16,8 +16,11 @@ export async function getClient() {
 
 // TODO Use this rpc client app-wide
 export async function getRpcClient() {
+  const url = useRuntimeConfig().rpcUrl
+  if (!url) 
+    throw new Error('Missing RPC URL in runtime config')
   if (!rpcClient) {
-    rpcClient = new NimiqRPCClient(new URL(useRuntimeConfig().rpcUrl))
+    rpcClient = new NimiqRPCClient(new URL(url))
   }
   return rpcClient
 }

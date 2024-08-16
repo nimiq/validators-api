@@ -21,10 +21,9 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    // Set in .env
-    rpcUrl: '',
+    rpcUrl: process.env.NUXT_RPC_URL || '',
     public: {
-      nimiqNetwork: '',
+      nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
     }
   },
 
@@ -48,6 +47,7 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    minify: false,
     esbuild: {
       options: {
         target: 'esnext',
