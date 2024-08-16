@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data } = useFetch('/api/vts')
+const { data, status, error } = useFetch('/api/vts')
 const validators = computed(() => data.value?.validators || [])
 
 const averageScore = computed(() => {
@@ -11,14 +11,21 @@ const averageScore = computed(() => {
 </script>
 
 <template>
-  <div flex="~ col" pt-64 pb-128>
+  <div v-if="status === 'pending'">
+    Loading...
+  </div>
+  <div v-if="status === 'error'">
+    There was an error: {{ JSON.stringify(error) }}
+  </div>
+
+  <div flex="~ col" pt-64 pb-128 v-if="status === 'success'">
     <div flex="~ wrap gap-96 justify-center" of-x-auto mx--32 px-32 pb-64>
       <Stat text-green>
         <template #value>{{ validators?.length }}</template>
         <template #description>Validators</template>
       </Stat>
       <Stat text-blue>
-        <template #value>85</template>
+        <template #value>{{data?.epochNumber}}</template>
         <template #description>Epoch</template>
       </Stat>
       <Stat text-red>
