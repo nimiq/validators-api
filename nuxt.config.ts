@@ -47,7 +47,6 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    minify: false,
     esbuild: {
       options: {
         target: 'esnext',
@@ -95,10 +94,6 @@ export default defineNuxtConfig({
 
   colorMode: {
     classSuffix: '',
-  },
-
-  imports: {
-    presets: ['@vueuse/core'],
   },
 
   compatibilityDate: '2024-08-15',

@@ -7,7 +7,7 @@ const network = useRuntimeConfig().public.nimiqNetwork
   <div class="nq-prose">
     <div flex="~ items-center justify-between">
       <h1 max-w-inherit my-32>Network <code px-4 rounded-6>{{ network }}</code></h1>
-      <NuxtLink to="/api/health" target="_blank" nq-arrow nq-pill-tertiary text-12 op-80>
+      <NuxtLink to="/api/vts/health" target="_blank" nq-arrow nq-pill-tertiary text-12 op-80>
         API
         </NuxtLink>
     </div>
