@@ -98,7 +98,6 @@ export default defineNuxtConfig({
   },
 
   imports: {
-    mergeExisting: true,
     presets: ['@vueuse/core'],
   },
 

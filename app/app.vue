@@ -7,7 +7,7 @@ const validatorDetail = computed(() => !!route.params.address)
 
 const networkName = useRuntimeConfig().public.nimiqNetwork
 
-const { data: health } = useFetch('/api/health')
+const { data: health } = useFetch('/api/vts/health')
 </script>
 
 <template>
@@ -22,7 +22,7 @@ const { data: health } = useFetch('/api/health')
         Go back
       </NuxtLink>
       <div flex-auto />
-      <NuxtLink to="/health" :class="{ 'bg-green/10 text-green': health?.isSynced, 'bg-red/10 text-red': !health?.isSynced}" px-12 py-4 rounded-full text-11 flex="~ items-center gap-6">
+      <NuxtLink to="/vts/health" :class="{ 'bg-green/10 text-green': health?.isSynced, 'bg-red/10 text-red': !health?.isSynced}" px-12 py-4 rounded-full text-11 flex="~ items-center gap-6">
         <div  text-10 :class="health?.isSynced ? 'i-nimiq:check' : 'i-nimiq:alert'"/>
         <span font-semibold>{{ health?.isSynced ? 'Synced' : 'Not Synced' }}</span>
       </NuxtLink>
