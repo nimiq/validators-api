@@ -7,12 +7,18 @@ await callOnce(validatorsStore.fetchValidators)
 
 const route = useRoute()
 const validatorDetail = computed(() => !!route.params.address)
+
+const networkName = useRuntimeConfig().public.nimiqNetwork
 </script>
 
 <template>
   <div flex="~ col gap-64" mx-auto size-screen max-h-screen max-w-1200 px-32 py-20>
     <header flex="~ gap-32 row items-center">
-      <NuxtLink to="/" i-nimiq:logos-nimiq-horizontal ml-16 h-24 w-90 dark:i-nimiq:logos-nimiq-white-horizontal />
+      <NuxtLink to="/" flex>
+        <div aria-hidden i-nimiq:logos-nimiq-horizontal class="!ml-16 !h-24 !w-90" dark:i-nimiq:logos-nimiq-white-horizontal />
+        <span font-light text-16 tracking-0.75 ml-8>Validators</span>
+        <span top--6 relative h-max py-2 px-6 ml-6 nq-label text-orange bg="orange/10" rounded-2 text-9>{{ networkName }}</span>
+      </NuxtLink>
       <NuxtLink v-if="validatorDetail" to="/" block w-max nq-arrow-back nq-ghost-btn>
         Go back
       </NuxtLink>

@@ -21,7 +21,11 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    rpcUrl: '', // Set in .env
+    // Set in .env
+    rpcUrl: '',
+    public: {
+      nimiqNetwork: '',
+    }
   },
 
   experimental: {
@@ -39,7 +43,7 @@ export default defineNuxtConfig({
       topLevelAwait(),
     ],
     optimizeDeps: {
-      exclude: ['@nimiq/core-web'],
+      exclude: ['@nimiq/core'],
     },
   },
 
@@ -96,13 +100,6 @@ export default defineNuxtConfig({
   imports: {
     mergeExisting: true,
     presets: ['@vueuse/core'],
-    imports: [
-      {
-        from: './server/utils/drizzle.ts',
-        name: 'Validator',
-        type: true,
-      },
-    ],
   },
 
   compatibilityDate: '2024-08-15',

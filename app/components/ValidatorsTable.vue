@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ValidatorTag, type Validator, type Score } from '~~/server/utils/drizzle'
+import { ValidatorTag } from '~~/server/utils/drizzle'
+import type { Validator } from '~~/server/api/validators/index.get'
 
-defineProps<{ validators: (Validator & Score)[] }>()
+defineProps<{ validators: Validator[] }>()
 </script>
 
 <template>
@@ -30,7 +31,7 @@ v-if="validator.tag === ValidatorTag.Nimiq" i-nimiq:icons-lg-verified-filled tex
           title="Maintained by Nimiq" />
       </div>
 
-      <AddressDisplay :validator :style="{ 'view-transition-name': `address-${validator.id}` }" />
+      <Copyable :content="validator.address" :style="{ 'view-transition-name': `address-${validator.id}` }" />
 
       <ScorePie
 size-32 text-12 mx-auto :score="validator.total"

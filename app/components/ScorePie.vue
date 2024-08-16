@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // todo change to use validator prop
-const props = defineProps<{ score: number }>()
+const props = defineProps<{ score: number | null }>()
 
 const viewBoxSize = 100
 const center = viewBoxSize / 2
@@ -23,7 +23,7 @@ function generateArcPath(score: number) {
 }
 
 const strokeColor = computed(() => {
-  if (props.score < 0.6) return 'stroke-red'
+  if (!props.score || props.score < 0.6) return 'stroke-red'
   if (props.score < 0.85) return 'stroke-gold'
   return 'stroke-green'
 })

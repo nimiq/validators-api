@@ -6,7 +6,7 @@ export const useNimiqNetwork = defineStore('network', () => {
   onMounted(async () => {
     await init()
     const config = new ClientConfiguration()
-    config.network('devalbatross')
+    config.network(useRuntimeConfig().public.nimiqNetwork)
     client.value = await Client.create(config.build())
     initListeners()
   })

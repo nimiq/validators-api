@@ -1,0 +1,43 @@
+<script setup lang="ts">
+import { VisSingleContainer, VisDonut, VisTooltip } from '@unovis/vue'
+import { Donut } from '@unovis/ts'
+import type { Validator } from '~~/server/api/validators/index.get';
+import ScorePies from './ScorePies.vue';
+import { render, toDisplayString } from 'vue'
+
+const isMounted = useMounted()
+
+const props = defineProps<{ data: Validator[] }>()
+// TOOD We should so balance disitrubtion not size score!!! -->
+const value = (d: Validator) => d.size
+const label = (d: Validator) => d.name || d.address
+
+const colors = ['red','orange','blue','green','gold']
+const color = (d: number, i: number) => `rgb(var(--nq-${colors[i % colors.length]}))`
+
+function template(v: Validator) {
+  const div = document.createElement('div')
+  // render(h(ScorePies, { validator: v, class: 'text-14' }), div)
+  const address = `${v.address.slice(0, 10)}  ...  ${v.address.slice(-10)}`
+  return `
+  <div flex="~ col gap-8" bg-neutral-0 p-16 rounded-6 nq-shadow>
+    <h4 text="13 neutral-900" m-0>${v.name}</h4>
+    <p text="11 neutral-900" m-0>${address}</p>
+    ${div.innerHTML}
+  </div>
+  ` 
+}
+</script>
+
+<template>
+  <VisSingleContainer :data :style="{ height: isMounted ? '100%' : 'auto' }" :margin="{ left: 20, right: 20 }">
+    <VisTooltip :triggers="{ [Donut.selectors.segment]: (item) => template(item.data) }" style="--vis-tooltip-padding: 0 0"/>
+    <VisDonut :value :label :arc-width="40" :color />
+  </VisSingleContainer>
+</template>
+
+<style>
+:root {
+  --vis-tooltip-padding: 0;
+}
+</style>
