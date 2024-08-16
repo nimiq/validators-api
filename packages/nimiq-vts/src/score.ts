@@ -16,7 +16,6 @@ export function getLiveness({ activeEpochStates, weightFactor }: ScoreParams['li
   let weightedSum = 0
   let weightTotal = 0
 
-  console.log(activeEpochStates.length)
   for (const [i, state] of activeEpochStates.entries()) {
     const weight = 1 - (weightFactor * i) / activeEpochStates.length
     weightedSum += weight * state
@@ -34,11 +33,16 @@ export function getLiveness({ activeEpochStates, weightFactor }: ScoreParams['li
 
 export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }: ScoreParams['reliability']) {
   if (!inherentsPerEpoch || !weightFactor || !curveCenter) throw new Error(`Invalid params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}`)
+
   let numerator = 0, denominator = 0
   const length = Object.keys(inherentsPerEpoch).length
+
   for( const [epochIndex, inherents] of Object.entries(inherentsPerEpoch) ) {
     const {rewarded,missed} = inherents
     const totalBlocks = rewarded + missed
+    
+    if (totalBlocks === 0) continue
+
     const r = rewarded / totalBlocks
     const weight = 1 - weightFactor * Number(epochIndex) /  length
 
@@ -46,11 +50,16 @@ export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }:
     denominator += weight
   }
   const reliability = numerator / denominator
+
   // Could be the case that the division is NaN, so we return 0 in that case. That means there's no inherents, so no blocks, so not reliable because there's no data
-  if(isNaN(reliability)) return 0
+  if(Number.isNaN(reliability)) return 0 
+
+  // Ensure the expression under the square root is non-negative
+  const discriminant = -(reliability ** 2) + 2 * curveCenter * reliability + (curveCenter - 1) ** 2
+  if (discriminant < 0) return 0
   
   // Plot into the curve
-  return -curveCenter + 1 - Math.sqrt(-(reliability ** 2) + 2 * curveCenter * reliability + (curveCenter - 1) ** 2);
+  return -curveCenter + 1 - Math.sqrt(discriminant)
 }
 
 
@@ -64,7 +73,7 @@ const defaultScoreParams: ScoreParams = {
 
 export function computeScore(params: ScoreParams) {
   const computeScoreParams = defu(params, defaultScoreParams)
-
+  
   const size = getSize(computeScoreParams.size)
   const liveness = getLiveness(computeScoreParams.liveness)
   const reliability = getReliability(computeScoreParams.reliability)
