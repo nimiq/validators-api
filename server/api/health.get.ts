@@ -11,11 +11,12 @@ export enum HealthFlag {
 export interface HealthStatus {
   // TODO
   // latestScoreEpoch: number | undefined
-  latestActivityEpoch: number | undefined
+  latestFetchedEpoch: number | undefined
   totalValidators: number
   headBlockNumber: number
   currentEpoch: number
   missingEpochs: number[]
+  fetchedEpochs: number[]
   range: Range
 
   isSynced: boolean
@@ -26,14 +27,17 @@ export interface HealthStatus {
 export default defineEventHandler(async (event) => {
   const db = await useDrizzle();
 
-  // Get the latest epoch number in the scores table
+  const rpcClient = await getRpcClient();
 
   // Get the latest epoch number in the activity table
-  const latestActivityEpoch = await db
+  const latestActivityBlock = await db
     .select({ epoch: max(tables.activity.epochBlockNumber) })
     .from(tables.activity)
     .get()
     .then((row) => row?.epoch ?? -1);
+  const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
+  if (errorLatestFetchedEpoch)
+    throw errorLatestFetchedEpoch;
 
   // Get the total number of validators
   const totalValidators = await db
@@ -42,12 +46,18 @@ export default defineEventHandler(async (event) => {
     .get()
     .then((row) => row?.count ?? 0);
 
-  const rpcClient = await getRpcClient();
+  const fetchedEpochs = await db
+    .selectDistinct({ epoch: tables.activity.epochBlockNumber })
+    .from(tables.activity)
+    .orderBy(tables.activity.epochBlockNumber)
+    .all()
+    .then((rows) => rows.map(row => row.epoch));
+
 
   const { data: headBlockNumber, error: errorHeadBlockNumber } = await rpcClient.blockchain.getBlockNumber()
   if (errorHeadBlockNumber)
     throw errorHeadBlockNumber;
-
+  
   const { data: currentEpoch, error: errorCurrentEpoch } = await rpcClient.blockchain.getEpochNumber()
   if (errorCurrentEpoch)
     throw errorCurrentEpoch;
@@ -61,7 +71,7 @@ export default defineEventHandler(async (event) => {
 
   // Combine all the data into a HealthStatus object
   const healthStatus: HealthStatus = {
-    latestActivityEpoch,
+    latestFetchedEpoch,
     totalValidators,
     headBlockNumber,
     currentEpoch,
@@ -69,6 +79,7 @@ export default defineEventHandler(async (event) => {
     missingEpochs,
     isSynced,
     flags,
+    fetchedEpochs,
   };
 
   // Return the health status

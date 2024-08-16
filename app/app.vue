@@ -25,10 +25,10 @@ const { data: health } = useFetch('/api/health')
         Go back
       </NuxtLink>
       <div flex-auto />
-      <div :class="{ 'bg-green/10 text-green': health?.isSynced, 'bg-red/10 text-red': !health?.isSynced}" px-12 py-4 rounded-full text-11 flex="~ items-center gap-6">
+      <NuxtLink to="/health" :class="{ 'bg-green/10 text-green': health?.isSynced, 'bg-red/10 text-red': !health?.isSynced}" px-12 py-4 rounded-full text-11 flex="~ items-center gap-6">
         <div  text-10 :class="health?.isSynced ? 'i-nimiq:check' : 'i-nimiq:alert'"/>
         <span font-semibold>{{ health?.isSynced ? 'Synced' : 'Not Synced' }}</span>
-      </div>
+      </NuxtLink>
       <NuxtLink to="https://github.com/onmax/nimiq-validators" i-nimiq:logos-github-mono target="_blank" />
       <button i-nimiq:moon @click="() => toggleDark()" />
     </header>
