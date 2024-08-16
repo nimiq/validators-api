@@ -15,8 +15,8 @@ importers:
         specifier: ^0.5.0
         version: 0.5.0(bufferutil@4.0.8)(eslint@9.9.0(jiti@1.21.6))(magicast@0.3.4)(rollup@4.18.0)(typescript@5.5.4)(utf-8-validate@5.0.10)(vite@5.4.1(@types/node@22.3.0)(terser@5.31.0))
       '@nuxthub/core':
-        specifier: ^0.7.1
-        version: 0.7.1(ioredis@5.4.1)(magicast@0.3.4)(rollup@4.18.0)(vite@5.4.1(@types/node@22.3.0)(terser@5.31.0))
+        specifier: ^0.7.2
+        version: 0.7.3(ioredis@5.4.1)(magicast@0.3.4)(rollup@4.18.0)(vite@5.4.1(@types/node@22.3.0)(terser@5.31.0))
       '@unovis/ts':
         specifier: ^1.4.4
         version: 1.4.4
@@ -1779,8 +1779,8 @@ packages:
     peerDependencies:
       vue: ^3.3.4
 
-  '@nuxthub/core@0.7.1':
-    resolution: {integrity: sha512-QYuwCD+s9uESakG9ixVwXkeb+RFJqoGreugHawzJ4wYDoXClHGv2VG4wFrDt+gPNNGmgMQof366ZwONlf8DxIg==}
+  '@nuxthub/core@0.7.3':
+    resolution: {integrity: sha512-hP/gB3BAgQGl1lROtIBgPAQQWIQPOuUYPDm7rLQLD+VFuBwlvWYE9yIUR8yaQulzwvIMBiUSzrk0/iPMvqOgUg==}
 
   '@nuxtjs/color-mode@3.4.2':
     resolution: {integrity: sha512-6A+lDP8R6fFXc1Ip5tDepKq9MJW6oxbRlz1plvW52yacnpeDFXv5S5rDS0ax31AuSFUPlgzHymFSdjcylBwZ6w==}
@@ -4972,6 +4972,11 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
+  mime@4.0.4:
+    resolution: {integrity: sha512-v8yqInVjhXyqP6+Kw4fV3ZzeMRqEW6FotRsKXjRS5VMTNIuXsdRoAvklpoRgSqXm6o9VNH4/C0mgedko9DdLsQ==}
+    engines: {node: '>=16'}
+    hasBin: true
+
   mimic-fn@2.1.0:
     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
     engines: {node: '>=6'}
@@ -5127,8 +5132,8 @@ packages:
   nimiq-rpc-client-ts@0.3.2:
     resolution: {integrity: sha512-d7eK/hcfq417TrdXAx1l+MUdMhvgIYmCwwOGL4il8IhzRoB0EeukmlWyCzLsZ8ZQrfTKw3X6O2SyERqiEoyKWQ==}
 
-  nitro-cloudflare-dev@0.1.4:
-    resolution: {integrity: sha512-ZZDdnmWLguHdYduTwneZ58eC6uLBRyOqPWI4NcrjjPPzJBTYGDHW67Dq5r1IcRhMaYr9lMjRDqLK2YCHQEqAtA==}
+  nitro-cloudflare-dev@0.1.6:
+    resolution: {integrity: sha512-7YcLTJsTZSZZ89XrTEaDEnFsVWbppBgLO0Rr5n3Nf93gKHTBkBfeGH8//8FVwV2poi6SabVbJ0a2eoJRoII81w==}
 
   nitropack@2.9.7:
     resolution: {integrity: sha512-aKXvtNrWkOCMsQbsk4A0qQdBjrJ1ZcvwlTQevI/LAgLWLYc5L7Q/YiYxGLal4ITyNSlzir1Cm1D2ZxnYhmpMEw==}
@@ -8790,7 +8795,7 @@ snapshots:
       - vti
       - vue-tsc
 
-  '@nuxthub/core@0.7.1(ioredis@5.4.1)(magicast@0.3.4)(rollup@4.18.0)(vite@5.4.1(@types/node@22.3.0)(terser@5.31.0))':
+  '@nuxthub/core@0.7.3(ioredis@5.4.1)(magicast@0.3.4)(rollup@4.18.0)(vite@5.4.1(@types/node@22.3.0)(terser@5.31.0))':
     dependencies:
       '@cloudflare/workers-types': 4.20240806.0
       '@nuxt/devtools-kit': 1.3.9(magicast@0.3.4)(rollup@4.18.0)(vite@5.4.1(@types/node@22.3.0)(terser@5.31.0))
@@ -8801,12 +8806,12 @@ snapshots:
       defu: 6.1.4
       destr: 2.0.3
       h3: 1.12.0
-      mime: 4.0.3
-      nitro-cloudflare-dev: 0.1.4
+      mime: 4.0.4
+      nitro-cloudflare-dev: 0.1.6
       ofetch: 1.3.4
       pathe: 1.1.2
-      pkg-types: 1.1.1
-      ufo: 1.5.3
+      pkg-types: 1.1.3
+      ufo: 1.5.4
       uncrypto: 0.1.3
       unstorage: 1.10.2(ioredis@5.4.1)
       zod: 3.23.8
@@ -12671,6 +12676,8 @@ snapshots:
 
   mime@4.0.3: {}
 
+  mime@4.0.4: {}
+
   mimic-fn@2.1.0: {}
 
   mimic-fn@4.0.0: {}
@@ -12822,11 +12829,11 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  nitro-cloudflare-dev@0.1.4:
+  nitro-cloudflare-dev@0.1.6:
     dependencies:
       consola: 3.2.3
       mlly: 1.7.1
-      pkg-types: 1.1.1
+      pkg-types: 1.1.3
 
   nitropack@2.9.7(drizzle-orm@0.33.0(@cloudflare/workers-types@4.20240806.0)(@opentelemetry/api@1.8.0))(encoding@0.1.13)(magicast@0.3.4):
     dependencies:

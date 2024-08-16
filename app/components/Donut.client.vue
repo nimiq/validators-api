@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { VisSingleContainer, VisDonut, VisTooltip } from '@unovis/vue'
 import { Donut } from '@unovis/ts'
-import type { Validator } from '~~/server/api/validators/index.get';
+import type { Validator } from '~~/server/api/vts/index.get';
 import ScorePies from './ScorePies.vue';
 import { render, toDisplayString } from 'vue'
 

@@ -1,16 +1,12 @@
 <script setup lang="ts">
-const { validators, averageScore } = storeToRefs(useValidatorsStore())
+const { data } = useFetch('/api/vts')
+const validators = computed(() => data.value?.validators || [])
 
-const { data: validatorsInEpoch } = useFetch('/api/_hub/database/query', {
-  method: 'POST',
-  body: { query: 'SELECT COUNT(*) AS total FROM scores' },
-  transform: (res) => res.results.at(0)?.total,
-})
-
-const { data: validatorsInDb } = useFetch('/api/_hub/database/query', {
-  method: 'POST',
-  body: { query: 'SELECT COUNT(*) AS total FROM validators' },
-  transform: (res) => res.results.at(0)?.total,
+const averageScore = computed(() => {
+  if (!validators.value?.length) return 0
+  const scores = validators.value.map(validator => validator.total).filter(t => !!t) as number[]
+  const totalScore = scores?.reduce((acc, score) => acc + score, 0) || 0
+  return totalScore / validators.value.length
 })
 </script>
 
@@ -18,7 +14,7 @@ const { data: validatorsInDb } = useFetch('/api/_hub/database/query', {
   <div flex="~ col" pt-64 pb-128>
     <div flex="~ wrap gap-96 justify-center" of-x-auto mx--32 px-32 pb-64>
       <Stat text-green>
-        <template #value>{{ validatorsInEpoch }} <span text="18 neutral-700">/ {{ validatorsInDb }}</span></template>
+        <template #value>{{ validators?.length }}</template>
         <template #description>Validators</template>
       </Stat>
       <Stat text-blue>

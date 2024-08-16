@@ -25,28 +25,27 @@ export interface HealthStatus {
 
 
 export default defineEventHandler(async (event) => {
-  const db = await useDrizzle();
-
-  const rpcClient = await getRpcClient();
+  const rpcClient = await getRpcClient()
 
   // Get the latest epoch number in the activity table
-  const latestActivityBlock = await db
+  const latestActivityBlock = await useDrizzle()
     .select({ epoch: max(tables.activity.epochBlockNumber) })
     .from(tables.activity)
     .get()
     .then((row) => row?.epoch ?? -1);
+
   const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
   if (errorLatestFetchedEpoch)
     throw errorLatestFetchedEpoch;
 
   // Get the total number of validators
-  const totalValidators = await db
+  const totalValidators = await useDrizzle()
     .select({ count: count(tables.validators.id) })
     .from(tables.validators)
     .get()
     .then((row) => row?.count ?? 0);
 
-  const fetchedEpochs = await db
+  const fetchedEpochs = await useDrizzle()
     .selectDistinct({ epoch: tables.activity.epochBlockNumber })
     .from(tables.activity)
     .orderBy(tables.activity.epochBlockNumber)

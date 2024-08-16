@@ -1,4 +1,4 @@
-import { desc, eq, isNotNull, not } from 'drizzle-orm';
+import { desc, eq, isNotNull, max } from 'drizzle-orm';
 
 export interface Validator {
   id: number
@@ -17,7 +17,7 @@ export interface Validator {
 }
 
 export default defineEventHandler(async (event) => {
-  const data = await useDrizzle()
+  const validators = await useDrizzle()
     .select({
       id: tables.validators.id,
       name: tables.validators.name,
@@ -38,8 +38,18 @@ export default defineEventHandler(async (event) => {
     .where(isNotNull(tables.scores.validatorId))
     .groupBy(tables.validators.id)
     .orderBy(desc(tables.scores.total))
-    .all()
+    .all() as Validator[]
 
+  const rpcClient = await getRpcClient()
+  
+  const epochBlockNumber = await useDrizzle()
+    .select({ epoch: max(tables.activity.epochBlockNumber) })
+    .from(tables.activity)
+    .get().then(row => row?.epoch ?? -1)
+
+  const { data: epochNumber, error: epochNumberError } = await rpcClient.policy.getEpochAt(epochBlockNumber)
+  if (epochNumberError) throw epochNumberError
+  
   setResponseStatus(event, 200)
-  return data as Validator[]
+  return { validators, epochNumber } as const 
 })

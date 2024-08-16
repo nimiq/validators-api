@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ValidatorTag } from '~~/server/utils/drizzle'
 
-const { validators } = storeToRefs(useValidatorsStore())
+const { data } = useFetch('/api/vts')
+const validators = computed(() => data.value?.validators || [])
 
 const route = useRoute()
 const validator = computed(() => {

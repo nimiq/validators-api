@@ -2,9 +2,6 @@
 const colorMode = useColorMode()
 const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
 
-const validatorsStore = useValidatorsStore()
-await callOnce(validatorsStore.fetchValidators)
-
 const route = useRoute()
 const validatorDetail = computed(() => !!route.params.address)
 

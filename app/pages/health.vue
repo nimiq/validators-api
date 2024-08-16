@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data: health, status, error } = useFetch('/api/health')
+const { data: health, status, error } = useFetch('/api/vts/health')
 const network = useRuntimeConfig().public.nimiqNetwork
 </script>
 
