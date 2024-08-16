@@ -4,6 +4,7 @@ import topLevelAwait from 'vite-plugin-top-level-await'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
+
   modules: [
     '@vueuse/nuxt',
     '@pinia/nuxt',
@@ -20,7 +21,11 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    rpcUrl: '', // Set in .env
+    // Set in .env
+    rpcUrl: '',
+    public: {
+      nimiqNetwork: '',
+    }
   },
 
   experimental: {
@@ -38,7 +43,7 @@ export default defineNuxtConfig({
       topLevelAwait(),
     ],
     optimizeDeps: {
-      exclude: ['@nimiq/core-web'],
+      exclude: ['@nimiq/core'],
     },
   },
 
@@ -94,12 +99,11 @@ export default defineNuxtConfig({
 
   imports: {
     mergeExisting: true,
-    imports: [
-      {
-        from: './server/utils/drizzle.ts',
-        name: 'Validator',
-        type: true,
-      },
-    ],
+    presets: ['@vueuse/core'],
   },
+
+  compatibilityDate: '2024-08-15',
+  future: {
+    compatibilityVersion: 4
+  }
 })

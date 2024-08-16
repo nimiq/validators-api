@@ -1,4 +1,4 @@
-import { type Client, type ElectionMacroBlock, InherentType } from "nimiq-rpc-client-ts";
+import { type NimiqRPCClient, type ElectionMacroBlock, InherentType } from "nimiq-rpc-client-ts";
 import type { ValidatorActivity } from "./types"
 import { getPolicyConstants } from "./utils"
 import { consola } from 'consola'
@@ -7,7 +7,7 @@ import { consola } from 'consola'
  * For a given block number, fetches the validator slots assignation.
  * The block number MUST be an election block otherwise it will throw an error.
  */
-export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumber: number) {
+export async function fetchValidatorsActivitiesInEpoch(client: NimiqRPCClient, blockNumber: number) {
   const start = globalThis.performance.now()
   // TODO: change this to fetching epoch n...
   consola.info(`Fetching slots assignation for block ${blockNumber}`)
@@ -107,7 +107,7 @@ export async function fetchValidatorsActivitiesInEpoch(client: Client, blockNumb
  *   consola.info(`Address: ${key.address}, Epoch: ${key.epochBlockNumber}, Activity: ${activity}`);
  * }
  */
-export async function* fetchValidatorsActivities(client: Client, epochBlockNumbers: number[]) {
+export async function* fetchValidatorsActivities(client: NimiqRPCClient, epochBlockNumbers: number[]) {
   for (const epochBlockNumber of epochBlockNumbers) {
     const validatorActivities = await fetchValidatorsActivitiesInEpoch(client, epochBlockNumber);
     for (const [address, activity] of Object.entries(validatorActivities)) {

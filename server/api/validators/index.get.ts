@@ -1,4 +1,20 @@
-import { desc } from 'drizzle-orm';
+import { desc, eq, isNotNull, not } from 'drizzle-orm';
+
+export interface Validator {
+  id: number
+  name: string
+  address: string
+  fee: number
+  payoutType: string
+  description: string
+  icon: string
+  tag: string
+  website: string
+  total: number
+  liveness: number
+  size: number
+  reliability: number
+}
 
 export default defineEventHandler(async (event) => {
   const data = await useDrizzle()
@@ -19,10 +35,11 @@ export default defineEventHandler(async (event) => {
     })
     .from(tables.validators)
     .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
+    .where(isNotNull(tables.scores.validatorId))
     .groupBy(tables.validators.id)
     .orderBy(desc(tables.scores.total))
     .all()
 
   setResponseStatus(event, 200)
-  return data
+  return data as Validator[]
 })

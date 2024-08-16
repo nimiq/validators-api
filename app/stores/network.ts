@@ -1,4 +1,4 @@
-import init, { Client, ClientConfiguration, type ConsensusState } from '@nimiq/core-web/web'
+import init, { Client, ClientConfiguration, type ConsensusState } from '@nimiq/core/web'
 
 export const useNimiqNetwork = defineStore('network', () => {
   const client = ref<Client>()
@@ -6,7 +6,7 @@ export const useNimiqNetwork = defineStore('network', () => {
   onMounted(async () => {
     await init()
     const config = new ClientConfiguration()
-    config.network('devalbatross')
+    config.network(useRuntimeConfig().public.nimiqNetwork)
     client.value = await Client.create(config.build())
     initListeners()
   })
