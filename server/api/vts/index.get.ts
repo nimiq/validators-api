@@ -1,4 +1,5 @@
 import { desc, eq, isNotNull, max } from 'drizzle-orm';
+import { NimiqRPCClient } from 'nimiq-rpc-client-ts';
 
 export interface Validator {
   id: number
@@ -40,8 +41,11 @@ export default defineEventHandler(async (event) => {
     .orderBy(desc(tables.scores.total))
     .all() as Validator[]
 
-  const rpcClient = await getRpcClient()
-  
+  const url = useRuntimeConfig().rpcUrl
+  if (!url) 
+    throw new Error('Missing RPC URL in runtime config')
+  const rpcClient = new NimiqRPCClient(new URL(url))
+
   const epochBlockNumber = await useDrizzle()
     .select({ epoch: max(tables.activity.epochBlockNumber) })
     .from(tables.activity)

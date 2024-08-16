@@ -1,4 +1,5 @@
 import { max, count, } from 'drizzle-orm';
+import { NimiqRPCClient } from 'nimiq-rpc-client-ts';
 import { Range, getRange } from 'nimiq-vts';
 import { getMissingEpochs } from '~~/server/database/utils';
 
@@ -25,7 +26,10 @@ export interface HealthStatus {
 
 
 export default defineEventHandler(async (event) => {
-  const rpcClient = await getRpcClient()
+  const url = useRuntimeConfig().rpcUrl
+  if (!url) 
+    throw new Error('Missing RPC URL in runtime config')
+  const rpcClient = new NimiqRPCClient(new URL(url))
 
   // Get the latest epoch number in the activity table
   const latestActivityBlock = await useDrizzle()
