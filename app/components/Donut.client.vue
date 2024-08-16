@@ -17,7 +17,7 @@ const color = (d: number, i: number) => `rgb(var(--nq-${colors[i % colors.length
 
 function template(v: Validator) {
   const div = document.createElement('div')
-  // render(h(ScorePies, { validator: v, class: 'text-14' }), div)
+  render(h(ScorePies, { validator: v, class: 'text-14' }), div)
   const address = `${v.address.slice(0, 10)}  ...  ${v.address.slice(-10)}`
   return `
   <div flex="~ col gap-8" bg-neutral-0 p-16 rounded-6 nq-shadow>
