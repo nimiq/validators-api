@@ -1,4 +1,5 @@
 import { max, count, } from 'drizzle-orm';
+import { NimiqRPCClient } from 'nimiq-rpc-client-ts';
 import { Range, getRange } from 'nimiq-vts';
 
 export enum HealthFlag {
@@ -29,7 +30,7 @@ export default defineEventHandler(async (event) => {
   if (!url) 
     throw new Error('Missing RPC URL in runtime config')
   console.log('RPC URL:', url)
-  // const rpcClient = new NimiqRPCClient(new URL(url))
+  const rpcClient = new NimiqRPCClient(new URL(url))
   // console.log('RPC Client:', rpcClient)
 
   // Get the latest epoch number in the activity table
