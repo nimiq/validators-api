@@ -41,10 +41,11 @@ export default defineEventHandler(async (event) => {
     .then((row) => row?.epoch ?? -1);
     console.log('Latest Activity Block:', latestActivityBlock)
 
-  const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
-  if (errorLatestFetchedEpoch)
-    throw errorLatestFetchedEpoch;
-  console.log('Latest Fetched Epoch:', latestFetchedEpoch)
+  // const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
+  // if (errorLatestFetchedEpoch)
+  //   throw errorLatestFetchedEpoch;
+  // console.log('Latest Fetched Epoch:', latestFetchedEpoch)
+  const latestFetchedEpoch = latestActivityBlock
 
   // Get the total number of validators
   const totalValidators = await useDrizzle()
