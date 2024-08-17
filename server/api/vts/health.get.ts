@@ -41,10 +41,10 @@ export default defineEventHandler(async (event) => {
     .then((row) => row?.epoch ?? -1);
     console.log('Latest Activity Block:', latestActivityBlock)
 
-  // const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
-  // if (errorLatestFetchedEpoch)
-  //   throw errorLatestFetchedEpoch;
-  // console.log('Latest Fetched Epoch:', latestFetchedEpoch)
+  const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
+  if (errorLatestFetchedEpoch)
+    throw errorLatestFetchedEpoch;
+  console.log('Latest Fetched Epoch:', latestFetchedEpoch)
 
   // Get the total number of validators
   const totalValidators = await useDrizzle()
@@ -83,20 +83,20 @@ export default defineEventHandler(async (event) => {
   // if (!isSynced) flags.push(HealthFlag.MissingEpochs)
 
   // Combine all the data into a HealthStatus object
-  // const healthStatus: HealthStatus = {
-  //   latestFetchedEpoch,
-  //   totalValidators,
-  //   headBlockNumber,
-  //   currentEpoch,
-  //   range,
-  //   missingEpochs,
-  //   isSynced,
-  //   flags,
-  //   fetchedEpochs,
-  // };
+  const healthStatus: HealthStatus = {
+    latestFetchedEpoch,
+    totalValidators,
+    // headBlockNumber,
+    // currentEpoch,
+    // range,
+    // missingEpochs,
+    // isSynced,
+    flags,
+    fetchedEpochs,
+  };
   // console.log('Health Status:', healthStatus)
 
   // Return the health status
   setResponseStatus(event, 200);
-  return { status: 'ok' } as const;
+  return healthStatus;
 });
