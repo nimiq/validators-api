@@ -1,6 +1,6 @@
 import { max, count, } from 'drizzle-orm';
 import { NimiqRPCClient } from 'nimiq-rpc-client-ts';
-import { Range, getRange } from 'nimiq-vts';
+// import { Range, getRange } from 'nimiq-vts';
 import { getMissingEpochs } from '~~/server/database/utils';
 
 export enum HealthFlag {
@@ -18,7 +18,8 @@ export interface HealthStatus {
   currentEpoch: number
   missingEpochs: number[]
   fetchedEpochs: number[]
-  range: Range
+  // range: Range
+  range: any
 
   isSynced: boolean
   flags: HealthFlag[]
@@ -74,9 +75,10 @@ export default defineEventHandler(async (event) => {
     throw errorCurrentEpoch;
   console.log('Current Epoch:', currentEpoch)
 
-  const range = await getRange(rpcClient);
-  console.log('Range:', range)
-  const missingEpochs = await getMissingEpochs(range);
+  // const range = await getRange(rpcClient);
+  // console.log('Range:', range)
+  // const missingEpochs = await getMissingEpochs(range);
+  const missingEpochs = [] as number[]
   console.log('Missing Epochs:', missingEpochs)
 
   const isSynced = missingEpochs.length === 0;
@@ -90,7 +92,7 @@ export default defineEventHandler(async (event) => {
     totalValidators,
     headBlockNumber,
     currentEpoch,
-    range,
+    range: {},
     missingEpochs,
     isSynced,
     flags,
