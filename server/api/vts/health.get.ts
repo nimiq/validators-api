@@ -1,6 +1,6 @@
 import { max, count, } from 'drizzle-orm';
-// import { NimiqRPCClient } from 'nimiq-rpc-client-ts';
-// import { Range, getRange } from 'nimiq-vts';
+import { NimiqRPCClient } from 'nimiq-rpc-client-ts';
+import { Range, getRange } from 'nimiq-vts';
 import { getMissingEpochs } from '~~/server/database/utils';
 
 export enum HealthFlag {
@@ -18,8 +18,7 @@ export interface HealthStatus {
   currentEpoch: number
   missingEpochs: number[]
   fetchedEpochs: number[]
-  // range: Range
-  range: any
+  range: Range
 
   isSynced: boolean
   flags: HealthFlag[]
@@ -32,8 +31,8 @@ export default defineEventHandler(async (event) => {
   if (!url) 
     throw new Error('Missing RPC URL in runtime config')
   console.log('RPC URL:', url)
-  // const rpcClient = new NimiqRPCClient(new URL(url))
-  // console.log('RPC Client:', rpcClient)
+  const rpcClient = new NimiqRPCClient(new URL(url))
+  console.log('RPC Client:', rpcClient)
 
   // Get the latest epoch number in the activity table
   const latestActivityBlock = await useDrizzle()
@@ -43,11 +42,11 @@ export default defineEventHandler(async (event) => {
     .then((row) => row?.epoch ?? -1);
     console.log('Latest Activity Block:', latestActivityBlock)
 
-  // const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
-  // if (errorLatestFetchedEpoch)
-  //   throw errorLatestFetchedEpoch;
-  // console.log('Latest Fetched Epoch:', latestFetchedEpoch)
-  const latestFetchedEpoch = latestActivityBlock
+  const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
+  if (errorLatestFetchedEpoch)
+    throw errorLatestFetchedEpoch;
+  console.log('Latest Fetched Epoch:', latestFetchedEpoch)
+  // const latestFetchedEpoch = latestActivityBlock
 
   // Get the total number of validators
   const totalValidators = await useDrizzle()
@@ -66,19 +65,18 @@ export default defineEventHandler(async (event) => {
   console.log('Fetched Epochs:', fetchedEpochs)
 
 
-  // const { data: headBlockNumber, error: errorHeadBlockNumber } = await rpcClient.blockchain.getBlockNumber()
-  // if (errorHeadBlockNumber)
-  //   throw errorHeadBlockNumber;
-  // console.log('Head Block Number:', headBlockNumber)
-  // const { data: currentEpoch, error: errorCurrentEpoch } = await rpcClient.blockchain.getEpochNumber()
-  // if (errorCurrentEpoch)
-  //   throw errorCurrentEpoch;
-  // console.log('Current Epoch:', currentEpoch)
+  const { data: headBlockNumber, error: errorHeadBlockNumber } = await rpcClient.blockchain.getBlockNumber()
+  if (errorHeadBlockNumber)
+    throw errorHeadBlockNumber;
+  console.log('Head Block Number:', headBlockNumber)
+  const { data: currentEpoch, error: errorCurrentEpoch } = await rpcClient.blockchain.getEpochNumber()
+  if (errorCurrentEpoch)
+    throw errorCurrentEpoch;
+  console.log('Current Epoch:', currentEpoch)
 
-  // const range = await getRange(rpcClient);
-  // console.log('Range:', range)
-  // const missingEpochs = await getMissingEpochs(range);
-  const missingEpochs = [] as number[]
+  const range = await getRange(rpcClient);
+  console.log('Range:', range)
+  const missingEpochs = await getMissingEpochs(range);
   console.log('Missing Epochs:', missingEpochs)
 
   const isSynced = missingEpochs.length === 0;
@@ -90,9 +88,9 @@ export default defineEventHandler(async (event) => {
   const healthStatus: HealthStatus = {
     latestFetchedEpoch,
     totalValidators,
-    headBlockNumber: 1111,
-    currentEpoch: 11,
-    range: {},
+    headBlockNumber,
+    currentEpoch,
+    range,
     missingEpochs,
     isSynced,
     flags,
