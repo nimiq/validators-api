@@ -33,8 +33,8 @@ importers:
         specifier: ^0.33.0
         version: 0.33.0(@cloudflare/workers-types@4.20240806.0)(@opentelemetry/api@1.8.0)
       nimiq-rpc-client-ts:
-        specifier: ^0.4.0
-        version: 0.4.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@c3fd697
+        version: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@c3fd697
       nimiq-vts:
         specifier: workspace:*
         version: link:packages/nimiq-vts
@@ -130,8 +130,8 @@ importers:
         specifier: ^6.1.4
         version: 6.1.4
       nimiq-rpc-client-ts:
-        specifier: ^0.3.2
-        version: 0.3.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@c3fd697
+        version: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@c3fd697
       vitest:
         specifier: ^2.0.5
         version: 2.0.5(@types/node@22.3.0)(terser@5.31.0)
@@ -5168,11 +5168,9 @@ packages:
       unocss: ^0.58.5
       vite: ^2.9.0 || ^3.0.0-0 || ^4.0.0 || ^5.0.0-0
 
-  nimiq-rpc-client-ts@0.3.2:
-    resolution: {integrity: sha512-d7eK/hcfq417TrdXAx1l+MUdMhvgIYmCwwOGL4il8IhzRoB0EeukmlWyCzLsZ8ZQrfTKw3X6O2SyERqiEoyKWQ==}
-
-  nimiq-rpc-client-ts@0.4.0:
-    resolution: {integrity: sha512-Syz4b3PrYEekQfcpmeFqN2ChNG2yV40hg8nMKRpb5LXrKj37YgRSpm6zjL7IStxfHCEcn5aQPw0U14DOh/jFvA==}
+  nimiq-rpc-client-ts@https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@c3fd697:
+    resolution: {tarball: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@c3fd697}
+    version: 0.4.0
 
   nitro-cloudflare-dev@0.1.6:
     resolution: {integrity: sha512-7YcLTJsTZSZZ89XrTEaDEnFsVWbppBgLO0Rr5n3Nf93gKHTBkBfeGH8//8FVwV2poi6SabVbJ0a2eoJRoII81w==}
@@ -6962,18 +6960,6 @@ packages:
 
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
-
-  ws@8.17.0:
-    resolution: {integrity: sha512-uJq6108EgZMAl20KagGkzCKfMEjxmKvZHG7Tlq0Z6nOky7YF7aq4mOx6xK8TJ/i1LeK4Qus7INktacctDgY8Ow==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
 
   ws@8.18.0:
     resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
@@ -12918,20 +12904,7 @@ snapshots:
       unocss: 0.62.2(@unocss/webpack@0.62.2(rollup@4.18.0)(webpack@5.91.0(esbuild@0.17.19)))(postcss@8.4.41)(rollup@4.18.0)(vite@5.4.1(@types/node@22.3.0)(terser@5.31.0))
       vite: 5.4.1(@types/node@22.3.0)(terser@5.31.0)
 
-  nimiq-rpc-client-ts@0.3.2(bufferutil@4.0.8)(utf-8-validate@5.0.10):
-    dependencies:
-      buffer: 6.0.3
-      ws: 8.17.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
-  nimiq-rpc-client-ts@0.4.0(bufferutil@4.0.8)(utf-8-validate@5.0.10):
-    dependencies:
-      ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
+  nimiq-rpc-client-ts@https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@c3fd697: {}
 
   nitro-cloudflare-dev@0.1.6:
     dependencies:
@@ -15144,11 +15117,6 @@ snapshots:
       strip-ansi: 7.1.0
 
   wrappy@1.0.2: {}
-
-  ws@8.17.0(bufferutil@4.0.8)(utf-8-validate@5.0.10):
-    optionalDependencies:
-      bufferutil: 4.0.8
-      utf-8-validate: 5.0.10
 
   ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10):
     optionalDependencies:
