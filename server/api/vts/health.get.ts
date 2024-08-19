@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   console.log('GET /vts/health')
   const url = useRuntimeConfig().rpcUrl
   if (!url) 
-    throw new Error('Missing RPC URL in runtime config')
+    return createError('Missing RPC URL in runtime config');
   console.log('RPC URL:', url)
   const rpcClient = new NimiqRPCClient(new URL(url))
   console.log('RPC Client:', rpcClient)
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
   if (errorLatestFetchedEpoch)
-    throw errorLatestFetchedEpoch;
+    return createError(errorLatestFetchedEpoch);
   console.log('Latest Fetched Epoch:', latestFetchedEpoch)
   // const latestFetchedEpoch = latestActivityBlock
 
@@ -67,11 +67,11 @@ export default defineEventHandler(async (event) => {
 
   const { data: headBlockNumber, error: errorHeadBlockNumber } = await rpcClient.blockchain.getBlockNumber()
   if (errorHeadBlockNumber)
-    throw errorHeadBlockNumber;
+    return createError(errorHeadBlockNumber)
   console.log('Head Block Number:', headBlockNumber)
   const { data: currentEpoch, error: errorCurrentEpoch } = await rpcClient.blockchain.getEpochNumber()
   if (errorCurrentEpoch)
-    throw errorCurrentEpoch;
+    return createError(errorCurrentEpoch)
   console.log('Current Epoch:', currentEpoch)
 
   const range = await getRange(rpcClient);
