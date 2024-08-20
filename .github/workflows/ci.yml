@@ -42,20 +42,18 @@ jobs:
         with:
           node-version: lts/*
 
-      - name: Move to package folder
-        run: cd packages/nimiq-vts
-
-      - name: print where am i
-        run: pwd
-
       - name: Install
         run: pnpm install --frozen-lockfile
+        working-directory: packages/nimiq-vts
 
       - name: Lint
         run: pnpm run lint
+        working-directory: packages/nimiq-vts
 
       - name: Typecheck
         run: pnpm run typecheck
+        working-directory: packages/nimiq-vts
 
       - name: Test
         run: pnpm run test
+        working-directory: packages/nimiq-vts
