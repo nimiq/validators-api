@@ -51,9 +51,9 @@ jobs:
         working-directory: packages/nimiq-vts
 
       - name: Typecheck
-        run: pnpm run typecheck --filter nimiq-vts
+        run: pnpm run typecheck
         working-directory: packages/nimiq-vts
 
       - name: Test
-        run: pnpm run test --filter nimiq-vts
+        run: pnpm run test
         working-directory: packages/nimiq-vts
