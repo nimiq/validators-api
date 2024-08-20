@@ -43,7 +43,7 @@ jobs:
           node-version: lts/*
 
       - name: Install
-        run: pnpm -w install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
         working-directory: packages/nimiq-vts
 
       - name: Lint
