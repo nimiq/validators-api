@@ -46,7 +46,7 @@
   "dependencies": {
     "consola": "^3.2.3",
     "defu": "^6.1.4",
-    "nimiq-rpc-client-ts": "https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@614a42a",
+    "nimiq-rpc-client-ts": "^0.4.0",
     "vitest": "^2.0.5"
   },
   "devDependencies": {

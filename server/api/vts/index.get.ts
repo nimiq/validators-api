@@ -1,5 +1,10 @@
 import { desc, eq, isNotNull, max } from 'drizzle-orm';
 import { NimiqRPCClient } from 'nimiq-rpc-client-ts';
+import { consola } from 'consola'
+import { getRange } from '~~/packages/nimiq-vts/src';
+import { getMissingEpochs } from '~~/server/database/utils';
+import { fetchVtsData } from '~~/server/lib/fetch';
+import { getRpcClient } from '~~/server/lib/client';
 
 export interface Validator {
   id: number
@@ -17,7 +22,24 @@ export interface Validator {
   reliability: number
 }
 
+function err(error: any) {
+  consola.error(error)
+  return createError(error)
+}
+
 export default defineEventHandler(async (event) => {
+  const rpcClient = getRpcClient()
+
+  // TODO Remove this block once scheduled tasks are implemented in NuxtHub
+  // This is just a workaround to sync the data before the request in case of missing epochs
+  const range = await getRange(rpcClient);
+  const missingEpochs = await getMissingEpochs(range);
+  if (missingEpochs.length > 0) {
+    consola.warn(`Missing epochs: ${JSON.stringify(missingEpochs)}. Fetching data...`)
+    await fetchVtsData(rpcClient) 
+  }
+  // End of workaround
+
   const validators = await useDrizzle()
     .select({
       id: tables.validators.id,
@@ -41,18 +63,13 @@ export default defineEventHandler(async (event) => {
     .orderBy(desc(tables.scores.total))
     .all() as Validator[]
 
-  const url = useRuntimeConfig().rpcUrl
-  if (!url) 
-    throw new Error('Missing RPC URL in runtime config')
-  const rpcClient = new NimiqRPCClient(new URL(url))
-
   const epochBlockNumber = await useDrizzle()
     .select({ epoch: max(tables.activity.epochBlockNumber) })
     .from(tables.activity)
     .get().then(row => row?.epoch ?? -1)
 
   const { data: epochNumber, error: epochNumberError } = await rpcClient.policy.getEpochAt(epochBlockNumber)
-  if (epochNumberError) throw epochNumberError
+  if (epochNumberError) return err(epochNumberError)
   
   setResponseStatus(event, 200)
   return { validators, epochNumber } as const 

@@ -33,8 +33,8 @@ importers:
         specifier: ^0.33.0
         version: 0.33.0(@cloudflare/workers-types@4.20240806.0)(@opentelemetry/api@1.8.0)
       nimiq-rpc-client-ts:
-        specifier: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@614a42a
-        version: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@614a42a
+        specifier: ^0.4.0
+        version: 0.4.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       nimiq-vts:
         specifier: workspace:*
         version: link:packages/nimiq-vts
@@ -130,8 +130,8 @@ importers:
         specifier: ^6.1.4
         version: 6.1.4
       nimiq-rpc-client-ts:
-        specifier: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@614a42a
-        version: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@614a42a
+        specifier: ^0.4.0
+        version: 0.4.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       vitest:
         specifier: ^2.0.5
         version: 2.0.5(@types/node@22.3.0)(terser@5.31.0)
@@ -4870,9 +4870,8 @@ packages:
       unocss: ^0.58.5
       vite: ^2.9.0 || ^3.0.0-0 || ^4.0.0 || ^5.0.0-0
 
-  nimiq-rpc-client-ts@https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@614a42a:
-    resolution: {tarball: https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@614a42a}
-    version: 0.4.1
+  nimiq-rpc-client-ts@0.4.0:
+    resolution: {integrity: sha512-Syz4b3PrYEekQfcpmeFqN2ChNG2yV40hg8nMKRpb5LXrKj37YgRSpm6zjL7IStxfHCEcn5aQPw0U14DOh/jFvA==}
 
   nitro-cloudflare-dev@0.1.6:
     resolution: {integrity: sha512-7YcLTJsTZSZZ89XrTEaDEnFsVWbppBgLO0Rr5n3Nf93gKHTBkBfeGH8//8FVwV2poi6SabVbJ0a2eoJRoII81w==}
@@ -11877,7 +11876,12 @@ snapshots:
       unocss: 0.62.2(@unocss/webpack@0.62.2(rollup@4.18.0)(webpack@5.91.0(esbuild@0.17.19)))(postcss@8.4.41)(rollup@4.18.0)(vite@5.4.1(@types/node@22.3.0)(terser@5.31.0))
       vite: 5.4.1(@types/node@22.3.0)(terser@5.31.0)
 
-  nimiq-rpc-client-ts@https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@614a42a: {}
+  nimiq-rpc-client-ts@0.4.0(bufferutil@4.0.8)(utf-8-validate@5.0.10):
+    dependencies:
+      ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   nitro-cloudflare-dev@0.1.6:
     dependencies:

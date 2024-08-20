@@ -23,7 +23,7 @@
     "@vueuse/core": "^11.0.0",
     "defu": "^6.1.4",
     "drizzle-orm": "^0.33.0",
-    "nimiq-rpc-client-ts": "https://pkg.pr.new/onmax/albatross-rpc-client-ts/nimiq-rpc-client-ts@614a42a",
+    "nimiq-rpc-client-ts": "^0.4.0",
     "nimiq-vts": "workspace:*",
     "nuxt": "^3.12.4",
     "pinia": "^2.2.2",
