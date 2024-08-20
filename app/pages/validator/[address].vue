@@ -46,8 +46,8 @@ const validator = computed(() => {
         mx-auto mt-32 size-128 text-40 :score="validator.total"
         :style="{ 'view-transition-name': `score-${validator.id}` }"
       />
-      
-      <ScorePies :validator text-28 mt-64 />
+
+      <ScorePies :validator mt-64 text-28 />
       <!-- <div self-stretch  w-2 bg-neutral-300 mx-48 /> -->
 
       <p mt-32 block max-w-700 text-neutral-900>

@@ -1,10 +1,9 @@
-import { desc, eq, isNotNull, max } from 'drizzle-orm';
-import { NimiqRPCClient } from 'nimiq-rpc-client-ts';
+import { desc, eq, isNotNull, max } from 'drizzle-orm'
 import { consola } from 'consola'
-import { getRange } from '~~/packages/nimiq-vts/src';
-import { getMissingEpochs } from '~~/server/database/utils';
-import { fetchVtsData } from '~~/server/lib/fetch';
-import { getRpcClient } from '~~/server/lib/client';
+import { getRange } from '~~/packages/nimiq-vts/src'
+import { getMissingEpochs } from '~~/server/database/utils'
+import { fetchVtsData } from '~~/server/lib/fetch'
+import { getRpcClient } from '~~/server/lib/client'
 
 export interface Validator {
   id: number
@@ -32,11 +31,11 @@ export default defineEventHandler(async (event) => {
 
   // TODO Remove this block once scheduled tasks are implemented in NuxtHub
   // This is just a workaround to sync the data before the request in case of missing epochs
-  const range = await getRange(rpcClient);
-  const missingEpochs = await getMissingEpochs(range);
+  const range = await getRange(rpcClient)
+  const missingEpochs = await getMissingEpochs(range)
   if (missingEpochs.length > 0) {
     consola.warn(`Missing epochs: ${JSON.stringify(missingEpochs)}. Fetching data...`)
-    await fetchVtsData(rpcClient) 
+    await fetchVtsData(rpcClient)
   }
   // End of workaround
 
@@ -69,8 +68,9 @@ export default defineEventHandler(async (event) => {
     .get().then(row => row?.epoch ?? -1)
 
   const { data: epochNumber, error: epochNumberError } = await rpcClient.policy.getEpochAt(epochBlockNumber)
-  if (epochNumberError) return err(epochNumberError)
-  
+  if (epochNumberError)
+    return err(epochNumberError)
+
   setResponseStatus(event, 200)
-  return { validators, epochNumber } as const 
+  return { validators, epochNumber } as const
 })

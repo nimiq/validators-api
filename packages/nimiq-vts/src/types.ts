@@ -10,7 +10,7 @@ export interface ScoreParams {
      * - 0: All epochs have equal importance.
      * - 1: Importance decreases linearly from 1 (most recent epoch) to 0 (oldest epoch).
      */
-    weightFactor?: number,
+    weightFactor?: number
 
     /**
      * An array of 0s and 1s representing the validator's activity in each epoch.
@@ -19,7 +19,7 @@ export interface ScoreParams {
      * The number of items in the array should match the total number of epochs being considered.
      */
     activeEpochStates?: ValidatorEpochState[]
-  },
+  }
 
   size: {
     /**
@@ -34,18 +34,18 @@ export interface ScoreParams {
      * A higher value results in a steeper decline in the score.
      * @default 7.5
      */
-    steepness: number,
+    steepness: number
 
     /**
      * The balance or stake amount of the validator.
      */
-    balance: number,
+    balance: number
 
     /**
      * The total balance or stake amount across all validators in the network.
      */
     totalBalance: number
-  },
+  }
 
   reliability: {
     /**
@@ -54,7 +54,7 @@ export interface ScoreParams {
      * - 1: Importance decreases linearly from the most recent epoch to the oldest.
      * @default 0.5
      */
-    weightFactor?: number,
+    weightFactor?: number
 
     /**
      * Determines the adjustment applied to the reliability score based on a circular curve.
@@ -62,7 +62,7 @@ export interface ScoreParams {
      * A more negative value increases the penalty for low reliability scores.
      * @default -0.16
      */
-    curveCenter?: number,
+    curveCenter?: number
 
     /**
      * A mapping of each epoch number to an object containing the counts of rewarded and missed blocks.
@@ -70,35 +70,34 @@ export interface ScoreParams {
      * - `missed`: The number of blocks the validator was expected to produce but did not.
      */
     inherentsPerEpoch?: Record<number, {
-        rewarded: number
-        missed: number
+      rewarded: number
+      missed: number
     }>
   }
 }
 
 // The activity of the validator and their block production activity for a given election block
-export type Activity = { likelihood: number, missed: number, rewarded: number }
+export interface Activity { likelihood: number, missed: number, rewarded: number }
 
 // A map of validator addresses to their activities in a single epoch
 export type ValidatorActivity = Record<string /* address */, Activity>
 
-// A map of validator addresses to their activities in a single epoch 
+// A map of validator addresses to their activities in a single epoch
 export type ValidatorsActivities = Map<{ address: string, epochBlockNumber: number }, Activity>
 
-export type ScoreValues = { liveness: number, reliability: number, size: number, total: number }
+export interface ScoreValues { liveness: number, reliability: number, size: number, total: number }
 
 export interface Range {
   // The first block number that we will consider
-  fromEpoch: number,
+  fromEpoch: number
   // The last block number that we will consider
-  toEpoch: number,
+  toEpoch: number
 
   // Given a block number, it returns the index in the array of epochs
-  blockNumberToIndex(blockNumber: number): number,
+  blockNumberToIndex: (blockNumber: number) => number
 
-  blocksPerEpoch: number,
+  blocksPerEpoch: number
 
   // The amount of epochs in the range
   epochCount: number
 }
-

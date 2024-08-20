@@ -1,5 +1,4 @@
-
-import { NimiqRPCClient } from 'nimiq-rpc-client-ts'
+import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { ValidatorsActivities } from 'nimiq-vts'
 import { fetchValidatorsActivities, getRange } from 'nimiq-vts'
 import { consola } from 'consola'
@@ -23,15 +22,18 @@ export async function fetchVtsData(client: NimiqRPCClient) {
     // We need to fetch the data of the active validators that are active in the current epoch
     // but we don't have the data yet.
     const { data: activeValidators, error: errorActiveValidators } = await client.blockchain.getActiveValidators()
-    if (errorActiveValidators || !activeValidators) throw new Error(errorActiveValidators.message || 'No active validators')
+    if (errorActiveValidators || !activeValidators)
+      throw new Error(errorActiveValidators.message || 'No active validators')
     const addressesCurrentValidators = activeValidators.map(v => v.address)
     const missingValidators = await getMissingValidators(addressesCurrentValidators)
     await Promise.all(missingValidators.map(missingValidator => storeValidator(missingValidator)))
     return { epochBlockNumbers, missingValidators, addressesCurrentValidators }
-  } catch (error) {
+  }
+  catch (error) {
     consola.error(error)
     throw error
-  } finally {
+  }
+  finally {
     running = false
   }
 }
@@ -47,15 +49,16 @@ async function fetchEpochs(client: NimiqRPCClient) {
   if (epochBlockNumbers.length === 0)
     return []
 
-  const activitiesGenerator = fetchValidatorsActivities(client, epochBlockNumbers);
+  const activitiesGenerator = fetchValidatorsActivities(client, epochBlockNumbers)
 
   // We fetch epochs 3 by 3 in parallel and store them in the database
   while (true) {
     const start = globalThis.performance.now()
     const epochsActivities: ValidatorsActivities = new Map()
     for (let i = 0; i < EPOCHS_IN_PARALLEL; i++) {
-      const { value: pair, done } = await activitiesGenerator.next();
-      if (done) break;
+      const { value: pair, done } = await activitiesGenerator.next()
+      if (done)
+        break
       epochsActivities.set(pair.key, pair.activity)
     }
 
@@ -63,10 +66,10 @@ async function fetchEpochs(client: NimiqRPCClient) {
     const seconds = (end - start) / 1000
     consola.info(`Fetched ${epochsActivities.size} epochs in ${seconds} seconds`)
 
-    if (epochsActivities.size === 0) break;
-    await storeActivities(epochsActivities);
+    if (epochsActivities.size === 0)
+      break
+    await storeActivities(epochsActivities)
   }
 
   return epochBlockNumbers
 }
-

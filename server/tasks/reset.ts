@@ -1,4 +1,4 @@
-import { desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm'
 import { consola } from 'consola'
 
 export default defineTask({
@@ -17,7 +17,7 @@ export default defineTask({
       }
     }
 
-    if(payload.epoch_block_number && !isNaN(Number(payload.epoch_block_number))) {
+    if (payload.epoch_block_number && !Number.isNaN(Number(payload.epoch_block_number))) {
       await useDrizzle().delete(tables.activity).where(eq(tables.activity.epochBlockNumber, Number(payload.epoch_block_number))).get()
       return { result: `Deleted epoch_block_number: ${payload.epoch_block_number}` }
     }

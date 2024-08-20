@@ -6,11 +6,11 @@ import { getValidatorParams, storeScores } from '../database/utils'
 
 export default defineTask({
   meta: {
-    name: "db:compute-score",
-    description: "Computes the VTS score",
+    name: 'db:compute-score',
+    description: 'Computes the VTS score',
   },
   async run() {
-    consola.info("Running db:compute-score task...")
+    consola.info('Running db:compute-score task...')
     const client = new NimiqRPCClient(new URL(useRuntimeConfig().rpcUrl))
 
     // The range that we will consider
@@ -19,7 +19,8 @@ export default defineTask({
 
     // When we compute the score, we only compute the score for the current active validators
     const { data: activeValidators, error: errorActiveValidators } = await client.blockchain.getActiveValidators()
-    if (errorActiveValidators || !activeValidators) throw new Error(errorActiveValidators.message || 'No active validators')
+    if (errorActiveValidators || !activeValidators)
+      throw new Error(errorActiveValidators.message || 'No active validators')
 
     // Get the activity for the range. If there is missing validators or activity it will throw an error
     const activity = await getValidatorParams(activeValidators, range)
@@ -27,7 +28,7 @@ export default defineTask({
 
     consola.info(`Computing score for: ${Object.keys(activity).join(', ')}`)
     const scores = Object.values(activity).map(({ activeEpochStates, validatorId, balance, inherentsPerEpoch }) => {
-      const score = computeScore({ liveness: { activeEpochStates }, size: { balance, totalBalance }, reliability: { inherentsPerEpoch }})
+      const score = computeScore({ liveness: { activeEpochStates }, size: { balance, totalBalance }, reliability: { inherentsPerEpoch } })
       return { validatorId, ...score } satisfies NewScore
     })
     await storeScores(scores)

@@ -1,5 +1,5 @@
-import { seedDatabase } from '../database/seed'
 import { consola } from 'consola'
+import { seedDatabase } from '../database/seed'
 
 export default defineTask({
   meta: {

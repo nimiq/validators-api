@@ -1,7 +1,7 @@
-import { type NimiqRPCClient, type ElectionMacroBlock, InherentType } from "nimiq-rpc-client-ts";
-import type { ValidatorActivity } from "./types"
-import { getPolicyConstants } from "./utils"
+import { type ElectionMacroBlock, InherentType, type NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import { consola } from 'consola'
+import type { ValidatorActivity } from './types'
+import { getPolicyConstants } from './utils'
 
 /**
  * For a given block number, fetches the validator slots assignation.
@@ -13,15 +13,18 @@ export async function fetchValidatorsActivitiesInEpoch(client: NimiqRPCClient, b
   consola.info(`Fetching slots assignation for block ${blockNumber}`)
   const { batchesPerEpoch, genesisBlockNumber, blocksPerBatch } = await getPolicyConstants(client)
   const { data: block, error } = await client.blockchain.getBlockByNumber(blockNumber, { includeTransactions: true })
-  if (error || !block) throw new Error(JSON.stringify({ blockNumber, error, block }))
-  if (!('isElectionBlock' in block)) throw Error(JSON.stringify({ message: 'Block is not election block', blockNumber, block }))
+  if (error || !block)
+    throw new Error(JSON.stringify({ blockNumber, error, block }))
+  if (!('isElectionBlock' in block))
+    throw new Error(JSON.stringify({ message: 'Block is not election block', blockNumber, block }))
 
   // The election block will be the first block of the new Epoch, since we only fetch finished epochs, we can assume that all the batches in this epoch can be fetched
   // First, we need to know in which batch this block is. Since batches start at 0, but blocks at genesis, we need to know the genesis block number
   const blockIndex = blockNumber - genesisBlockNumber
   // This is going to be an exact division since we are fetching election blocks
   const firstBatchIndex = blockIndex / blocksPerBatch
-  if (firstBatchIndex % 1 !== 0) throw new Error(JSON.stringify({ message: 'Something happened calculating batchIndex', blockIndex, firstBatchIndex, blockNumber, block }))
+  if (firstBatchIndex % 1 !== 0)
+    throw new Error(JSON.stringify({ message: 'Something happened calculating batchIndex', blockIndex, firstBatchIndex, blockNumber, block }))
 
   // Initialize the list of validators and their activity in the epoch
   const validatorsActivity: ValidatorActivity = {}
@@ -29,42 +32,43 @@ export async function fetchValidatorsActivitiesInEpoch(client: NimiqRPCClient, b
     validatorsActivity[validator] = { likelihood, missed: 0, rewarded: 0 }
   }
 
-  const maxBatchSize = 120;
-  const minBatchSize = 10;
-  let batchSize = maxBatchSize;
+  const maxBatchSize = 120
+  const minBatchSize = 10
+  let batchSize = maxBatchSize
   for (let i = 0; i < batchesPerEpoch; i += batchSize) {
-    const batchPromises = Array.from({ length: Math.min(batchSize, batchesPerEpoch - i) }, (_, j) => createPromise(i + j));
+    const batchPromises = Array.from({ length: Math.min(batchSize, batchesPerEpoch - i) }, (_, j) => createPromise(i + j))
 
-    let results = await Promise.allSettled(batchPromises);
+    let results = await Promise.allSettled(batchPromises)
 
     let rejectedIndexes: number[] = results.reduce((acc: number[], result, index) => {
       if (result.status === 'rejected') {
-        acc.push(index);
+        acc.push(index)
       }
-      return acc;
-    }, []);
+      return acc
+    }, [])
 
     if (rejectedIndexes.length > 0) {
       // Lowering the batch size to prevent more rejections
       batchSize = Math.max(minBatchSize, Math.floor(batchSize / 2))
       consola.info(`Decreasing batch size to ${batchSize}`)
-    } else {
-      batchSize = Math.min(maxBatchSize,  Math.floor(batchSize + batchSize / 2))
-      if(batchSize !== maxBatchSize)
+    }
+    else {
+      batchSize = Math.min(maxBatchSize, Math.floor(batchSize + batchSize / 2))
+      if (batchSize !== maxBatchSize)
         consola.info(`Increasing batch size to ${batchSize}`)
     }
 
     while (rejectedIndexes.length > 0) {
-      const retryPromises = rejectedIndexes.map(index => createPromise(i + index));
-      consola.info(`Retrying ${rejectedIndexes.length} batches for block ${blockNumber}`);
-      results = await Promise.allSettled(retryPromises);
+      const retryPromises = rejectedIndexes.map(index => createPromise(i + index))
+      consola.info(`Retrying ${rejectedIndexes.length} batches for block ${blockNumber}`)
+      results = await Promise.allSettled(retryPromises)
 
       rejectedIndexes = results.reduce((acc: number[], result, index) => {
         if (result.status === 'rejected') {
-          acc.push(rejectedIndexes[index]);
+          acc.push(rejectedIndexes[index])
         }
-        return acc;
-      }, []);
+        return acc
+      }, [])
     }
   }
 
@@ -72,17 +76,20 @@ export async function fetchValidatorsActivitiesInEpoch(client: NimiqRPCClient, b
     const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + index)
     return new Promise<void>((resolve, reject) => {
       if (errorBatch || !inherents) {
-        reject(JSON.stringify({ blockNumber, errorBatch, index, firstBatchIndex, currentIndex: firstBatchIndex + index }));
-      } else {
+        reject(JSON.stringify({ blockNumber, errorBatch, index, firstBatchIndex, currentIndex: firstBatchIndex + index }))
+      }
+      else {
         for (const { type, validatorAddress } of inherents) {
-          if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000') continue
-          if (!validatorsActivity[validatorAddress]) continue
+          if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000')
+            continue
+          if (!validatorsActivity[validatorAddress])
+            continue
           validatorsActivity[validatorAddress].rewarded += type === InherentType.Reward ? 1 : 0
           validatorsActivity[validatorAddress].missed += [InherentType.Penalize, InherentType.Jail].includes(type) ? 1 : 0
         }
-        resolve();
+        resolve()
       }
-    });
+    })
   }
 
   const end = globalThis.performance.now()
@@ -109,9 +116,9 @@ export async function fetchValidatorsActivitiesInEpoch(client: NimiqRPCClient, b
  */
 export async function* fetchValidatorsActivities(client: NimiqRPCClient, epochBlockNumbers: number[]) {
   for (const epochBlockNumber of epochBlockNumbers) {
-    const validatorActivities = await fetchValidatorsActivitiesInEpoch(client, epochBlockNumber);
+    const validatorActivities = await fetchValidatorsActivitiesInEpoch(client, epochBlockNumber)
     for (const [address, activity] of Object.entries(validatorActivities)) {
-      yield { key: { address, epochBlockNumber }, activity };
+      yield { key: { address, epochBlockNumber }, activity }
     }
   }
 }

@@ -1,3 +1,4 @@
+import process from 'node:process'
 import wasm from 'vite-plugin-wasm'
 import topLevelAwait from 'vite-plugin-top-level-await'
 
@@ -24,7 +25,7 @@ export default defineNuxtConfig({
     rpcUrl: process.env.NUXT_RPC_URL || '',
     public: {
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
-    }
+    },
   },
 
   experimental: {
@@ -59,7 +60,7 @@ export default defineNuxtConfig({
 
     scheduledTasks: {
       '0 */12 * * *': ['fetch', 'seed', 'score'],
-    }
+    },
   },
 
   app: {
@@ -86,11 +87,11 @@ export default defineNuxtConfig({
     inlineStyles: false,
   },
 
-  // eslint: {
-  //   config: {
-  //     standalone: false,
-  //   },
-  // },
+  eslint: {
+    config: {
+      standalone: false,
+    },
+  },
 
   colorMode: {
     classSuffix: '',
@@ -98,6 +99,6 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2024-08-15',
   future: {
-    compatibilityVersion: 4
-  }
+    compatibilityVersion: 4,
+  },
 })

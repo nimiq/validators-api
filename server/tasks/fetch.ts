@@ -11,7 +11,8 @@ export default defineTask({
     consola.info('Running fetch task...')
     const client = getRpcClient()
     const res = await fetchVtsData(client)
-    if (!res) return { result: 'No new epochs fetched' }
+    if (!res)
+      return { result: 'No new epochs fetched' }
     return { result: `New ${res.epochBlockNumbers.length} epochs fetched and ${res.missingValidators.length} validators of the current epoch stored ${JSON.stringify(res.addressesCurrentValidators)}` }
   },
 })

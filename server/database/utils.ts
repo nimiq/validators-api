@@ -1,8 +1,8 @@
-import { gte, inArray, lte } from "drizzle-orm"
-import type { ValidatorsActivities, Range, ScoreParams } from "nimiq-vts"
+import { gte, inArray, lte } from 'drizzle-orm'
+import type { Range, ScoreParams, ValidatorsActivities } from 'nimiq-vts'
 // @ts-expect-error no types in the package
 import Identicons from '@nimiq/identicons'
-import type { NewScore, NewValidator } from "../utils/drizzle"
+import type { NewScore, NewValidator } from '../utils/drizzle'
 
 /**
  * Given a list of validator addresses, it returns the addresses that are missing in the database.
@@ -16,7 +16,7 @@ export async function getMissingValidators(addresses: string[]) {
     .where(inArray(tables.validators.address, addresses))
     .execute().then(r => r.map(r => r.address))
 
-  const missingAddresses = addresses.filter(a => existingAddresses.indexOf(a) === -1)
+  const missingAddresses = addresses.filter(a => !existingAddresses.includes(a))
   return missingAddresses
 }
 
@@ -25,7 +25,8 @@ export async function getMissingValidators(addresses: string[]) {
 const validators = new Map<string, number>()
 
 export async function storeValidator(address: string, rest: Omit<NewValidator, 'address' | 'icon'> = {}) {
-  if (validators.has(address)) return validators.get(address) as number
+  if (validators.has(address))
+    return validators.get(address) as number
   const validatorId = await useDrizzle()
     .select({ id: tables.validators.id })
     .from(tables.validators)
@@ -48,13 +49,15 @@ export async function storeValidator(address: string, rest: Omit<NewValidator, '
  * If there are missing validators or epochs, it will throw an error.
  */
 export async function getValidatorParams(validators: { address: string, balance: number }[], range: Range) {
-  const addresses = validators.map(v => v.address);
+  const addresses = validators.map(v => v.address)
 
-  const missingValidators = await getMissingValidators(addresses);
-  if (missingValidators.length > 0) throw new Error(`Missing validators in database: ${missingValidators.join(', ')}. Run the fetch task first.`);
+  const missingValidators = await getMissingValidators(addresses)
+  if (missingValidators.length > 0)
+    throw new Error(`Missing validators in database: ${missingValidators.join(', ')}. Run the fetch task first.`)
 
-  const missingEpochs = await getMissingEpochs(range);
-  if (missingEpochs.length > 0) throw new Error(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`);
+  const missingEpochs = await getMissingEpochs(range)
+  if (missingEpochs.length > 0)
+    throw new Error(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
 
   const activities = await useDrizzle()
     .select({
@@ -69,44 +72,46 @@ export async function getValidatorParams(validators: { address: string, balance:
     .where(and(
       gte(tables.activity.epochBlockNumber, range.fromEpoch),
       lte(tables.activity.epochBlockNumber, range.toEpoch),
-      inArray(tables.validators.address, addresses)
+      inArray(tables.validators.address, addresses),
     ))
-    .execute();
+    .execute()
 
-  const epochCount = Math.ceil((range.toEpoch - range.fromEpoch) / range.blocksPerEpoch);
-  
+  const epochCount = Math.ceil((range.toEpoch - range.fromEpoch) / range.blocksPerEpoch)
+
   // A map of validator addresses to their parameters
 type ValidatorParams = Record<
   string /* address */,
   Pick<ScoreParams['liveness'], 'activeEpochStates'> & { validatorId: number, balance: number } & ScoreParams['reliability']
 >
 
-  const validatorParams: ValidatorParams = {};
-  for (const { address, balance } of validators) {
-    const validatorId = await useDrizzle().select({ id: tables.validators.id }).from(tables.validators).where(eq(tables.validators.address, address)).get().then(r => r?.id);
-    if (!validatorId) throw new Error(`Validator ${address} not found in database`);
+const validatorParams: ValidatorParams = {}
+for (const { address, balance } of validators) {
+  const validatorId = await useDrizzle().select({ id: tables.validators.id }).from(tables.validators).where(eq(tables.validators.address, address)).get().then(r => r?.id)
+  if (!validatorId)
+    throw new Error(`Validator ${address} not found in database`)
 
-    const validatorActivities = activities.filter(a => a.address === address);
-    if (validatorActivities.length === 0) {
-      validatorParams[address] = { validatorId, balance, activeEpochStates: Array(epochCount).fill(0), inherentsPerEpoch: {} };
-      continue
-    }
-  
-    const activeEpochStates = Array(epochCount).fill(0);
-    const inherentsPerEpoch: Record<number, {rewarded: number, missed: number}> = {};
-    validatorActivities.forEach(activity => {
-      const index = range.blockNumberToIndex(activity.epoch);
-      if (index >= 0 && index < epochCount) activeEpochStates[index] = 1;
-      inherentsPerEpoch[index] = { rewarded: activity.rewarded, missed: activity.missed };
-    });
-    validatorParams[address] = { validatorId, balance, activeEpochStates, inherentsPerEpoch };
+  const validatorActivities = activities.filter(a => a.address === address)
+  if (validatorActivities.length === 0) {
+    validatorParams[address] = { validatorId, balance, activeEpochStates: Array(epochCount).fill(0), inherentsPerEpoch: {} }
+    continue
   }
-  
-  return validatorParams;
+
+  const activeEpochStates = Array(epochCount).fill(0)
+  const inherentsPerEpoch: Record<number, { rewarded: number, missed: number }> = {}
+  validatorActivities.forEach((activity) => {
+    const index = range.blockNumberToIndex(activity.epoch)
+    if (index >= 0 && index < epochCount)
+      activeEpochStates[index] = 1
+    inherentsPerEpoch[index] = { rewarded: activity.rewarded, missed: activity.missed }
+  })
+  validatorParams[address] = { validatorId, balance, activeEpochStates, inherentsPerEpoch }
+}
+
+return validatorParams
 }
 
 /**
- * Given a range, it returns the epochs that are missing in the database. 
+ * Given a range, it returns the epochs that are missing in the database.
  */
 export async function getMissingEpochs(range: Range) {
   const existingEpochs = await useDrizzle()
@@ -117,7 +122,8 @@ export async function getMissingEpochs(range: Range) {
 
   const missingEpochs = []
   for (let i = range.fromEpoch; i <= range.toEpoch; i += range.blocksPerEpoch) {
-    if (existingEpochs.indexOf(i) === -1) missingEpochs.push(i)
+    if (!existingEpochs.includes(i))
+      missingEpochs.push(i)
   }
   return missingEpochs
 }
@@ -127,18 +133,17 @@ export async function getMissingEpochs(range: Range) {
  * If the pair validator-epochBlockNumber is already in the database, we delete it and insert the new activity.
  */
 export async function storeActivities(activities: ValidatorsActivities) {
-  activities.forEach(async ({likelihood, missed, rewarded}, {address, epochBlockNumber}) => {
+  activities.forEach(async ({ likelihood, missed, rewarded }, { address, epochBlockNumber }) => {
     const validatorId = await storeValidator(address)
     // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
     // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
     await useDrizzle().delete(tables.activity)
       .where(and(
         eq(tables.activity.epochBlockNumber, epochBlockNumber),
-        eq(tables.activity.validatorId, validatorId)
-    ))
+        eq(tables.activity.validatorId, validatorId),
+      ))
     await useDrizzle().insert(tables.activity).values({ likelihood, rewarded, missed, epochBlockNumber, validatorId })
   })
-
 }
 
 /**
