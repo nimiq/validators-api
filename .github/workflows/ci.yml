@@ -29,7 +29,7 @@ jobs:
         run: npm i -g @antfu/ni
 
       - name: Install
-        run: nci --no-frozen-lockfile
+        run: nci
 
       - name: Lint
         run: nr lint

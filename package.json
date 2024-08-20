@@ -51,7 +51,7 @@
     "eslint-plugin-format": "^0.1.2",
     "katex": "^0.16.11",
     "lint-staged": "^15.2.9",
-    "nimiq-css": "^0.1.8",
+    "nimiq-css": "^0.1.9",
     "simple-git-hooks": "^2.11.1",
     "typescript": "^5.5.4",
     "vite-plugin-top-level-await": "^1.4.4",
