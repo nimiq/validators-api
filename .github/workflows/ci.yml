@@ -45,6 +45,9 @@ jobs:
       - name: Move to package folder
         run: cd packages/nimiq-vts
 
+      - name: print where am i
+        run: pwd
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
