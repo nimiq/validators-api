@@ -1,6 +1,6 @@
 # Nimiq Validator Trust Score
 
-The algorithm to compute the Nimiq's Validator Trust Score. The VTS is a metric that helps to evaluate the trustworthiness of a validator. You can read more about the Algorithm of the Score [here](https://nimiq-validators.nuxt.dev/vts).
+The algorithm to compute the Nimiq's Validator Trust Score. The VTS is a metric that helps to evaluate the trustworthiness of a validator. You can read more about the Algorithm of the Score [here](https://nimiq-validators.pages.dev/vts).
 
 This package is the implementation of such algorithm. Anyone with access to a node should be able to run the same algorithm and get the same result.
 
