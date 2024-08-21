@@ -2,6 +2,7 @@ import { gte, inArray, lte } from 'drizzle-orm'
 import type { Range, ScoreParams, ValidatorsActivities } from 'nimiq-vts'
 // @ts-expect-error no types in the package
 import Identicons from '@nimiq/identicons'
+import { consola } from 'consola'
 import type { NewScore, NewValidator } from '../utils/drizzle'
 
 /**
@@ -38,7 +39,9 @@ export async function storeValidator(address: string, rest: Omit<NewValidator, '
     return validatorId
   }
 
-  const icon = await Identicons.default.toDataUrl(address) as string
+  const icon = await Identicons.default?.toDataUrl(address) || '' as string
+  if (!icon)
+    consola.error(`The identicon for ${address} is empty. This should not happen. Identicons lib: ${JSON.stringify(Identicons)}`)
   const newValidator = await useDrizzle().insert(tables.validators).values({ ...rest, address, icon }).returning().get()
   validators.set(address, newValidator.id)
   return newValidator.id
