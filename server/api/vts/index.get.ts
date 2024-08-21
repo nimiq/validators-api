@@ -27,6 +27,8 @@ function err(error: any) {
 }
 
 export default defineEventHandler(async (event) => {
+  const networkName = useRuntimeConfig().public.nimiqNetwork
+
   const rpcClient = getRpcClient()
 
   // TODO Remove this block once scheduled tasks are implemented in NuxtHub
@@ -72,5 +74,5 @@ export default defineEventHandler(async (event) => {
     return err(epochNumberError)
 
   setResponseStatus(event, 200)
-  return { validators, epochNumber } as const
+  return { validators, epochNumber, network: networkName } as const
 })

@@ -24,6 +24,7 @@ export interface HealthStatus {
 
   isSynced: boolean
   flags: HealthFlag[]
+  network: string
 }
 
 function err(error: any) {
@@ -32,6 +33,8 @@ function err(error: any) {
 }
 
 export default defineEventHandler(async (event) => {
+  const networkName = useRuntimeConfig().public.nimiqNetwork
+
   const rpcClient = getRpcClient()
 
   // Get the latest epoch number in the activity table
@@ -86,6 +89,7 @@ export default defineEventHandler(async (event) => {
     isSynced,
     flags,
     fetchedEpochs,
+    network: networkName,
   }
   consola.info('Health Status:', healthStatus)
 
