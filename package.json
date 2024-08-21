@@ -34,7 +34,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.26.0",
+    "@antfu/eslint-config": "catalog:",
     "@nimiq/identicons": "^1.6.2",
     "@nuxt/eslint": "^0.5.1",
     "@nuxt/image": "^1.7.0",
@@ -47,16 +47,15 @@
     "@vueuse/nuxt": "^11.0.1",
     "drizzle-kit": "^0.24.0",
     "drizzle-zod": "^0.5.1",
-    "eslint": "^9.9.0",
+    "eslint": "catalog:",
     "eslint-plugin-format": "^0.1.2",
-    "katex": "^0.16.11",
-    "lint-staged": "^15.2.9",
+    "lint-staged": "catalog:",
     "nimiq-css": "^0.1.9",
-    "simple-git-hooks": "^2.11.1",
+    "simple-git-hooks": "catalog:",
     "typescript": "^5.5.4",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0",
-    "wrangler": "^3.72.0"
+    "wrangler": "^3.72.1"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged"

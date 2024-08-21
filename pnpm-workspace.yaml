@@ -1,2 +1,7 @@
 packages:
-  - 'packages/*'
+  - packages/*
+catalog:
+  '@antfu/eslint-config': ^2.26.1
+  eslint: ^9.9.0
+  lint-staged: ^15.2.9
+  simple-git-hooks: ^2.11.1
