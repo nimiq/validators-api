@@ -1,7 +1,7 @@
 <h1 align="center">Nimiq Validators</h1>
 
 <p align="center">
-  <a href="https://nimiq-validators.pages.dev">
+  <a href="https://validators-api.pages.dev">
     <img src="./public/favicon.svg" alt="Nimiq Validators" width="64" />
   </a>
 
@@ -11,17 +11,17 @@ Details of validators in the Nimiq Blockchain and their scores, calculated using
 
 ## Validators Dashboard
 
-https://nimiq-validators.pages.dev
+https://validators-api.pages.dev/
 
 The dashboard is a simple Nuxt application that displays all validators and their scores.
 
 ## Validators API
 
-https://nimiq-validators.pages.dev/api/vts
+https://validators-api.pages.dev/api/vts
 
 An endpoint that returns the list of validators and their scores.
 
-https://nimiq-validators.pages.dev/api/vts/health
+https://validators-api.pages.dev/api/vts/health
 
 An endpoint that returns the internal status of the VTS. Basically if the server is synced or not with the chain.
 
@@ -29,7 +29,7 @@ An endpoint that returns the internal status of the VTS. Basically if the server
 
 [Source code](./packages/nimiq-vts/)
 
-This is a npm package that calculates the Trust Score of a validator. You can read more about the Trust Score [here](https://nimiq-validators.pages.dev/vts).
+This is a npm package that calculates the Trust Score of a validator. You can read more about the Trust Score [here](https://validators-api.pages.dev/vts).
 
 ## Validator Details
 
