@@ -25,7 +25,7 @@ export async function findMissingEpochs(range: Range) {
 }
 
 /**
- * We loop over all the pairs activities/epochBlockNumber and store the validator.
+ * We loop over all the pairs activities/epochBlockNumber and store the validator activities.
  */
 export async function storeActivities(epochs: EpochsActivities) {
   const promises = Object.entries(epochs).map(async ([_epochNumber, activities]) => {

@@ -2,9 +2,10 @@ import type { NimiqRPCClient, PolicyConstants } from 'nimiq-rpc-client-ts'
 import type { Range } from './types'
 
 interface GetRangeOptions {
-  // The last epoch number that we will consider. Default to the last finished epoch.
+  /**
+   * The last epoch number that we will consider. Default to the last finished epoch.
+   */
   toEpochIndex?: number
-  // The amount of milliseconds we want to consider. Default to 9 months.
   /**
    * The amount of milliseconds we want to consider. Default to 9 months.
    * @default 1000 * 60 * 60 * 24 * 30 * 9 (9 months)

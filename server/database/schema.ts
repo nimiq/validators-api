@@ -6,7 +6,7 @@ import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from
 export const validators = sqliteTable('validators', {
   id: integer('id').primaryKey({ autoIncrement: true, onConflict: 'replace' }),
   name: text('name').default('Unknown validator').notNull(),
-  address: text('address').notNull(),
+  address: text('address').notNull().unique(),
   fee: real('fee').default(-1),
   payoutType: text('payout_type').default('unknown'),
   description: text('description'),
