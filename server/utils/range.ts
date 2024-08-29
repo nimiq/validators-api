@@ -1,4 +1,3 @@
-import { gte, lte, max } from 'drizzle-orm'
 import type { Range } from 'nimiq-validators-score'
 import { getRange } from 'nimiq-validators-score'
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
@@ -11,8 +10,6 @@ import { rangeQuerySchema } from './schemas'
  * To compute the score for a validator for a given range, it is mandatory that we have the activity for that validator
  * in the last epoch of the range. If we don't have the activity for that epoch, we can't compute the score.
  * Instead of throwing an error, we will modify the range so the last epoch is the last epoch where we have activity.
- *
- * @param expectedRange
  */
 // export async function adjustRangeForAvailableData(expectedRange: Range): Result<Range> {
 //   const highestScoreEpoch = await useDrizzle()

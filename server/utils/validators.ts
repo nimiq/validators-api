@@ -5,7 +5,7 @@ import { desc, inArray } from 'drizzle-orm'
 import Identicons from '@nimiq/identicons'
 import { consola } from 'consola'
 import { Address } from '@nimiq/core'
-import type { NewValidator } from './drizzle'
+import type { NewValidator, Validator } from './drizzle'
 import type { Result, ValidatorScore } from './types'
 import { validatorSchema } from './schemas'
 
@@ -114,6 +114,20 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
     .groupBy(tables.validators.id)
     .orderBy(desc(tables.scores.total))
     .all() as ValidatorScore[]
+  return { data: validators, error: undefined }
+}
+
+export interface FetchValidatorsOptions {
+  onlyPools: boolean
+}
+
+export async function fetchValidators({ onlyPools }: FetchValidatorsOptions): Result<Validator[]> {
+  const validators = await useDrizzle()
+    .select()
+    .from(tables.validators)
+    .where(onlyPools ? eq(tables.validators.payoutType, PayoutType.Restake) : undefined)
+    .groupBy(tables.validators.id)
+    .all()
   return { data: validators, error: undefined }
 }
 
