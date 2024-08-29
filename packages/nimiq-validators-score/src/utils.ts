@@ -5,42 +5,52 @@ interface GetRangeOptions {
   // The last epoch number that we will consider. Default to the last finished epoch.
   toEpochIndex?: number
   // The amount of milliseconds we want to consider. Default to 9 months.
+  /**
+   * The amount of milliseconds we want to consider. Default to 9 months.
+   * @default 1000 * 60 * 60 * 24 * 30 * 9 (9 months)
+   */
   durationMs?: number
 }
+
+export const DEFAULT_WINDOW_IN_DAYS = 30 * 9
+export const DEFAULT_WINDOW_IN_MS = DEFAULT_WINDOW_IN_DAYS * 24 * 60 * 60 * 1000
 
 /**
  * Given the amount of milliseconds we want to consider, it returns an object with the epoch range we will consider.
  */
 export async function getRange(client: NimiqRPCClient, options?: GetRangeOptions): Promise<Range> {
   const { blockSeparationTime, blocksPerEpoch, genesisBlockNumber } = await getPolicyConstants(client)
-  const durationMs = options?.durationMs || 1000 * 60 * 60 * 24 * 30 * 9
+  const durationMs = options?.durationMs || DEFAULT_WINDOW_IN_MS
   const epochsCount = Math.ceil(durationMs / (blockSeparationTime * blocksPerEpoch))
 
   const { data: currentEpoch, error: errorCurrentEpoch } = await client.blockchain.getEpochNumber()
   if (errorCurrentEpoch || !currentEpoch)
     throw new Error(errorCurrentEpoch?.message || 'No current epoch')
 
-  const toEpochIndex = options?.toEpochIndex ?? currentEpoch - 1
-  const fromEpochIndex = Math.max(1, toEpochIndex - epochsCount)
+  const toEpoch = options?.toEpochIndex ?? currentEpoch - 1
+  const fromEpoch = Math.max(1, toEpoch - epochsCount)
 
-  const fromEpoch = genesisBlockNumber + blocksPerEpoch * fromEpochIndex
-  const toEpoch = genesisBlockNumber + blocksPerEpoch * toEpochIndex
+  const fromBlockNumber = genesisBlockNumber + blocksPerEpoch * fromEpoch
+  const toBlockNumber = genesisBlockNumber + blocksPerEpoch * toEpoch
 
-  if (fromEpoch < 0 || toEpoch < 0 || fromEpoch > toEpoch)
-    throw new Error(`Invalid epoch range: [${fromEpoch}, ${toEpoch}]`)
+  if (fromBlockNumber < 0 || toBlockNumber < 0 || fromBlockNumber > toBlockNumber)
+    throw new Error(`Invalid epoch range: [${fromBlockNumber}, ${toBlockNumber}]`)
   if (fromEpoch === 0)
     throw new Error(`Invalid epoch range: [${fromEpoch}, ${toEpoch}]. The range should start from epoch 1`)
 
   const { data: head, error: headError } = await client.blockchain.getBlockNumber()
   if (headError || !head)
     throw new Error(headError?.message || 'No block number')
-  if (toEpoch >= head)
-    throw new Error(`Invalid epoch range: [${fromEpoch}, ${toEpoch}]. The current head is ${head}`)
+  if (toBlockNumber >= head)
+    throw new Error(`Invalid epoch range: [${fromBlockNumber}, ${toBlockNumber}]. The current head is ${head}`)
 
-  const blockNumberToIndex = (blockNumber: number) => Math.floor((blockNumber - genesisBlockNumber) / blocksPerEpoch) - fromEpochIndex
-  const epochCount = toEpochIndex - fromEpochIndex + 1
+  const blockNumberToEpochIndex = (blockNumber: number) =>
+    Math.floor((blockNumber - genesisBlockNumber) / blocksPerEpoch)
+  const epochIndexToBlockNumber = (epochIndex: number) =>
+    genesisBlockNumber + epochIndex * blocksPerEpoch
+  const epochCount = toEpoch - fromEpoch + 1
 
-  return { fromEpoch, toEpoch, blocksPerEpoch, blockNumberToIndex, epochCount }
+  return { fromEpoch, fromBlockNumber, toEpoch, toBlockNumber, blocksPerEpoch, blockNumberToEpochIndex, epochCount, epochIndexToBlockNumber }
 }
 
 export type PolicyConstantsPatch = PolicyConstants & { blockSeparationTime: number, genesisBlockNumber: number }

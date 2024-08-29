@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data, status, error } = useFetch('/api/vts')
+const { data, status, error } = useFetch('/api/scores')
 const validators = computed(() => data.value?.validators || [])
 
 const averageScore = computed(() => {

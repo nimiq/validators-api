@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ValidatorTag } from '~~/server/utils/drizzle'
 
-const { data } = useFetch('/api/vts')
+const { data } = useFetch('/api/scores')
 const validators = computed(() => data.value?.validators || [])
 
 const route = useRoute()
@@ -49,10 +49,14 @@ const validator = computed(() => {
 
       <ScorePies :validator mt-64 text-28 />
       <!-- <div self-stretch  w-2 bg-neutral-300 mx-48 /> -->
-
-      <p mt-32 block max-w-700 text-neutral-900>
-        {{ validator }}
-      </p>
+      <details>
+        <summary text-neutral-900 font-semibold mt-32 w-full>
+          More details
+        </summary>
+        <code nq-prose mt-32 block max-w-700 text-neutral-900>
+          {{ JSON.stringify(validator, null, 2) }}
+        </code>
+      </details>
     </div>
   </div>
 

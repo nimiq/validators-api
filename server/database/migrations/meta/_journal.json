@@ -1,12 +1,12 @@
 {
-  "version": "6",
+  "version": "7",
   "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
       "version": "6",
-      "when": 1718092093045,
-      "tag": "0000_orange_gargoyle",
+      "when": 1724839013157,
+      "tag": "0000_colossal_pretty_boy",
       "breakpoints": true
     }
   ]

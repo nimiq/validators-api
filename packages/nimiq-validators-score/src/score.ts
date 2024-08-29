@@ -1,13 +1,12 @@
 import { defu } from 'defu'
 import type { ScoreParams, ScoreValues } from './types'
 
-export function getSize({ balance, threshold, steepness, totalBalance }: ScoreParams['size']) {
-  if (!balance || !threshold || !steepness || !totalBalance)
+export function getSize({ threshold, steepness, sizeRatio }: ScoreParams['size']) {
+  if (!threshold || !steepness || !sizeRatio)
     throw new Error('Balance, threshold, steepness, or total balance is not set')
-  if (balance < 0 || totalBalance < 0)
-    throw new Error('Balance or total balance is negative')
-  const size = balance / totalBalance
-  const s = Math.max(0, 1 - (size / threshold) ** steepness)
+  if (sizeRatio < 0 || sizeRatio > 1)
+    throw new Error(`Invalid size ratio: ${sizeRatio}`)
+  const s = Math.max(0, 1 - (sizeRatio / threshold) ** steepness)
   return s
 }
 
@@ -39,13 +38,13 @@ export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }:
 
   let numerator = 0
   let denominator = 0
-  const length = Object.keys(inherentsPerEpoch).length
+  const length = inherentsPerEpoch.size
 
-  for (const [epochIndex, inherents] of Object.entries(inherentsPerEpoch)) {
-    const { rewarded, missed } = inherents
+  for (const [epochIndex, { missed, rewarded }] of Array.from(inherentsPerEpoch.entries())) {
+    // console.log(epochIndex, { missed, rewarded }) // TODO Something missed and rewarded are -1, is that correct?
     const totalBlocks = rewarded + missed
 
-    if (totalBlocks === 0)
+    if (totalBlocks <= 0)
       continue
 
     const r = rewarded / totalBlocks
@@ -72,9 +71,9 @@ export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }:
 // The default values for the computeScore function
 // Negative values and empty arrays are used to indicate that the user must provide the values or an error will be thrown
 const defaultScoreParams: ScoreParams = {
-  size: { threshold: 0.1, steepness: 7.5, balance: -1, totalBalance: -1 },
+  size: { threshold: 0.1, steepness: 7.5, sizeRatio: -1 },
   liveness: { weightFactor: 0.5, activeEpochStates: [] },
-  reliability: { weightFactor: 0.5, curveCenter: -0.16, inherentsPerEpoch: {} },
+  reliability: { weightFactor: 0.5, curveCenter: -0.16, inherentsPerEpoch: new Map() },
 }
 
 export function computeScore(params: ScoreParams) {

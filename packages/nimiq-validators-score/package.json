@@ -1,8 +1,8 @@
 {
-  "name": "nimiq-vts",
+  "name": "nimiq-validators-score",
   "type": "module",
-  "version": "0.0.0",
-  "description": "The algorithm to compute the Nimiq's Validator Trust Score",
+  "version": "0.0.1",
+  "description": "The algorithm to compute the Nimiq's Validator Score",
   "license": "MIT",
   "homepage": "https://github.com/onmax/nimiq-validators#readme",
   "repository": {
@@ -46,7 +46,6 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "consola": "^3.2.3",
     "defu": "^6.1.4",
     "nimiq-rpc-client-ts": "^0.4.0",
     "vitest": "^2.0.5"

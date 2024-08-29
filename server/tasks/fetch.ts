@@ -1,5 +1,5 @@
 import { consola } from 'consola'
-import { fetchVtsData } from '../lib/fetch'
+import { fetchParams } from '../lib/fetch'
 import { getRpcClient } from '../lib/client'
 
 export default defineTask({
@@ -10,9 +10,9 @@ export default defineTask({
   async run() {
     consola.info('Running fetch task...')
     const client = getRpcClient()
-    const res = await fetchVtsData(client)
+    const res = await fetchParams(client)
     if (!res)
       return { result: 'No new epochs fetched' }
-    return { result: `New ${res.epochBlockNumbers.length} epochs fetched and ${res.missingValidators.length} validators of the current epoch stored ${JSON.stringify(res.addressesCurrentValidators)}` }
+    return { result: `New ${res.missingEpochs.length} epochs fetched and ${res.missingValidators.length} validators of the current epoch stored ${JSON.stringify(res.addressesCurrentValidators)}` }
   },
 })

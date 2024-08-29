@@ -59,7 +59,7 @@ export default defineNuxtConfig({
     },
 
     scheduledTasks: {
-      '0 */12 * * *': ['fetch', 'seed', 'score'],
+      '0 */12 * * *': ['fetch'],
     },
   },
 
@@ -81,6 +81,10 @@ export default defineNuxtConfig({
       ],
     },
   },
+
+  watch: [
+    '~~/packages/nimiq-validators-score',
+  ],
 
   features: {
     // For UnoCSS
