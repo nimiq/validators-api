@@ -24,13 +24,13 @@ importers:
   .:
     dependencies:
       '@nimiq/core':
-        specifier: 2.0.0-next.24.0
+        specifier: next
         version: 2.0.0-next.24.0
       '@nuxt/eslint':
-        specifier: ^0.5.4
+        specifier: ^0.5.1
         version: 0.5.4(bufferutil@4.0.8)(eslint@9.9.1(jiti@1.21.6))(magicast@0.3.5)(rollup@4.21.2)(typescript@5.5.4)(utf-8-validate@5.0.10)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))
       '@nuxthub/core':
-        specifier: ^0.7.8
+        specifier: ^0.7.3
         version: 0.7.8(ioredis@5.4.1)(magicast@0.3.5)(rollup@4.21.2)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))
       '@unovis/ts':
         specifier: ^1.4.4
@@ -39,7 +39,7 @@ importers:
         specifier: ^1.4.4
         version: 1.4.4(@unovis/ts@1.4.4)(vue@3.4.38(typescript@5.5.4))
       '@vueuse/core':
-        specifier: ^11.0.3
+        specifier: ^11.0.1
         version: 11.0.3(vue@3.4.38(typescript@5.5.4))
       defu:
         specifier: ^6.1.4
@@ -54,13 +54,13 @@ importers:
         specifier: workspace:*
         version: link:packages/nimiq-validators-score
       nuxt:
-        specifier: ^3.13.0
+        specifier: ^3.12.4
         version: 3.13.0(@parcel/watcher@2.4.1)(@types/node@22.5.1)(bufferutil@4.0.8)(drizzle-orm@0.33.0(@cloudflare/workers-types@4.20240821.1))(eslint@9.9.1(jiti@1.21.6))(ioredis@5.4.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.21.2)(terser@5.31.6)(typescript@5.5.4)(utf-8-validate@5.0.10)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))
       pinia:
         specifier: ^2.2.2
         version: 2.2.2(typescript@5.5.4)(vue@3.4.38(typescript@5.5.4))
       radix-vue:
-        specifier: ^1.9.5
+        specifier: ^1.9.4
         version: 1.9.5(vue@3.4.38(typescript@5.5.4))
       vue:
         specifier: ^3.4.38
@@ -79,31 +79,31 @@ importers:
         specifier: ^1.6.2
         version: 1.6.2
       '@nuxt/image':
-        specifier: ^1.8.0
+        specifier: ^1.7.0
         version: 1.8.0(ioredis@5.4.1)(magicast@0.3.5)(rollup@4.21.2)
       '@nuxtjs/color-mode':
         specifier: ^3.4.4
         version: 3.4.4(magicast@0.3.5)(rollup@4.21.2)
       '@pinia/nuxt':
-        specifier: ^0.5.4
+        specifier: ^0.5.3
         version: 0.5.4(magicast@0.3.5)(rollup@4.21.2)(typescript@5.5.4)(vue@3.4.38(typescript@5.5.4))
       '@unocss/eslint-config':
-        specifier: ^0.62.3
+        specifier: ^0.62.2
         version: 0.62.3(eslint@9.9.1(jiti@1.21.6))(typescript@5.5.4)
       '@unocss/nuxt':
-        specifier: ^0.62.3
+        specifier: ^0.62.2
         version: 0.62.3(magicast@0.3.5)(postcss@8.4.41)(rollup@4.21.2)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))(webpack@5.94.0(esbuild@0.17.19))
       '@unocss/preset-rem-to-px':
-        specifier: ^0.62.3
+        specifier: ^0.62.2
         version: 0.62.3
       '@unocss/reset':
-        specifier: ^0.62.3
+        specifier: ^0.62.2
         version: 0.62.3
       '@vueuse/nuxt':
-        specifier: ^11.0.3
+        specifier: ^11.0.1
         version: 11.0.3(magicast@0.3.5)(nuxt@3.13.0(@parcel/watcher@2.4.1)(@types/node@22.5.1)(bufferutil@4.0.8)(drizzle-orm@0.33.0(@cloudflare/workers-types@4.20240821.1))(eslint@9.9.1(jiti@1.21.6))(ioredis@5.4.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.21.2)(terser@5.31.6)(typescript@5.5.4)(utf-8-validate@5.0.10)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6)))(rollup@4.21.2)(vue@3.4.38(typescript@5.5.4))
       drizzle-kit:
-        specifier: ^0.24.2
+        specifier: ^0.24.0
         version: 0.24.2
       drizzle-zod:
         specifier: ^0.5.1
@@ -118,7 +118,7 @@ importers:
         specifier: 'catalog:'
         version: 15.2.9
       nimiq-css:
-        specifier: ^0.1.11
+        specifier: ^0.1.9
         version: 0.1.11(typescript@5.5.4)(unocss@0.62.3(@unocss/webpack@0.62.3(rollup@4.21.2)(webpack@5.94.0(esbuild@0.17.19)))(postcss@8.4.41)(rollup@4.21.2)(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6)))(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))
       simple-git-hooks:
         specifier: 'catalog:'
@@ -133,7 +133,7 @@ importers:
         specifier: ^3.3.0
         version: 3.3.0(vite@5.4.2(@types/node@22.5.1)(terser@5.31.6))
       wrangler:
-        specifier: ^3.73.0
+        specifier: ^3.72.1
         version: 3.73.0(@cloudflare/workers-types@4.20240821.1)(bufferutil@4.0.8)(utf-8-validate@5.0.10)
 
   packages/nimiq-validators-score:

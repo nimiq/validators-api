@@ -31,7 +31,7 @@ const averageScore = computed(() => {
       </Stat>
       <Stat text-blue>
         <template #value>
-          {{ data?.epochNumber }}
+          {{ data?.range.toEpoch }}
         </template>
         <template #description>
           Epoch
