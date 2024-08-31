@@ -3,20 +3,19 @@ import { VisDonut, VisSingleContainer, VisTooltip } from '@unovis/vue'
 import { Donut } from '@unovis/ts'
 import { render } from 'vue'
 import ScorePies from './ScorePies.vue'
-import type { ValidatorScore } from '~~/server/utils/types'
 
 defineProps<{ data: ValidatorScore[] }>()
 
 const isMounted = useMounted()
 
 // TOOD We should so balance disitrubtion not size score!!! -->
-const value = (d: Validator) => d.size
-const label = (d: Validator) => d.name || d.address
+const value = (d: ValidatorScore) => d.size
+const label = (d: ValidatorScore) => d.name || d.address
 
 const colors = ['red', 'orange', 'blue', 'green', 'gold']
 const color = (d: number, i: number) => `rgb(var(--nq-${colors[i % colors.length]}))`
 
-function template(v: Validator) {
+function template(v: ValidatorScore) {
   const div = document.createElement('div')
   render(h(ScorePies, { validator: v, class: 'text-14' }), div)
   const address = `${v.address.slice(0, 10)}  ...  ${v.address.slice(-10)}`

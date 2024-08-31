@@ -1,29 +1,28 @@
 <script setup lang="ts">
-const { data: health, status, error } = useFetch('/api/v1/scores/health')
-const network = useRuntimeConfig().public.nimiqNetwork
+const { health, statusHealth, errorHealth } = useApiStore()
 </script>
 
 <template>
   <div class="nq-prose">
     <div flex="~ items-center justify-between">
       <h1 my-32 max-w-inherit>
-        Network <code rounded-6 px-4>{{ network }}</code>
+        Network <code rounded-6 px-4>{{ health?.network }}</code>
       </h1>
       <NuxtLink to="/api/v1/scores/health" target="_blank" text-12 op-80 nq-arrow nq-pill-tertiary>
         API
       </NuxtLink>
     </div>
 
-    <div v-if="status === 'pending'">
+    <div v-if="statusHealth === 'pending'">
       <p>Loading...</p>
     </div>
 
-    <div v-else-if="status === 'error'">
+    <div v-else-if="statusHealth === 'error'">
       <p>Failed to fetch health data</p>
-      <pre>{{ error }}</pre>
+      <pre>{{ errorHealth }}</pre>
     </div>
 
-    <div v-else-if="status === 'success' && health" mt-12>
+    <div v-else-if="statusHealth === 'success' && health" mt-12>
       <p v-if="health.isSynced">
         The network is <span text-green font-bold>synced</span>
       </p>

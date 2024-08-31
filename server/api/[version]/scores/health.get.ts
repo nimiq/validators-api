@@ -1,32 +1,7 @@
 import { count, max } from 'drizzle-orm'
-import type { Range } from 'nimiq-validators-score'
 import { getRange } from 'nimiq-validators-score'
 import { consola } from 'consola'
 import { getRpcClient } from '~~/server/lib/client'
-import { findMissingEpochs } from '~~/server/utils/activities'
-
-export enum HealthFlag {
-  MissingEpochs = 'missing-epochs',
-  NoValidators = 'no-validators',
-  // TODO
-  // ScoreNotComputed = 'score-not-computed',
-}
-
-export interface HealthStatus {
-  // TODO
-  // latestScoreEpoch: number | undefined
-  latestFetchedEpoch: number | undefined
-  totalValidators: number
-  headBlockNumber: number
-  currentEpoch: number
-  missingEpochs: number[]
-  fetchedEpochs: number[]
-  range: Range
-
-  isSynced: boolean
-  flags: HealthFlag[]
-  network: string
-}
 
 function err(error: any) {
   consola.error(error)

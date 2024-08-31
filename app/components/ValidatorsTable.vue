@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ValidatorScore } from '~~/server/utils/types'
-
 defineProps<{ validators: ValidatorScore[] }>()
 </script>
 

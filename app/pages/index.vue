@@ -1,25 +1,24 @@
 <script setup lang="ts">
-const { data, status, error } = useFetch('/api/v1/scores')
-const validators = computed(() => data.value?.validators || [])
+const { validators, range, statusValidators, errorValidators } = useApiStore()
 
 const averageScore = computed(() => {
-  if (!validators.value?.length)
+  if (!validators?.length)
     return 0
-  const scores = validators.value.map(validator => validator.total).filter(t => !!t) as number[]
+  const scores = validators.map(validator => validator.total).filter(t => !!t) as number[]
   const totalScore = scores?.reduce((acc, score) => acc + score, 0) || 0
-  return totalScore / validators.value.length
+  return totalScore / validators.length
 })
 </script>
 
 <template>
-  <div v-if="status === 'pending'">
+  <div v-if="statusValidators === 'pending'">
     Loading...
   </div>
-  <div v-else-if="status === 'error'">
-    There was an error: {{ JSON.stringify(error) }}
+  <div v-else-if="statusValidators === 'error'">
+    There was an error: {{ JSON.stringify(errorValidators) }}
   </div>
 
-  <div v-else-if="status === 'success'" flex="~ col" pt-64 pb-128>
+  <div v-else-if="statusValidators === 'success'" flex="~ col" pt-64 pb-128>
     <div flex="~ wrap gap-96 justify-center" of-x-auto mx--32 px-32 pb-64>
       <Stat text-green>
         <template #value>
@@ -31,7 +30,7 @@ const averageScore = computed(() => {
       </Stat>
       <Stat text-blue>
         <template #value>
-          {{ data?.range.toEpoch }}
+          {{ range?.toEpoch }}
         </template>
         <template #description>
           Epoch

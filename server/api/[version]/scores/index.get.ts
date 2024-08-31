@@ -2,10 +2,6 @@ import { consola } from 'consola'
 import { desc, isNotNull } from 'drizzle-orm'
 import { getRpcClient } from '~~/server/lib/client'
 import { fetchParams } from '~~/server/lib/fetch'
-import { findMissingEpochs } from '~~/server/utils/activities'
-import { extractRangeFromRequest } from '~~/server/utils/range'
-import { calculateScores, checkIfScoreExistsInDb } from '~~/server/utils/scores'
-import type { ValidatorScore } from '~~/server/utils/types'
 
 function err(error: any) {
   consola.error(error)

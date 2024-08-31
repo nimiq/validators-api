@@ -1,11 +1,8 @@
 <script setup lang="ts">
-const { data } = useFetch('/api/v1/scores')
-const validators = computed(() => data.value?.validators || [])
+const { getValidatorByAddress } = useApiStore()
 
 const route = useRoute()
-const validator = computed(() => {
-  return validators.value?.find(validator => validator.address === route.params.address)
-})
+const validator = computed(() => getValidatorByAddress(route.params.address as string))
 </script>
 
 <template>

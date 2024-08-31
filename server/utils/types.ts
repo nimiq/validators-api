@@ -6,4 +6,26 @@ export type Result<T> = Promise<{ data: T, error: undefined } | { data: undefine
 export type ValidatorScore =
   Pick<Validator, 'id' | 'name' | 'address' | 'fee' | 'isPool' | 'description' | 'icon' | 'isMaintainedByNimiq' | 'website'>
   & Pick<Score, 'total' | 'liveness' | 'size' | 'reliability'>
-  & { range: Range, sizeRatioViaSlots: number }
+
+export enum HealthFlag {
+  MissingEpochs = 'missing-epochs',
+  NoValidators = 'no-validators',
+  // TODO
+  // ScoreNotComputed = 'score-not-computed',
+}
+
+export interface HealthStatus {
+  // TODO
+  // latestScoreEpoch: number | undefined
+  latestFetchedEpoch: number | undefined
+  totalValidators: number
+  headBlockNumber: number
+  currentEpoch: number
+  missingEpochs: number[]
+  fetchedEpochs: number[]
+  range: Range
+
+  isSynced: boolean
+  flags: HealthFlag[]
+  network: string
+}
