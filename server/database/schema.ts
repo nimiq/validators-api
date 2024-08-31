@@ -1,8 +1,5 @@
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
-// TODO
-// Is delete on cascade ok?
-
 export const validators = sqliteTable('validators', {
   id: integer('id').primaryKey({ autoIncrement: true, onConflict: 'replace' }),
   name: text('name').default('Unknown validator').notNull(),
@@ -37,6 +34,8 @@ export const activity = sqliteTable('activity', {
   rewarded: integer('rewarded').notNull(),
   missed: integer('missed').notNull(),
   sizeRatio: integer('size_ratio').notNull(),
+  // TODO Remove sizeRatioViaSlots bool and instead store also the sizeRatioPrecise
+  // sizeRatioViaSlots: integer('size_ratio_via_slots').notNull(),
   sizeRatioViaSlots: integer('size_ratio_via_slots', { mode: 'boolean' }).notNull(),
 }, table => ({
   idxElectionBlock: index('idx_election_block').on(table.epochNumber),

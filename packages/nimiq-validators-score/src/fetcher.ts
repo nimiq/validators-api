@@ -2,8 +2,6 @@ import { type ElectionMacroBlock, InherentType, type NimiqRPCClient } from 'nimi
 import { getPolicyConstants } from './utils'
 import type { EpochActivity, EpochsActivities } from './types'
 
-// TODO remove Console log
-
 /**
  * For a given block number, fetches the validator slots assignation.
  * The block number MUST be an election block otherwise it will throw an error.
@@ -129,11 +127,11 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient) {
   if (errorValidators || !activeValidators)
     throw new Error(JSON.stringify({ errorValidators, activeValidators }))
   const totalBalance = Object.values(activeValidators).reduce((acc, { balance }) => acc + balance, 0)
-  const epochActivity: EpochsActivities = {
+  const activity: EpochsActivities = {
     [currentEpoch]: Object.entries(activeValidators).reduce((acc, [, { address, balance }]) => {
       acc[address] = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: balance / totalBalance, sizeRatioViaSlots: false }
       return acc
     }, {} as EpochActivity),
   }
-  return epochActivity
+  return { activity, addresses: activeValidators.map(({ address }) => address) }
 }

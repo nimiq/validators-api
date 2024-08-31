@@ -76,5 +76,5 @@ export default defineEventHandler(async (event) => {
 
   // Return the health status
   setResponseStatus(event, 200)
-  return healthStatus
+  return healthStatus // TODO Return a response object
 })

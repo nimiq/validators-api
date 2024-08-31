@@ -16,6 +16,7 @@ export async function getActiveValidators(client: NimiqRPCClient) {
   return activeValidators
 }
 
+// TODO rename to retrieveActivities or something with activity
 /**
  * Fetches the required data for computing the score.
  * The size ratio parameter can be obtained via two different methods:
@@ -97,13 +98,9 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
 async function fetchActiveEpoch(client: NimiqRPCClient) {
 // We need to fetch the data of the active validators that are active in the current epoch
   // but we don't have the data yet.
-  const { data: activeValidators, error: errorActiveValidators } = await client.blockchain.getActiveValidators()
-  if (errorActiveValidators || !activeValidators)
-    throw new Error(errorActiveValidators.message || 'No active validators')
-  const addresses = activeValidators.map(v => v.address)
-  const activity = await fetchCurrentEpoch(client)
-  const missingValidators = await findMissingValidators(addresses)
+  const epoch = await fetchCurrentEpoch(client)
+  const missingValidators = await findMissingValidators(epoch.addresses)
   await Promise.all(missingValidators.map(missingValidator => storeValidator(missingValidator)))
-  await storeActivities(activity)
-  return { missingValidators, addresses }
+  await storeActivities(epoch.activity)
+  return { missingValidators, ...epoch }
 }

@@ -1,7 +1,5 @@
-import type { HealthStatus } from '~~/server/utils/types'
-
 export const useApiStore = defineStore('api-store', () => {
-  const { data: health, error: errorHealth, status: statusHealth, execute: fetchHealth } = useFetch<HealthStatus>('/api/v1/health', { lazy: true })
+  const { data: health, error: errorHealth, status: statusHealth, execute: fetchHealth } = useFetch('/api/v1/scores/health', { lazy: true })
   const { data, error: errorValidators, status: statusValidators, execute: fetchValidators } = useFetch('/api/v1/scores', { lazy: true })
 
   const range = computed(() => {

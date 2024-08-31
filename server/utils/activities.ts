@@ -65,8 +65,7 @@ async function storeSingleActivity({ address, activity, epochNumber }: StoreActi
   const sizeRatioDb = existingActivity.at(0)?.sizeRatio || 0
   const updateSizeColumns = viaSlotsDb !== false || sizeRatioDb <= 0
   const sizeRatio = updateSizeColumns ? _sizeRatio : sizeRatioDb
-  const sizeRatioViaSlotsBool = updateSizeColumns ? _sizeRatioViaSlots : viaSlotsDb
-  const sizeRatioViaSlots = sizeRatioViaSlotsBool ? 1 : 0
+  const sizeRatioViaSlots = updateSizeColumns ? _sizeRatioViaSlots : viaSlotsDb
 
   await useDrizzle().delete(tables.activity)
     .where(and(

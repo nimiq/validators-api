@@ -25,7 +25,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
   // if (rangeError || !range)
   //   return { error: rangeError, data: undefined }
 
-  // TODO Check if we already have scores for the given range
+  // TODO Check if we already have scores for the given range and return from the database
 
   const sizeLastEpoch = await useDrizzle()
     .select({
@@ -87,6 +87,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     return newScore
   })
 
+  // TODO only store the scores that uses default window size to save space
   await persistScores(scores)
   const { data: validators, error: errorValidators } = await fetchValidatorsScoreByIds(scores.map(s => s.validatorId))
   if (errorValidators || !validators)
