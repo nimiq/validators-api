@@ -4,7 +4,7 @@ import { desc, inArray } from 'drizzle-orm'
 // @ts-expect-error no types in the package
 import Identicons from '@nimiq/identicons'
 import { consola } from 'consola'
-import { Address } from '@nimiq/core'
+// import { Address } from '@nimiq/core'
 import type { NewValidator, Validator } from './drizzle'
 import type { Result, ValidatorScore } from './types'
 import { validatorSchema } from './schemas'
@@ -41,7 +41,8 @@ export async function storeValidator(
   options: StoreValidatorOptions = {},
 ): Promise<number | undefined> {
   try {
-    Address.fromString(address)
+    // TODO Build broken
+    // Address.fromString(address)
   }
   catch (error: unknown) {
     consola.error(`Invalid address: ${address}. Error: ${JSON.stringify(error)}`)
