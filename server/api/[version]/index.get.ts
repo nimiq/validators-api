@@ -1,17 +1,22 @@
+import type { Validator } from 'nimiq-rpc-client-ts'
 import { mainQuerySchema } from '../../utils/schemas'
 import { fetchValidators } from '../../utils/validators'
 import { getRpcClient } from '~~/server/lib/client'
 
 export default defineEventHandler(async (event) => {
-  const { onlyPools, onlyActive } = await getValidatedQuery(event, mainQuerySchema.parse)
+  const { pools, active } = await getValidatedQuery(event, mainQuerySchema.parse)
 
-  if (!onlyActive)
-    return await fetchValidators({ onlyPools })
+  let addresses: string[] = []
+  let activeValidators: Validator[] = []
+  if (active) {
+    const { data: _activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
+    if (errorActiveValidators)
+      return createError(errorActiveValidators)
+    activeValidators = _activeValidators
+    addresses = activeValidators.map(v => v.address)
+  }
 
-  const { data: activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
-  if (errorActiveValidators)
-    return createError(errorActiveValidators)
-  const { data: validators, error: errorValidators } = await fetchValidators({ onlyPools, addresses: activeValidators.map(v => v.address) })
+  const { data: validators, error: errorValidators } = await fetchValidators({ pools, addresses })
   if (errorValidators || !validators)
     return createError(errorValidators)
 
@@ -21,6 +26,8 @@ export default defineEventHandler(async (event) => {
     // and update the fetchValidators function to include the balance
     validator.balance = activeValidators.find(v => v.address === validator.address)?.balance
   }
+  // @ts-expect-error this is a hack to sort the validators by balance
+  validators.sort((a, b) => b.balance - a.balance)
 
   return validators
 })

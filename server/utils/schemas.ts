@@ -23,6 +23,6 @@ export const validatorSchema = z.object({
 })
 
 export const mainQuerySchema = z.object({
-  onlyPools: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
-  onlyActive: z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
+  pools: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  active: z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
 })

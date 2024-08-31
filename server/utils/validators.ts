@@ -119,13 +119,13 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
 }
 
 export interface FetchValidatorsOptions {
-  onlyPools?: boolean
+  pools?: boolean
   addresses?: string[]
 }
 
-export async function fetchValidators({ onlyPools = false, addresses = [] }: FetchValidatorsOptions): Result<Validator[]> {
+export async function fetchValidators({ pools = false, addresses = [] }: FetchValidatorsOptions): Result<Validator[]> {
   const filters = []
-  if (onlyPools)
+  if (pools)
     filters.push(eq(tables.validators.isPool, true))
   if (addresses?.length > 0)
     filters.push(inArray(tables.validators.address, addresses))
