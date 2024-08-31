@@ -119,14 +119,21 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
 }
 
 export interface FetchValidatorsOptions {
-  onlyPools: boolean
+  onlyPools?: boolean
+  addresses?: string[]
 }
 
-export async function fetchValidators({ onlyPools }: FetchValidatorsOptions): Result<Validator[]> {
+export async function fetchValidators({ onlyPools = false, addresses = [] }: FetchValidatorsOptions): Result<Validator[]> {
+  const filters = []
+  if (onlyPools)
+    filters.push(eq(tables.validators.isPool, true))
+  if (addresses?.length > 0)
+    filters.push(inArray(tables.validators.address, addresses))
+
   const validators = await useDrizzle()
     .select()
     .from(tables.validators)
-    .where(onlyPools ? eq(tables.validators.isPool, true) : undefined)
+    .where(and(...filters))
     .groupBy(tables.validators.id)
     .all()
   return { data: validators, error: undefined }
