@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ValidatorTag } from '~~/server/utils/drizzle'
-
-const { data } = useFetch('/api/scores')
+const { data } = useFetch('/api/v1/scores')
 const validators = computed(() => data.value?.validators || [])
 
 const route = useRoute()
@@ -25,7 +23,7 @@ const validator = computed(() => {
       </div>
       <div flex-auto />
       <div
-        v-if="validator.tag === ValidatorTag.Nimiq" nq-pill-sm self-start bg-green-400 text-green-1100 nq-pill-secondary
+        v-if="validator.isMaintainedByNimiq" nq-pill-sm self-start bg-green-400 text-green-1100 nq-pill-secondary
         flex="~ items-center gap-8"
       >
         <div aria-hidden i-nimiq:icons-lg-verified-filled />

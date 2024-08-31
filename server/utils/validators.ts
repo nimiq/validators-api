@@ -98,10 +98,10 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
       name: tables.validators.name,
       address: tables.validators.address,
       fee: tables.validators.fee,
-      payoutType: tables.validators.payoutType,
+      isPool: tables.validators.isPool,
       description: tables.validators.description,
       icon: tables.validators.icon,
-      tag: tables.validators.tag,
+      isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
       website: tables.validators.website,
       liveness: tables.scores.liveness,
       total: tables.scores.total,
@@ -125,7 +125,7 @@ export async function fetchValidators({ onlyPools }: FetchValidatorsOptions): Re
   const validators = await useDrizzle()
     .select()
     .from(tables.validators)
-    .where(onlyPools ? eq(tables.validators.payoutType, PayoutType.Restake) : undefined)
+    .where(onlyPools ? eq(tables.validators.isPool, true) : undefined)
     .groupBy(tables.validators.id)
     .all()
   return { data: validators, error: undefined }
@@ -149,13 +149,15 @@ export async function importValidatorsFromFiles(folderPath: string) {
 
     // Validate the file content
     const jsonData = JSON.parse(fileContent)
-    validatorSchema.safeParse(jsonData)
+    const { success, data: validator, error } = validatorSchema.safeParse(jsonData)
+    if (!success || error)
+      throw new Error(`Invalid file: ${file}. Error: ${JSON.stringify(error)}`)
 
     // Check if the address in the title matches the address in the body
     const fileNameAddress = path.basename(file, '.json')
     if (jsonData.address !== fileNameAddress)
       throw new Error(`Address mismatch in file: ${file}`)
 
-    await storeValidator(jsonData.address, jsonData, { force: true })
+    await storeValidator(validator.address, validator, { force: true })
   }
 }

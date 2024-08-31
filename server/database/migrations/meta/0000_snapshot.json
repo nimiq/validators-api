@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "2a9191cd-1bc2-4f2b-a890-4663de575240",
+  "id": "267d6f3a-7f36-4213-ae28-38bcb2aff5ec",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -77,7 +77,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -165,7 +165,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -206,6 +206,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "fee": {
           "name": "fee",
           "type": "real",
@@ -214,20 +221,21 @@
           "autoincrement": false,
           "default": -1
         },
-        "payout_type": {
-          "name": "payout_type",
-          "type": "text",
+        "is_pool": {
+          "name": "is_pool",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": "'unknown'"
+          "default": false
         },
-        "description": {
-          "name": "description",
-          "type": "text",
+        "is_maintained_by_nimiq": {
+          "name": "is_maintained_by_nimiq",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": false
         },
         "icon": {
           "name": "icon",
@@ -235,14 +243,6 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
-        },
-        "tag": {
-          "name": "tag",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": "'unknown'"
         },
         "website": {
           "name": "website",

@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ValidatorTag } from '~~/server/utils/drizzle'
-import type { Validator } from '~~/server/api/validators/index.get'
+import type { ValidatorScore } from '~~/server/utils/types'
 
-defineProps<{ validators: Validator[] }>()
+defineProps<{ validators: ValidatorScore[] }>()
 </script>
 
 <template>
@@ -35,7 +34,7 @@ defineProps<{ validators: Validator[] }>()
           {{ validator.name }}
         </h2>
         <div
-          v-if="validator.tag === ValidatorTag.Nimiq" i-nimiq:icons-lg-verified-filled text="13 green/70"
+          v-if="validator.isMaintainedByNimiq" i-nimiq:icons-lg-verified-filled text="13 green/70"
           title="Maintained by Nimiq"
         />
       </div>

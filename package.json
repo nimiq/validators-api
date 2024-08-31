@@ -21,6 +21,7 @@
     "@nuxthub/core": "^0.7.8",
     "@unovis/ts": "^1.4.4",
     "@unovis/vue": "^1.4.4",
+    "@vueuse/core": "^11.0.3",
     "defu": "^6.1.4",
     "drizzle-orm": "^0.33.0",
     "nimiq-rpc-client-ts": "^0.4.0",

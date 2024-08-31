@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Validator } from '~~/server/api/validators/index.get'
+import type { ValidatorScore } from '~~/server/utils/types'
 
-defineProps<{ validator: Validator }>()
+defineProps<{ validator: ValidatorScore }>()
 </script>
 
 <template>

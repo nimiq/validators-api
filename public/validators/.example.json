@@ -1,7 +1,9 @@
 {
   "name": "Optional. The name of the validator, by default it is the address",
+  "description": "Optional. A description of the validator",
+  "website": "Optional. The website of the validator",
   "address": "NQXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX",
+  "icon": "Optional. A base64 encoded SVG icon",
   "fee": -1,
-  "payoutType": "restake | direct",
-  "tag": "Optional field. Valid values are: 'community' | 'unkwown'"
+  "isPool": null
 }

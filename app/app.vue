@@ -7,7 +7,7 @@ const validatorDetail = computed(() => !!route.params.address)
 
 const networkName = useRuntimeConfig().public.nimiqNetwork
 
-const { data: health } = useFetch('/api/scores/health')
+const { data: health } = useFetch('/api/v1/scores/health')
 </script>
 
 <template>

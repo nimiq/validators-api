@@ -10,18 +10,6 @@ export function useDrizzle() {
   return drizzle(hubDatabase(), { schema })
 }
 
-export enum ValidatorTag {
-  Nimiq = 'Nimiq',
-  Community = 'Community',
-  Unknown = 'Unknown',
-}
-
-export enum PayoutType {
-  Restake = 'restake',
-  Direct = 'direct',
-  Unknown = 'unknown',
-}
-
 export type Validator = typeof schema.validators.$inferSelect
 export type NewValidator = typeof schema.validators.$inferInsert
 export type activity = typeof schema.activity.$inferSelect

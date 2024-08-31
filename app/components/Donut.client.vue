@@ -3,9 +3,9 @@ import { VisDonut, VisSingleContainer, VisTooltip } from '@unovis/vue'
 import { Donut } from '@unovis/ts'
 import { render } from 'vue'
 import ScorePies from './ScorePies.vue'
-import type { Validator } from '~~/server/api/scores/index.get'
+import type { ValidatorScore } from '~~/server/utils/types'
 
-defineProps<{ data: Validator[] }>()
+defineProps<{ data: ValidatorScore[] }>()
 
 const isMounted = useMounted()
 

@@ -20,11 +20,11 @@ The dashboard is a simple Nuxt application that displays all validators and thei
 
 ## Validators API
 
-https://validators-api.pages.dev/api/scores
+https://validators-api.pages.dev/api/v1/scores
 
 An endpoint that returns the list of validators and their scores.
 
-# https://validators-api.pages.dev/api/scores/health
+# https://validators-api.pages.dev/api/v1/scores/health
 
 An endpoint that returns the state of the database
 

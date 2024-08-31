@@ -7,7 +7,7 @@ CREATE TABLE `activity` (
 	`size_ratio` integer NOT NULL,
 	`size_ratio_via_slots` integer NOT NULL,
 	PRIMARY KEY(`validator_id`, `epoch_number`),
-	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `scores` (
@@ -19,18 +19,18 @@ CREATE TABLE `scores` (
 	`size` real NOT NULL,
 	`reliability` real NOT NULL,
 	PRIMARY KEY(`validator_id`, `from_epoch`, `to_epoch`),
-	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `validators` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text DEFAULT 'Unknown validator' NOT NULL,
 	`address` text NOT NULL,
-	`fee` real DEFAULT -1,
-	`payout_type` text DEFAULT 'unknown',
 	`description` text,
+	`fee` real DEFAULT -1,
+	`is_pool` integer DEFAULT false,
+	`is_maintained_by_nimiq` integer DEFAULT false,
 	`icon` text NOT NULL,
-	`tag` text DEFAULT 'unknown',
 	`website` text
 );
 --> statement-breakpoint
