@@ -41,6 +41,10 @@ export default defineNuxtConfig({
     viewTransition: true,
   },
 
+  routeRules: {
+    '/api/**': { cors: true },
+  },
+
   vite: {
     plugins: [
       wasm(),
