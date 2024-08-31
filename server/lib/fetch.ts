@@ -28,7 +28,7 @@ export async function getActiveValidators(client: NimiqRPCClient) {
  *
  * @param client
  */
-export async function fetchParams(client: NimiqRPCClient) {
+export async function retrieveActivity(client: NimiqRPCClient) {
   if (running) {
     consola.info('Task is already running')
     return

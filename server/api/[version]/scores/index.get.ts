@@ -1,7 +1,7 @@
 import { consola } from 'consola'
 import { desc, isNotNull } from 'drizzle-orm'
 import { getRpcClient } from '~~/server/lib/client'
-import { fetchParams } from '~~/server/lib/fetch'
+import { retrieveActivity } from '~~/server/lib/fetch'
 
 function err(error: any) {
   consola.error(error)
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length > 0) {
     consola.warn(`Missing epochs: ${JSON.stringify(missingEpochs)}. Fetching data...`)
-    await fetchParams(rpcClient)
+    await retrieveActivity(rpcClient)
   }
   // End of workaround
 
