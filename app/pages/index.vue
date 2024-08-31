@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data, status, error } = useFetch('/api/vts')
+const { data, status, error } = useFetch('/api/scores')
 const validators = computed(() => data.value?.validators || [])
 
 const averageScore = computed(() => {
@@ -31,7 +31,7 @@ const averageScore = computed(() => {
       </Stat>
       <Stat text-blue>
         <template #value>
-          {{ data?.epochNumber }}
+          {{ data?.range.toEpoch }}
         </template>
         <template #description>
           Epoch

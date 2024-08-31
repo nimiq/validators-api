@@ -1,14 +1,33 @@
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { ValidatorsActivities } from 'nimiq-vts'
-import { fetchValidatorsActivities, getRange } from 'nimiq-vts'
 import { consola } from 'consola'
-import { getMissingEpochs, getMissingValidators, storeActivities, storeValidator } from '../database/utils'
+import type { EpochsActivities } from 'nimiq-validators-score'
+import { fetchCurrentEpoch, fetchEpochs, getRange } from 'nimiq-validators-score'
+import { findMissingValidators, storeValidator } from '../utils/validators'
+import { findMissingEpochs, storeActivities } from '../utils/activities'
 
-const EPOCHS_IN_PARALLEL = 2
+const EPOCHS_IN_PARALLEL = 3
 
 let running = false
 
-export async function fetchVtsData(client: NimiqRPCClient) {
+export async function getActiveValidators(client: NimiqRPCClient) {
+  const { data: activeValidators, error: errorActiveValidators } = await client.blockchain.getActiveValidators()
+  if (errorActiveValidators || !activeValidators)
+    throw new Error(errorActiveValidators.message || 'No active validators')
+  return activeValidators
+}
+
+/**
+ * Fetches the required data for computing the score.
+ * The size ratio parameter can be obtained via two different methods:
+ * 1. Knowing the slots assignation of the validator relative to the total amount of slots in the epoch
+ *    We can retrieve this data from the election blocks
+ * 2. From the balance of the validators relative to the other validators in the epoch
+ *    We can retrieve this data only when the epoch is active, and this is the prefered method as it is more precise but
+ *    it is not reliable
+ *
+ * @param client
+ */
+export async function fetchParams(client: NimiqRPCClient) {
   if (running) {
     consola.info('Task is already running')
     return
@@ -16,18 +35,9 @@ export async function fetchVtsData(client: NimiqRPCClient) {
 
   try {
     running = true
-    consola.info('Fetching data for VTS...')
-    const epochBlockNumbers = await fetchEpochs(client)
-
-    // We need to fetch the data of the active validators that are active in the current epoch
-    // but we don't have the data yet.
-    const { data: activeValidators, error: errorActiveValidators } = await client.blockchain.getActiveValidators()
-    if (errorActiveValidators || !activeValidators)
-      throw new Error(errorActiveValidators.message || 'No active validators')
-    const addressesCurrentValidators = activeValidators.map(v => v.address)
-    const missingValidators = await getMissingValidators(addressesCurrentValidators)
-    await Promise.all(missingValidators.map(missingValidator => storeValidator(missingValidator)))
-    return { epochBlockNumbers, missingValidators, addressesCurrentValidators }
+    const missingEpochs = await fetchMissingEpochs(client)
+    const { missingValidators, addresses: addressesCurrentValidators } = await fetchActiveEpoch(client)
+    return { missingEpochs, missingValidators, addressesCurrentValidators }
   }
   catch (error) {
     consola.error(error)
@@ -38,38 +48,62 @@ export async function fetchVtsData(client: NimiqRPCClient) {
   }
 }
 
-async function fetchEpochs(client: NimiqRPCClient) {
+/**
+ * Fetches the activities of the epochs that have finished and are missing in the database.
+ */
+async function fetchMissingEpochs(client: NimiqRPCClient) {
   // The range that we will consider
   const range = await getRange(client)
   consola.info(`Fetching data for range: ${JSON.stringify(range)}`)
 
   // Only fetch the missing epochs that are not in the database
-  const epochBlockNumbers = await getMissingEpochs(range)
-  consola.info(`Fetching data for epochs: ${JSON.stringify(epochBlockNumbers)}`)
-  if (epochBlockNumbers.length === 0)
+  const missingEpochs = await findMissingEpochs(range)
+  const fetchedEpochs = []
+  consola.info(`Fetching missing epochs: ${JSON.stringify(missingEpochs)}`)
+  if (missingEpochs.length === 0)
     return []
 
-  const activitiesGenerator = fetchValidatorsActivities(client, epochBlockNumbers)
+  const epochGenerator = fetchEpochs(client, missingEpochs)
 
-  // We fetch epochs 3 by 3 in parallel and store them in the database
   while (true) {
-    const start = globalThis.performance.now()
-    const epochsActivities: ValidatorsActivities = new Map()
+    const epochsActivities: EpochsActivities = {}
+
+    // Fetch the activities in parallel
     for (let i = 0; i < EPOCHS_IN_PARALLEL; i++) {
-      const { value: pair, done } = await activitiesGenerator.next()
-      if (done)
+      const { value: pair, done } = await epochGenerator.next()
+      if (done || !pair)
         break
-      epochsActivities.set(pair.key, pair.activity)
+      if (!epochsActivities[`${pair.epochIndex}`])
+        epochsActivities[`${pair.epochIndex}`] = {}
+      const epoch = epochsActivities[`${pair.epochIndex}`]
+      if (!epoch[pair.address])
+        epoch[pair.address] = pair.activity
     }
 
-    const end = globalThis.performance.now()
-    const seconds = (end - start) / 1000
-    consola.info(`Fetched ${epochsActivities.size} epochs in ${seconds} seconds`)
+    const epochs = Object.keys(epochsActivities).map(Number)
+    fetchedEpochs.push(...epochs)
+    const newestEpoch = Math.max(...fetchedEpochs)
+    const percentage = Math.round((fetchedEpochs.length / missingEpochs.length) * 100).toFixed(2)
+    consola.info(`Fetched ${newestEpoch} epochs. ${percentage}%`)
 
-    if (epochsActivities.size === 0)
+    if (epochs.length === 0)
       break
     await storeActivities(epochsActivities)
   }
 
-  return epochBlockNumbers
+  return missingEpochs
+}
+
+async function fetchActiveEpoch(client: NimiqRPCClient) {
+// We need to fetch the data of the active validators that are active in the current epoch
+  // but we don't have the data yet.
+  const { data: activeValidators, error: errorActiveValidators } = await client.blockchain.getActiveValidators()
+  if (errorActiveValidators || !activeValidators)
+    throw new Error(errorActiveValidators.message || 'No active validators')
+  const addresses = activeValidators.map(v => v.address)
+  const activity = await fetchCurrentEpoch(client)
+  const missingValidators = await findMissingValidators(addresses)
+  await Promise.all(missingValidators.map(missingValidator => storeValidator(missingValidator)))
+  await storeActivities(activity)
+  return { missingValidators, addresses }
 }

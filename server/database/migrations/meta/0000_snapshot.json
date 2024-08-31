@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a8b4c590-767a-454e-9a04-930d60dcf51b",
+  "id": "2a9191cd-1bc2-4f2b-a890-4663de575240",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -14,8 +14,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "epoch_block_number": {
-          "name": "epoch_block_number",
+        "epoch_number": {
+          "name": "epoch_number",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -41,9 +41,31 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "size_ratio": {
+          "name": "size_ratio",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "size_ratio_via_slots": {
+          "name": "size_ratio_via_slots",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_election_block": {
+          "name": "idx_election_block",
+          "columns": [
+            "epoch_number"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "activity_validator_id_validators_id_fk": {
           "name": "activity_validator_id_validators_id_fk",
@@ -60,12 +82,12 @@
         }
       },
       "compositePrimaryKeys": {
-        "activity_validator_id_epoch_block_number_pk": {
+        "activity_validator_id_epoch_number_pk": {
           "columns": [
-            "epoch_block_number",
-            "validator_id"
+            "validator_id",
+            "epoch_number"
           ],
-          "name": "activity_validator_id_epoch_block_number_pk"
+          "name": "activity_validator_id_epoch_number_pk"
         }
       },
       "uniqueConstraints": {}
@@ -73,15 +95,22 @@
     "scores": {
       "name": "scores",
       "columns": {
-        "score_id": {
-          "name": "score_id",
+        "validator_id": {
+          "name": "validator_id",
           "type": "integer",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "validator_id": {
-          "name": "validator_id",
+        "from_epoch": {
+          "name": "from_epoch",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "to_epoch": {
+          "name": "to_epoch",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -117,12 +146,12 @@
         }
       },
       "indexes": {
-        "scores_validator_id_unique": {
-          "name": "scores_validator_id_unique",
+        "idx_validator_id": {
+          "name": "idx_validator_id",
           "columns": [
             "validator_id"
           ],
-          "isUnique": true
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -140,7 +169,16 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "scores_validator_id_from_epoch_to_epoch_pk": {
+          "columns": [
+            "validator_id",
+            "from_epoch",
+            "to_epoch"
+          ],
+          "name": "scores_validator_id_from_epoch_to_epoch_pk"
+        }
+      },
       "uniqueConstraints": {}
     },
     "validators": {
@@ -157,7 +195,7 @@
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "'Unknown validator'"
         },
@@ -233,5 +271,8 @@
     "schemas": {},
     "tables": {},
     "columns": {}
+  },
+  "internal": {
+    "indexes": {}
   }
 }

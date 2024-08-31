@@ -1,12 +1,13 @@
 import { count, max } from 'drizzle-orm'
-import type { Range } from 'nimiq-vts'
-import { getRange } from 'nimiq-vts'
+import type { Range } from 'nimiq-validators-score'
+import { getRange } from 'nimiq-validators-score'
 import { consola } from 'consola'
-import { getMissingEpochs } from '~~/server/database/utils'
 import { getRpcClient } from '~~/server/lib/client'
+import { findMissingEpochs } from '~~/server/utils/activities'
 
 export enum HealthFlag {
   MissingEpochs = 'missing-epochs',
+  NoValidators = 'no-validators',
   // TODO
   // ScoreNotComputed = 'score-not-computed',
 }
@@ -39,7 +40,7 @@ export default defineEventHandler(async (event) => {
 
   // Get the latest epoch number in the activity table
   const latestActivityBlock = await useDrizzle()
-    .select({ epoch: max(tables.activity.epochBlockNumber) })
+    .select({ epoch: max(tables.activity.epochNumber) })
     .from(tables.activity)
     .get()
     .then(row => row?.epoch ?? -1)
@@ -56,9 +57,9 @@ export default defineEventHandler(async (event) => {
     .then(row => row?.count ?? 0)
 
   const fetchedEpochs = await useDrizzle()
-    .selectDistinct({ epoch: tables.activity.epochBlockNumber })
+    .selectDistinct({ epoch: tables.activity.epochNumber })
     .from(tables.activity)
-    .orderBy(tables.activity.epochBlockNumber)
+    .orderBy(tables.activity.epochNumber)
     .all()
     .then(rows => rows.map(row => row.epoch))
 
@@ -70,13 +71,19 @@ export default defineEventHandler(async (event) => {
   if (errorCurrentEpoch)
     return err(errorCurrentEpoch)
 
-  const range = await getRange(rpcClient)
-  const missingEpochs = await getMissingEpochs(range)
-
-  const isSynced = missingEpochs.length === 0
   const flags: HealthFlag[] = []
-  if (!isSynced)
+  const range = await getRange(rpcClient)
+
+  const missingEpochs = await findMissingEpochs(range)
+  if (missingEpochs.length > 0)
     flags.push(HealthFlag.MissingEpochs)
+
+  if (totalValidators === 0)
+    flags.push(HealthFlag.NoValidators)
+
+  const isSynced = flags.length === 0
+
+  // TODO Add component to see how much time left for next epoch and length of current epoch
 
   // Combine all the data into a HealthStatus object
   const healthStatus: HealthStatus = {
@@ -91,7 +98,6 @@ export default defineEventHandler(async (event) => {
     fetchedEpochs,
     network: networkName,
   }
-  consola.info('Health Status:', healthStatus)
 
   // Return the health status
   setResponseStatus(event, 200)

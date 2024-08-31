@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data: health, status, error } = useFetch('/api/vts/health')
+const { data: health, status, error } = useFetch('/api/scores/health')
 const network = useRuntimeConfig().public.nimiqNetwork
 </script>
 
@@ -9,7 +9,7 @@ const network = useRuntimeConfig().public.nimiqNetwork
       <h1 my-32 max-w-inherit>
         Network <code rounded-6 px-4>{{ network }}</code>
       </h1>
-      <NuxtLink to="/api/vts/health" target="_blank" text-12 op-80 nq-arrow nq-pill-tertiary>
+      <NuxtLink to="/api/scores/health" target="_blank" text-12 op-80 nq-arrow nq-pill-tertiary>
         API
       </NuxtLink>
     </div>
@@ -32,15 +32,15 @@ const network = useRuntimeConfig().public.nimiqNetwork
       </p>
 
       <p v-if="health.flags.length > 0">
-        {{ JSON.stringify(health.flags) }}
+        Flags: {{ JSON.stringify(health.flags) }}
       </p>
 
       <div mt-32>
         <p>
-          Range: [{{ health.range.fromEpoch }} - {{ health.range.toEpoch }}] ({{ health.range.epochCount }} epochs)
+          Range: [{{ health.range.fromEpoch }} ({{ (health.range.fromBlockNumber) }}) - {{ health.range.toEpoch }} ({{ health.range.toBlockNumber }})] ({{ health.range.epochCount }} epochs)
         </p>
         <p m-0 text-13 text-neutral-700>
-          The range of blocks used to compute the score of the validators. We don't consider the first epoch as it is an speacial epoch.
+          The range of blocks used to compute the score of the validators. We don't consider the first epoch (<code>epoch index = 0</code>) as it is an speacial epoch.
         </p>
       </div>
 

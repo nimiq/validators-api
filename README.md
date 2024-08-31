@@ -9,6 +9,9 @@
 Details of validators in the Nimiq Blockchain and their scores, calculated using Nimiq's VTS algorithm.
 <p>
 
+> [!NOTE]
+> If you're a validator and would like to add your data to the API, please open a pull request (PR) with your JSON file, following the structure of `./public/validators/.example` in the `./public/validators` directory.
+
 ## Validators Dashboard
 
 https://validators-api.pages.dev/
@@ -17,19 +20,19 @@ The dashboard is a simple Nuxt application that displays all validators and thei
 
 ## Validators API
 
-https://validators-api.pages.dev/api/vts
+https://validators-api.pages.dev/api/scores
 
 An endpoint that returns the list of validators and their scores.
 
-https://validators-api.pages.dev/api/vts/health
+# https://validators-api.pages.dev/api/scores/health
 
-An endpoint that returns the internal status of the VTS. Basically if the server is synced or not with the chain.
+An endpoint that returns the state of the database
 
-## Validator Trust Score
+## Validator Score
 
-[Source code](./packages/nimiq-vts/)
+[Source code](./packages/nimiq-validators-score/)
 
-This is a npm package that calculates the Trust Score of a validator. You can read more about the Trust Score [here](https://validators-api.pages.dev/vts).
+This is a npm package that calculates the Trust Score of a validator. You can read more about the Score [here](https://validators-api.pages.dev/scores).
 
 ## Validator Details
 
@@ -51,7 +54,7 @@ We use Drizzle to access the database.
 
 To calculate the score, we need to run two processes: the fetcher and the score calculator. We do this using a Nitro Task, which is currently an experimental feature of Nitro. Nitro Task is a feature that allows you to trigger an action in the server programmatically or manually from the Nuxt Dev Center(go to tasks page).
 
-Read more about the process of computing the score in the [nimiq-vts](./packages/nimiq-vts/README.md) package.
+Read more about the process of computing the score in the [nimiq-validators-score](./packages/nimiq-validators-score/README.md) package.
 
 #### Database
 

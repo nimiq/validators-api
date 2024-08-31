@@ -18,7 +18,7 @@ export interface ScoreParams {
      * - 0: The validator was inactive in the epoch.
      * The number of items in the array should match the total number of epochs being considered.
      */
-    activeEpochStates?: ValidatorEpochState[]
+    activeEpochStates: ValidatorEpochState[]
   }
 
   size: {
@@ -27,24 +27,19 @@ export interface ScoreParams {
      * Validators with a stake percentage below this threshold receive a maximum score.
      * @default 0.1
      */
-    threshold: number
+    threshold?: number
 
     /**
      * Controls how quickly the size score decreases once the validator's stake percentage surpasses the threshold.
      * A higher value results in a steeper decline in the score.
      * @default 7.5
      */
-    steepness: number
+    steepness?: number
 
     /**
-     * The balance or stake amount of the validator.
+     * The proportion of the validator's stake relative to the rest of the stake in the epoch.
      */
-    balance: number
-
-    /**
-     * The total balance or stake amount across all validators in the network.
-     */
-    totalBalance: number
+    sizeRatio: number
   }
 
   reliability: {
@@ -69,32 +64,39 @@ export interface ScoreParams {
      * - `rewarded`: The number of blocks for which the validator received rewards in the epoch.
      * - `missed`: The number of blocks the validator was expected to produce but did not.
      */
-    inherentsPerEpoch?: Record<number, {
-      rewarded: number
-      missed: number
-    }>
+    inherentsPerEpoch?: Map<number, { rewarded: number, missed: number }>
   }
 }
 
 // The activity of the validator and their block production activity for a given election block
-export interface Activity { likelihood: number, missed: number, rewarded: number }
+export interface Activity { likelihood: number, missed: number, rewarded: number, sizeRatio: number, sizeRatioViaSlots: boolean }
 
 // A map of validator addresses to their activities in a single epoch
-export type ValidatorActivity = Record<string /* address */, Activity>
+export type EpochActivity = Record<string /* address */, Activity>
 
 // A map of validator addresses to their activities in a single epoch
-export type ValidatorsActivities = Map<{ address: string, epochBlockNumber: number }, Activity>
+export type EpochsActivities = Record<number /* election block */, EpochActivity>
 
 export interface ScoreValues { liveness: number, reliability: number, size: number, total: number }
 
 export interface Range {
-  // The first block number that we will consider
+  // The first epoch index that we will consider
   fromEpoch: number
-  // The last block number that we will consider
+
+  // The first block number that we will consider
+  fromBlockNumber: number
+
+  // The last epoch index that we will consider
   toEpoch: number
 
+  // The last block number that we will consider
+  toBlockNumber: number
+
   // Given a block number, it returns the index in the array of epochs
-  blockNumberToIndex: (blockNumber: number) => number
+  blockNumberToEpochIndex: (blockNumber: number) => number
+
+  // Given an epoch index, it returns the block number
+  epochIndexToBlockNumber: (epochIndex: number) => number
 
   blocksPerEpoch: number
 

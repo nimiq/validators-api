@@ -1,0 +1,7 @@
+{
+  "name": "Optional. The name of the validator, by default it is the address",
+  "address": "NQXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX",
+  "fee": -1,
+  "payoutType": "restake | direct",
+  "tag": "Optional field. Valid values are: 'community' | 'unkwown'"
+}

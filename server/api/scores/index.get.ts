@@ -1,45 +1,42 @@
-import { desc, eq, isNotNull, max } from 'drizzle-orm'
 import { consola } from 'consola'
-import { getRange } from '~~/packages/nimiq-vts/src'
-import { getMissingEpochs } from '~~/server/database/utils'
-import { fetchVtsData } from '~~/server/lib/fetch'
+import { desc, isNotNull } from 'drizzle-orm'
 import { getRpcClient } from '~~/server/lib/client'
-
-export interface Validator {
-  id: number
-  name: string
-  address: string
-  fee: number
-  payoutType: string
-  description: string
-  icon: string
-  tag: string
-  website: string
-  total: number
-  liveness: number
-  size: number
-  reliability: number
-}
+import { fetchParams } from '~~/server/lib/fetch'
+import { findMissingEpochs } from '~~/server/utils/activities'
+import { extractRangeFromRequest } from '~~/server/utils/range'
+import { calculateScores, checkIfScoreExistsInDb } from '~~/server/utils/scores'
+import type { ValidatorScore } from '~~/server/utils/types'
 
 function err(error: any) {
   consola.error(error)
   return createError(error)
 }
 
+// TODO What if the selected epoch does not have activity for the validator?
+// Code now will return a range where the last epoch is the last epoch with activity
+// but we should maybe add a flag to the return?
+
 export default defineEventHandler(async (event) => {
   const networkName = useRuntimeConfig().public.nimiqNetwork
 
   const rpcClient = getRpcClient()
 
-  // TODO Remove this block once scheduled tasks are implemented in NuxtHub
+  const { data: range, error: errorRange } = await extractRangeFromRequest(rpcClient, event)
+  if (errorRange || !range)
+    return err(errorRange || 'No range')
+
+  // TODO Remove this block once scheduled tasks are implemented in NuxtHub and the data is being
+  // fetched periodically
   // This is just a workaround to sync the data before the request in case of missing epochs
-  const range = await getRange(rpcClient)
-  const missingEpochs = await getMissingEpochs(range)
+  const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length > 0) {
     consola.warn(`Missing epochs: ${JSON.stringify(missingEpochs)}. Fetching data...`)
-    await fetchVtsData(rpcClient)
+    await fetchParams(rpcClient)
   }
   // End of workaround
+
+  if (!(await checkIfScoreExistsInDb(range)))
+    await calculateScores(range)
 
   const validators = await useDrizzle()
     .select({
@@ -52,8 +49,8 @@ export default defineEventHandler(async (event) => {
       icon: tables.validators.icon,
       tag: tables.validators.tag,
       website: tables.validators.website,
-      total: tables.scores.total,
       liveness: tables.scores.liveness,
+      total: tables.scores.total,
       size: tables.scores.size,
       reliability: tables.scores.reliability,
     })
@@ -62,17 +59,8 @@ export default defineEventHandler(async (event) => {
     .where(isNotNull(tables.scores.validatorId))
     .groupBy(tables.validators.id)
     .orderBy(desc(tables.scores.total))
-    .all() as Validator[]
-
-  const epochBlockNumber = await useDrizzle()
-    .select({ epoch: max(tables.activity.epochBlockNumber) })
-    .from(tables.activity)
-    .get().then(row => row?.epoch ?? -1)
-
-  const { data: epochNumber, error: epochNumberError } = await rpcClient.policy.getEpochAt(epochBlockNumber)
-  if (epochNumberError)
-    return err(epochNumberError)
+    .all() as ValidatorScore[]
 
   setResponseStatus(event, 200)
-  return { validators, epochNumber, network: networkName } as const
+  return { validators, range, network: networkName } as const
 })
