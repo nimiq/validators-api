@@ -8,7 +8,7 @@ function err(error: any) {
   return createError(error)
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   const networkName = useRuntimeConfig().public.nimiqNetwork
 
   const rpcClient = getRpcClient()
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: latestFetchedEpoch, error: errorLatestFetchedEpoch } = await rpcClient.policy.getEpochAt(latestActivityBlock)
   if (errorLatestFetchedEpoch)
-    return err(errorLatestFetchedEpoch)
+    throw err(errorLatestFetchedEpoch)
 
   // Get the total number of validators
   const totalValidators = await useDrizzle()
@@ -40,11 +40,11 @@ export default defineEventHandler(async (event) => {
 
   const { data: headBlockNumber, error: errorHeadBlockNumber } = await rpcClient.blockchain.getBlockNumber()
   if (errorHeadBlockNumber)
-    return err(errorHeadBlockNumber)
+    throw err(errorHeadBlockNumber)
 
   const { data: currentEpoch, error: errorCurrentEpoch } = await rpcClient.blockchain.getEpochNumber()
   if (errorCurrentEpoch)
-    return err(errorCurrentEpoch)
+    throw err(errorCurrentEpoch)
 
   const flags: HealthFlag[] = []
   const range = await getRange(rpcClient)
@@ -60,8 +60,7 @@ export default defineEventHandler(async (event) => {
 
   // TODO Add component to see how much time left for next epoch and length of current epoch
 
-  // Combine all the data into a HealthStatus object
-  const healthStatus: HealthStatus = {
+  return {
     latestFetchedEpoch,
     totalValidators,
     headBlockNumber,
@@ -72,9 +71,5 @@ export default defineEventHandler(async (event) => {
     flags,
     fetchedEpochs,
     network: networkName,
-  }
-
-  // Return the health status
-  setResponseStatus(event, 200)
-  return healthStatus // TODO Return a response object
+  } satisfies HealthStatus
 })

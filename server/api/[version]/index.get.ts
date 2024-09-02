@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: validators, error: errorValidators } = await fetchValidators({ pools, addresses })
   if (errorValidators || !validators)
-    return createError(errorValidators)
+    throw createError(errorValidators)
 
   for (const validator of validators) {
     // @ts-expect-error this is a hack to add the balance to the validator object
