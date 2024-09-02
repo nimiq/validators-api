@@ -8,13 +8,13 @@ defineProps<{ data: ValidatorScore[] }>()
 
 const isMounted = useMounted()
 
-// TOOD We should so balance disitrubtion not size score!!! -->
-const value = (d: ValidatorScore) => d.size
+const value = (d: ValidatorScore) => d.sizeRatio
 const label = (d: ValidatorScore) => d.name || d.address
 
 const colors = ['red', 'orange', 'blue', 'green', 'gold']
 const color = (d: number, i: number) => `rgb(var(--nq-${colors[i % colors.length]}))`
 
+// @unocss-include
 function template(v: ValidatorScore) {
   const div = document.createElement('div')
   render(h(ScorePies, { validator: v, class: 'text-14' }), div)

@@ -48,10 +48,12 @@ export default defineEventHandler(async (event) => {
       liveness: tables.scores.liveness,
       total: tables.scores.total,
       size: tables.scores.size,
+      sizeRatio: tables.activity.sizeRatio,
       reliability: tables.scores.reliability,
     })
     .from(tables.validators)
     .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
+    .leftJoin(tables.activity, and(eq(tables.validators.id, tables.activity.validatorId), eq(tables.activity.epochNumber, range.toEpoch)))
     .where(isNotNull(tables.scores.validatorId))
     .groupBy(tables.validators.id)
     .orderBy(desc(tables.scores.total))

@@ -12,7 +12,7 @@ export function useDrizzle() {
 
 export type Validator = typeof schema.validators.$inferSelect
 export type NewValidator = typeof schema.validators.$inferInsert
-export type activity = typeof schema.activity.$inferSelect
+export type Activity = typeof schema.activity.$inferSelect
 export type NewActivity = typeof schema.activity.$inferInsert
 export type Score = typeof schema.scores.$inferSelect
 export type NewScore = typeof schema.scores.$inferInsert
