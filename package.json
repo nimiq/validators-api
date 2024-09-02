@@ -53,6 +53,7 @@
     "nimiq-css": "^0.1.11",
     "simple-git-hooks": "catalog:",
     "typescript": "^5.5.4",
+    "unocss": "^0.62.3",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0",
     "wrangler": "^3.73.0"
