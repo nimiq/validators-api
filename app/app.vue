@@ -40,8 +40,8 @@ const networkName = useRuntimeConfig().public.nimiqNetwork
       <NuxtLink to="https://github.com/onmax/nimiq-validators" i-nimiq:logos-github-mono target="_blank" />
       <button i-nimiq:moon @click="() => toggleDark()" />
     </header>
+    <main flex-1>
+      <NuxtPage />
+    </main>
   </div>
-  <main flex-1>
-    <NuxtPage />
-  </main>
 </template>
