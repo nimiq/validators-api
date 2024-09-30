@@ -12,6 +12,19 @@ Details of validators in the Nimiq Blockchain and their scores, calculated using
 > [!NOTE]
 > If you're a validator and would like to add your data to the API, please open a pull request (PR) with your JSON file, following the structure of `./public/validators/.example` in the `./public/validators` directory.
 
+## Add your validator information
+
+If you run your own validator and want it to be recognised, you can add a name, logo and other publicly available fields. For example, the Nimiq Wallet will use this information to display your validator to users.
+
+In order to do so, follow these steps:
+
+1. [Fork this repository](https://github.com/nimiq/validators-api/fork).
+2. Create a new file in the [validators](./public/validators/) folder. You can use `.example.json` as a reference.
+3. Submit a PR to this repo. Someone in the team will review it.
+
+> [!INFO]
+> By submitting this information, various Nimiq applications, such as the Nimiq Wallet, will show users the fields you have submitted and the Validator Score associated with your validator in the future. You can read more about the Validator Score in the [Developer's Center PR](https://github.com/nimiq/developer-center/pull/21).
+
 ## Validators Dashboard
 
 https://validators-api.pages.dev/
