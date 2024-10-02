@@ -98,5 +98,5 @@ Once it is cloned and installed the dependencies, you must run:
 
 ```bash
 pnpm db:generate
-pnpm dev # or pnpm dev:remote to use the remote database
+pnpm dev # or pnpm dev:local to use the local database
 ```
