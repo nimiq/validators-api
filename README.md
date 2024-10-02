@@ -14,7 +14,7 @@ Details of validators in the Nimiq Blockchain and their scores, calculated using
 
 ## Add your validator information
 
-If you run your own validator and want it to be recognised, you can add a name, logo and other publicly available fields. For example, the Nimiq Wallet will use this information to display your validator to users.
+If you run your own validator and want it to be recognized, you can add a name, logo and other publicly available fields. For example, the Nimiq Wallet will use this information to display your validator to users.
 
 In order to do so, follow these steps:
 
@@ -35,7 +35,7 @@ When you add your validator information, you'll need to include certain keys in 
 - `name` (optional): The name of the validator. If not specified, the address of the validator is used by default.
 - `description` (optional): A short description of your validator.
 - `website` (optional): The URL of your validator's website.
-- `icon` (optional): An SVG icon representing your pool, encoded in base64 format. It is preferred that the icon has the Nimiq hexagon shape. For reference, please check the bottom part of the 'Colours' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
+- `icon` (optional): An SVG icon representing your pool, encoded in base64 format. It is preferred that the icon has the Nimiq hexagon shape. For reference, please check the bottom part of the 'Colors' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
 
 You can also checkout [JSON example](`./public/validators/.example.json`).
 
@@ -78,7 +78,7 @@ pnpm dev
 ```
 
 > [!Note]
-> We use [Nuxt Hub](https://hub.nuxt.dev) which uses Cloudflare Pages + Cloudflare D1 databases. The database is a sqlite instance and currently the database is remote for both development and production. You can change this behaviour in nuxt.config.ts.
+> We use [Nuxt Hub](https://hub.nuxt.dev) which uses Cloudflare Pages + Cloudflare D1 databases. The database is a sqlite instance and currently the database is remote for both development and production. You can change this behavior in nuxt.config.ts.
 
 We use Drizzle to access the database.
 
