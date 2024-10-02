@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PayoutType } from './types'
 import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from '~~/packages/nimiq-validators-score/src'
 
 export const rangeQuerySchema = z.object({
@@ -15,7 +16,7 @@ export const validatorSchema = z.object({
   name: z.string().optional(),
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
   fee: z.number().min(0).max(1),
-  isPool: z.boolean().optional(),
+  payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
   isMaintainedByNimiq: z.boolean().optional(),
   description: z.string().optional(),
   website: z.string().url().optional(),

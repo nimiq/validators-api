@@ -28,7 +28,7 @@ CREATE TABLE `validators` (
 	`address` text NOT NULL,
 	`description` text,
 	`fee` real DEFAULT -1,
-	`is_pool` integer DEFAULT false,
+	`payout_type` text DEFAULT 'none',
 	`is_maintained_by_nimiq` integer DEFAULT false,
 	`icon` text NOT NULL,
 	`website` text

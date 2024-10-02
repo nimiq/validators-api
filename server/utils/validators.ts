@@ -6,7 +6,7 @@ import Identicons from '@nimiq/identicons'
 import { consola } from 'consola'
 // import { Address } from '@nimiq/core'
 import type { NewValidator, Validator } from './drizzle'
-import type { Result, ValidatorScore } from './types'
+import type { PayoutType, Result, ValidatorScore } from './types'
 import { validatorSchema } from './schemas'
 
 /**
@@ -99,7 +99,7 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
       name: tables.validators.name,
       address: tables.validators.address,
       fee: tables.validators.fee,
-      isPool: tables.validators.isPool,
+      payoutType: tables.validators.payoutType,
       description: tables.validators.description,
       icon: tables.validators.icon,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
@@ -119,14 +119,14 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
 }
 
 export interface FetchValidatorsOptions {
-  pools?: boolean
+  payoutType?: PayoutType
   addresses?: string[]
 }
 
-export async function fetchValidators({ pools = false, addresses = [] }: FetchValidatorsOptions): Result<Validator[]> {
+export async function fetchValidators({ payoutType, addresses = [] }: FetchValidatorsOptions): Result<Validator[]> {
   const filters = []
-  if (pools)
-    filters.push(eq(tables.validators.isPool, true))
+  if (payoutType)
+    filters.push(eq(tables.validators.payoutType, payoutType))
   if (addresses?.length > 0)
     filters.push(inArray(tables.validators.address, addresses))
 

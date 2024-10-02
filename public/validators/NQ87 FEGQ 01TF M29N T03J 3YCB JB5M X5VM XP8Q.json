@@ -2,6 +2,6 @@
   "name": "Cool Pool",
   "address": "NQ87 FEGQ 01TF M29N T03J 3YCB JB5M X5VM XP8Q",
   "fee": 0.09,
-  "isPool": false,
+  "payoutType": "restake",
   "isMaintainedByNimiq": true
 }

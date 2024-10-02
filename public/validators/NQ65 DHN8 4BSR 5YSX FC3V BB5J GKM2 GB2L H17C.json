@@ -3,5 +3,5 @@
   "description": "The Ace in staking",
   "address": "NQ65 DHN8 4BSR 5YSX FC3V BB5J GKM2 GB2L H17C",
   "fee": 0.1,
-  "isPool": false
+  "payoutType": "direct"
 }

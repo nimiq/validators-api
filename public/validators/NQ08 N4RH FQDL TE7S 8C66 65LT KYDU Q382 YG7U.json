@@ -2,6 +2,6 @@
   "name": "Not-A-Pool",
   "address": "NQ08 N4RH FQDL TE7S 8C66 65LT KYDU Q382 YG7U",
   "fee": 0.11,
-  "isPool": true,
+  "payoutType": "restake",
   "isMaintainedByNimiq": true
 }

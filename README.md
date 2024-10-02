@@ -19,11 +19,33 @@ If you run your own validator and want it to be recognised, you can add a name, 
 In order to do so, follow these steps:
 
 1. [Fork this repository](https://github.com/nimiq/validators-api/fork).
-2. Create a new file in the [validators](./public/validators/) folder. You can use `.example.json` as a reference.
+2. Create a new file in the [validators folder](./public/validators/) with the structure explained below:
+
+<details>
+  <summary>Validator JSON fields</summary>
+
+When you add your validator information, you'll need to include certain keys in your JSON file. Below is an explanation of each key and its possible values:
+
+- `address` (required): The address of the validator in the format `NQXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX`.
+- `fee` (required): A number between 0 and 1 representing the fee percentage charged by your validator. For example, 0.05 represents a 5% fee.
+- `payoutType` (required): The method used to pay out validator rewards. Possible values are:
+  - `restake`: Rewards are automatically restaked.
+  - `direct`: Rewards are paid directly into the staker's wallet and are not automatically repaid.
+  - `none`: No rewards will be paid out.
+- `name` (optional): The name of the validator. If not specified, the address of the validator is used by default.
+- `description` (optional): A short description of your validator.
+- `website` (optional): The URL of your validator's website.
+- `icon` (optional): An SVG icon representing your pool, encoded in base64 format. It is preferred that the icon has the Nimiq hexagon shape. For reference, please check the bottom part of the 'Colours' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
+
+You can also checkout [JSON example](`./public/validators/.example.json`).
+
+</details>
+
 3. Submit a PR to this repo. Someone in the team will review it.
+4. Once the PR is submitted, check that the [API endpoint](https://validators-api-nimiq.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
 
 > [!INFO]
-> By submitting this information, various Nimiq applications, such as the Nimiq Wallet, will show users the fields you have submitted and the Validator Score associated with your validator in the future. You can read more about the Validator Score in the [Developer's Center PR](https://github.com/nimiq/developer-center/pull/21).
+> By submitting this information, various Nimiq applications, such as the Nimiq Wallet, will show users the fields you have submitted and the Validator Score associated with your validator in the future. You can read more about the Validator Score in the [Developer's Center (Preview)](https://deploy-preview-21--developer-center.netlify.app/learn/validator-trust-score).
 
 ## Validators Dashboard
 

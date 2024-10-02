@@ -2,6 +2,6 @@
   "name": "Pool Billard",
   "address": "NQ57 2F6C X3GB Y9B7 04U5 2BVA 4BVC M2T0 ELRL",
   "fee": 0.105,
-  "isPool": true,
+  "payoutType": "restake",
   "isMaintainedByNimiq": true
 }

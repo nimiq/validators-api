@@ -1,4 +1,6 @@
-import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { check, index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
+import { PayoutType } from '../utils/types'
 
 export const validators = sqliteTable('validators', {
   id: integer('id').primaryKey({ autoIncrement: true, onConflict: 'replace' }),
@@ -6,12 +8,16 @@ export const validators = sqliteTable('validators', {
   address: text('address').notNull().unique(),
   description: text('description'),
   fee: real('fee').default(-1),
-  isPool: integer('is_pool', { mode: 'boolean' }).default(false),
+  payoutType: text('payout_type').default(PayoutType.None),
   isMaintainedByNimiq: integer('is_maintained_by_nimiq', { mode: 'boolean' }).default(false),
   icon: text('icon').notNull(),
   website: text('website'),
 }, table => ({
   uniqueAddress: uniqueIndex('validators_address_unique').on(table.address),
+  enumCheck: check(
+    'enum_check',
+    sql`${table.payoutType} IN (${Object.values(PayoutType).map(value => `'${value}'`).join(', ')})`,
+  ),
 }))
 
 export const scores = sqliteTable('scores', {
