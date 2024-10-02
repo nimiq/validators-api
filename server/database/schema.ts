@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm'
 import { check, index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
 import { PayoutType } from '../utils/types'
 
 export const validators = sqliteTable('validators', {
@@ -9,11 +9,16 @@ export const validators = sqliteTable('validators', {
   description: text('description'),
   fee: real('fee').default(-1),
   payoutType: text('payout_type').default(PayoutType.None),
+  payoutType: text('payout_type').default(PayoutType.None),
   isMaintainedByNimiq: integer('is_maintained_by_nimiq', { mode: 'boolean' }).default(false),
   icon: text('icon').notNull(),
   website: text('website'),
 }, table => ({
   uniqueAddress: uniqueIndex('validators_address_unique').on(table.address),
+  enumCheck: check(
+    'enum_check',
+    sql`${table.payoutType} IN (${Object.values(PayoutType).map(value => `'${value}'`).join(', ')})`,
+  ),
   enumCheck: check(
     'enum_check',
     sql`${table.payoutType} IN (${Object.values(PayoutType).map(value => `'${value}'`).join(', ')})`,

@@ -1,3 +1,5 @@
+import { z } from 'zod'
+import { PayoutType } from './types'
 import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from '~~/packages/nimiq-validators-score/src'
 import { z } from 'zod'
 import { PayoutType } from './types'
@@ -16,6 +18,7 @@ export const validatorSchema = z.object({
   name: z.string().optional(),
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
   fee: z.number().min(0).max(1),
+  payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
   payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
   isMaintainedByNimiq: z.boolean().optional(),
   description: z.string().optional(),
