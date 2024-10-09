@@ -5,6 +5,7 @@ import { fetchCurrentEpoch, fetchEpochs, getRange } from 'nimiq-validators-score
 import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
 import { findMissingValidators, storeValidator } from '../utils/validators'
 import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
+import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
 
 const EPOCHS_IN_PARALLEL = 3
 
@@ -76,10 +77,14 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
       if (done || !pair)
         break
       if (pair.activity === null) {
-        consola.warn(`Epoch ${pair.epochIndex} is missing`, pair)
         await storeSingleActivity({ address: '', activity: null, epochNumber: pair.epochIndex })
         continue
       }
+      if (!epochsActivities[`${pair.epochIndex}`])
+        epochsActivities[`${pair.epochIndex}`] = {}
+      const epoch = epochsActivities[`${pair.epochIndex}`]
+      if (!epoch[pair.address])
+        epoch[pair.address] = pair.activity
       if (!epochsActivities[`${pair.epochIndex}`])
         epochsActivities[`${pair.epochIndex}`] = {}
       const epoch = epochsActivities[`${pair.epochIndex}`]
@@ -93,6 +98,7 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
     const percentage = Math.round((fetchedEpochs.length / missingEpochs.length) * 100).toFixed(2)
     consola.info(`Fetched ${newestEpoch} epochs. ${percentage}%`)
 
+    if ((await findMissingEpochs(range)).length === 0)
     if ((await findMissingEpochs(range)).length === 0)
       break
 
