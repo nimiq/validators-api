@@ -28,7 +28,7 @@ importers:
         specifier: next
         version: 2.0.0-next.rc.0
       '@nuxthub/core':
-        specifier: ^0.7.20
+        specifier: ^0.7.26
         version: 0.7.36(ioredis@5.4.1)(magicast@0.3.5)(rollup@4.24.0)(vite@5.4.10(@types/node@22.7.9)(terser@5.36.0))(webpack-sources@3.2.3)
       '@unovis/ts':
         specifier: ^1.4.4
@@ -60,10 +60,10 @@ importers:
         specifier: ^2.2.4
         version: 2.2.4(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3))
       radix-vue:
-        specifier: ^1.9.6
+        specifier: ^1.9.7
         version: 1.9.7(vue@3.5.12(typescript@5.6.3))
       vue:
-        specifier: ^3.5.10
+        specifier: ^3.5.11
         version: 3.5.12(typescript@5.6.3)
       vue-router:
         specifier: ^4.4.5
@@ -82,7 +82,7 @@ importers:
         specifier: ^0.5.7
         version: 0.5.7(bufferutil@4.0.8)(eslint@9.13.0(jiti@2.3.3))(magicast@0.3.5)(rollup@4.24.0)(typescript@5.6.3)(utf-8-validate@5.0.10)(vite@5.4.10(@types/node@22.7.9)(terser@5.36.0))(webpack-sources@3.2.3)
       '@nuxt/image':
-        specifier: ^1.8.0
+        specifier: ^1.8.1
         version: 1.8.1(ioredis@5.4.1)(magicast@0.3.5)(rollup@4.24.0)(webpack-sources@3.2.3)
       '@nuxtjs/color-mode':
         specifier: ^3.5.1
@@ -91,23 +91,23 @@ importers:
         specifier: ^0.5.5
         version: 0.5.5(magicast@0.3.5)(rollup@4.24.0)(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3))(webpack-sources@3.2.3)
       '@unocss/eslint-config':
-        specifier: ^0.63.1
+        specifier: ^0.63.4
         version: 0.63.6(eslint@9.13.0(jiti@2.3.3))(typescript@5.6.3)
       '@unocss/nuxt':
-        specifier: ^0.63.1
+        specifier: ^0.63.4
         version: 0.63.6(magicast@0.3.5)(postcss@8.4.47)(rollup@4.24.0)(typescript@5.6.3)(vite@5.4.10(@types/node@22.7.9)(terser@5.36.0))(webpack-sources@3.2.3)(webpack@5.94.0(esbuild@0.17.19))
       '@unocss/preset-rem-to-px':
-        specifier: ^0.63.1
+        specifier: ^0.63.4
         version: 0.63.6
       '@unocss/reset':
-        specifier: ^0.63.1
+        specifier: ^0.63.4
         version: 0.63.6
       '@vueuse/nuxt':
         specifier: ^11.1.0
         version: 11.1.0(magicast@0.3.5)(nuxt@3.13.2(@parcel/watcher@2.4.1)(@types/node@22.7.9)(bufferutil@4.0.8)(drizzle-orm@0.35.3(@cloudflare/workers-types@4.20241022.0)(@libsql/client-wasm@0.14.0))(eslint@9.13.0(jiti@2.3.3))(ioredis@5.4.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.24.0)(terser@5.36.0)(typescript@5.6.3)(utf-8-validate@5.0.10)(vite@5.4.10(@types/node@22.7.9)(terser@5.36.0))(webpack-sources@3.2.3))(rollup@4.24.0)(vue@3.5.12(typescript@5.6.3))(webpack-sources@3.2.3)
       drizzle-kit:
-        specifier: ^0.24.2
-        version: 0.24.2
+        specifier: ^0.25.0
+        version: 0.25.0
       drizzle-zod:
         specifier: ^0.5.1
         version: 0.5.1(drizzle-orm@0.35.3(@cloudflare/workers-types@4.20241022.0)(@libsql/client-wasm@0.14.0))(zod@3.23.8)
@@ -123,16 +123,16 @@ importers:
         specifier: 'catalog:'
         version: 15.2.9
       nimiq-css:
-        specifier: ^0.2.2
+        specifier: ^0.2.25
         version: 0.2.25(@unocss/webpack@0.63.6(rollup@4.24.0)(webpack@5.94.0(esbuild@0.17.19)))(postcss@8.4.47)(rollup@4.24.0)(typescript@5.6.3)(vite@5.4.10(@types/node@22.7.9)(terser@5.36.0))
       simple-git-hooks:
         specifier: 'catalog:'
         version: 2.11.1
       typescript:
-        specifier: ^5.6.2
+        specifier: ^5.6.3
         version: 5.6.3
       unocss:
-        specifier: ^0.63.1
+        specifier: ^0.63.4
         version: 0.63.6(@unocss/webpack@0.63.6(rollup@4.24.0)(webpack@5.94.0(esbuild@0.17.19)))(postcss@8.4.47)(rollup@4.24.0)(typescript@5.6.3)(vite@5.4.10(@types/node@22.7.9)(terser@5.36.0))
       vite-plugin-top-level-await:
         specifier: ^1.4.4
@@ -141,7 +141,7 @@ importers:
         specifier: ^3.3.0
         version: 3.3.0(vite@5.4.10(@types/node@22.7.9)(terser@5.36.0))
       wrangler:
-        specifier: ^3.79.0
+        specifier: ^3.80.2
         version: 3.83.0(@cloudflare/workers-types@4.20241022.0)(bufferutil@4.0.8)(utf-8-validate@5.0.10)
 
   packages/nimiq-validators-score:
@@ -4349,8 +4349,8 @@ packages:
     resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
     engines: {node: '>=12'}
 
-  drizzle-kit@0.24.2:
-    resolution: {integrity: sha512-nXOaTSFiuIaTMhS8WJC2d4EBeIcN9OSt2A2cyFbQYBAZbi7lRsVGJNqDpEwPqYfJz38yxbY/UtbvBBahBfnExQ==}
+  drizzle-kit@0.25.0:
+    resolution: {integrity: sha512-Rcf0nYCAKizwjWQCY+d3zytyuTbDb81NcaPor+8NebESlUz1+9W3uGl0+r9FhU4Qal5Zv9j/7neXCSCe7DHzjA==}
     hasBin: true
 
   drizzle-orm@0.35.3:
@@ -12583,7 +12583,7 @@ snapshots:
 
   dotenv@16.4.5: {}
 
-  drizzle-kit@0.24.2:
+  drizzle-kit@0.25.0:
     dependencies:
       '@drizzle-team/brocli': 0.10.1
       '@esbuild-kit/esm-loader': 2.6.5
