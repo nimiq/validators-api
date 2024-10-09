@@ -1,5 +1,5 @@
-import type { EpochActivity, EpochsActivities } from './types'
 import { type ElectionMacroBlock, InherentType, type NimiqRPCClient } from 'nimiq-rpc-client-ts'
+import type { EpochActivity, EpochsActivities } from './types'
 import { getPolicyConstants } from './utils'
 
 /**
@@ -9,10 +9,10 @@ import { getPolicyConstants } from './utils'
 export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, maxRetries = 5): Promise<EpochActivity> {
   const { batchesPerEpoch, genesisBlockNumber, slots: slotsCount, blocksPerEpoch } = await getPolicyConstants(client)
 
-  // Epochs start at 1, but election block is the first block of the epoch
-  const electionBlock = genesisBlockNumber + ((epochIndex - 1) * blocksPerEpoch)
-  const { data: block, error } = await client.blockchain.getBlockByNumber(electionBlock, { includeBody: true })
+  const electionBlock = genesisBlockNumber + (epochIndex * blocksPerEpoch)
+  const { data: block, error } = await client.blockchain.getBlockByNumber(electionBlock, { includeTransactions: true })
   if (error || !block) {
+    // throw new Error(JSON.stringify({ epochIndex, error, block }))
     console.error(JSON.stringify({ epochIndex, error, block }))
     return {}
   }
@@ -112,6 +112,9 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
 export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number[]) {
   for (const epochIndex of epochsIndexes) {
     const validatorActivities = await fetchActivity(client, epochIndex)
+    // If validatorActivities is empty, it means that the epoch cannot be fetched
+    if (Object.keys(validatorActivities).length === 0)
+      yield { epochIndex, address: '', activity: null }
     // If validatorActivities is empty, it means that the epoch cannot be fetched
     if (Object.keys(validatorActivities).length === 0)
       yield { epochIndex, address: '', activity: null }
