@@ -91,7 +91,7 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
     const percentage = Math.round((fetchedEpochs.length / missingEpochs.length) * 100).toFixed(2)
     consola.info(`Fetched ${newestEpoch} epochs. ${percentage}%`)
 
-    if ((await findMissingEpochs(range)).length === 0)
+    if (epochs.length === 0 && (await findMissingEpochs(range)).length === 0)
       break
     await storeActivities(epochsActivities)
   }
