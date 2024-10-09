@@ -10,7 +10,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number) 
   const { batchesPerEpoch, genesisBlockNumber, blocksPerBatch, slots: slotsCount, blocksPerEpoch } = await getPolicyConstants(client)
 
   const electionBlock = genesisBlockNumber + (epochIndex * blocksPerEpoch)
-  const { data: block, error } = await client.blockchain.getBlockByNumber(electionBlock, { includeTransactions: true })
+  const { data: block, error } = await client.blockchain.getBlockByNumber(electionBlock, { includeBody: true })
   if (error || !block)
     throw new Error(JSON.stringify({ epochIndex, error, block }))
   if (!('isElectionBlock' in block))
