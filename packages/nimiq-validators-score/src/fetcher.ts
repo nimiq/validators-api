@@ -11,8 +11,11 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number) 
 
   const electionBlock = genesisBlockNumber + (epochIndex * blocksPerEpoch)
   const { data: block, error } = await client.blockchain.getBlockByNumber(electionBlock, { includeTransactions: true })
-  if (error || !block)
-    throw new Error(JSON.stringify({ epochIndex, error, block }))
+  if (error || !block) {
+    // throw new Error(JSON.stringify({ epochIndex, error, block }))
+    console.error(JSON.stringify({ epochIndex, error, block }))
+    return {}
+  }
   if (!('isElectionBlock' in block))
     throw new Error(JSON.stringify({ message: 'Block is not election block', epochIndex, block }))
 
@@ -113,6 +116,9 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number) 
 export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number[]) {
   for (const epochIndex of epochsIndexes) {
     const validatorActivities = await fetchActivity(client, epochIndex)
+    // If validatorActivities is empty, it means that the epoch cannot be fetched
+    if (Object.keys(validatorActivities).length === 0)
+      yield { epochIndex, address: '', activity: null }
     for (const [address, activity] of Object.entries(validatorActivities)) {
       yield { address, epochIndex, activity }
     }
