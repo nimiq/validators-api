@@ -113,6 +113,9 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number) 
 export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number[]) {
   for (const epochIndex of epochsIndexes) {
     const validatorActivities = await fetchActivity(client, epochIndex)
+    // If validatorActivities is empty, it means that the epoch cannot be fetched
+    if (Object.keys(validatorActivities).length === 0)
+      yield { epochIndex, address: '', activity: null }
     for (const [address, activity] of Object.entries(validatorActivities)) {
       yield { address, epochIndex, activity }
     }

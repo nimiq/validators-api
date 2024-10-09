@@ -38,11 +38,13 @@ export async function storeActivities(epochs: EpochsActivities) {
 
 interface StoreActivityParams {
   address: string
-  activity: Activity
+  activity: Activity | null
   epochNumber: number
 }
 
-async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
+const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: 0, sizeRatioViaSlots: false }
+
+export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
   if (!validatorId)
     return
@@ -56,7 +58,7 @@ async function storeSingleActivity({ address, activity, epochNumber }: StoreActi
       eq(tables.activity.validatorId, validatorId),
     ))
 
-  const { likelihood, rewarded, missed, sizeRatio: _sizeRatio, sizeRatioViaSlots: _sizeRatioViaSlots } = activity
+  const { likelihood, rewarded, missed, sizeRatio: _sizeRatio, sizeRatioViaSlots: _sizeRatioViaSlots } = activity || defaultActivity
 
   // We always want to update db except the columns `sizeRatio` and `sizeRatioViaSlots`.
   // If we have `sizeRatioViaSlots` as false and `sizeRatio` > 0, then we won't update only those columns
