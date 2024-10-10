@@ -35,7 +35,7 @@ When you add your validator information, you'll need to include certain keys in 
 - `name` (optional): The name of the validator. If not specified, the address of the validator is used by default.
 - `description` (optional): A short description of your validator.
 - `website` (optional): The URL of your validator's website.
-- `icon` (optional): An SVG icon representing your pool, encoded in base64 format. It is preferred that the icon has the Nimiq hexagon shape. For reference, please check the bottom part of the 'Colors' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
+- `icon` (optional): An SVG icon representing your pool, encoded in base64 format. By default identicon is used. It is preferred that the icon has the Nimiq hexagon shape. For reference, please check the bottom part of the 'Colors' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
 
 You can also checkout [JSON example](`./public/validators/.example.json`).
 
