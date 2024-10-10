@@ -37,7 +37,7 @@ interface StoreValidatorOptions {
 
 export async function storeValidator(
   address: string,
-  rest: Omit<NewValidator, 'address' | 'icon'> = {},
+  rest: Omit<NewValidator, 'address' | 'icon'> & { icon?: string } = {},
   options: StoreValidatorOptions = {},
 ): Promise<number | undefined> {
   try {
@@ -72,7 +72,7 @@ export async function storeValidator(
 
   consola.info(`${force ? 'Updating' : 'Storing'} validator ${address}`)
 
-  const icon = (await Identicons.default?.toDataUrl(address)) || ''
+  const icon = rest.icon || (await Identicons.default?.toDataUrl(address)) || ''
   if (validatorId) {
     await useDrizzle()
       .update(tables.validators)
