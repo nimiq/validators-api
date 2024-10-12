@@ -22,6 +22,7 @@ export const scores = sqliteTable('scores', {
   liveness: real('liveness').notNull(),
   size: real('size').notNull(),
   reliability: real('reliability').notNull(),
+  reason: text('reason', { mode: 'json' }).notNull(),
 }, table => ({
   idxValidatorId: index('idx_validator_id').on(table.validatorId),
   compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.fromEpoch, table.toEpoch] }),

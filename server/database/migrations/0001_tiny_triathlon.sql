@@ -1,0 +1,1 @@
+ALTER TABLE `scores` ADD `reason` text NOT NULL;

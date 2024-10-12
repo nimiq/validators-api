@@ -5,7 +5,7 @@ export type Result<T> = Promise<{ data: T, error: undefined } | { data: undefine
 
 export type ValidatorScore =
   Pick<Validator, 'id' | 'name' | 'address' | 'fee' | 'isPool' | 'description' | 'icon' | 'isMaintainedByNimiq' | 'website'>
-  & Pick<Score, 'total' | 'liveness' | 'size' | 'reliability'>
+  & Pick<Score, 'total' | 'liveness' | 'size' | 'reliability' | 'reason'>
   & Pick<Activity, 'sizeRatio'>
 
 export enum HealthFlag {

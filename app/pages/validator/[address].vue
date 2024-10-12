@@ -46,6 +46,14 @@ const validator = computed(() => getValidatorByAddress(route.params.address as s
       <!-- <div self-stretch  w-2 bg-neutral-300 mx-48 /> -->
       <details>
         <summary text-neutral-900 font-semibold mt-32 w-full>
+          Reasons for the score
+        </summary>
+        <code nq-prose mt-32 block max-w-700 text-neutral-900>
+          {{ JSON.stringify(validator.reason, null, 2) }}
+        </code>
+      </details>
+      <details>
+        <summary text-neutral-900 font-semibold mt-32 w-full>
           More details
         </summary>
         <code nq-prose mt-32 block max-w-700 text-neutral-900>

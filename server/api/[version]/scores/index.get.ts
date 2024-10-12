@@ -50,6 +50,7 @@ export default defineEventHandler(async (event) => {
       size: tables.scores.size,
       sizeRatio: tables.activity.sizeRatio,
       reliability: tables.scores.reliability,
+      reason: tables.scores.reason,
     })
     .from(tables.validators)
     .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
