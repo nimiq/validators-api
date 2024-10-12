@@ -1,5 +1,5 @@
 import type { Range } from '~~/packages/nimiq-validators-score/src'
-import type { Score, Validator } from './drizzle'
+import type { Activity, Score, Validator } from './drizzle'
 
 export type Result<T> = Promise<{ data: T, error: undefined } | { data: undefined, error: string }>
 
