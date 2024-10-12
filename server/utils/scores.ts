@@ -86,13 +86,13 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     const reliability: ScoreParams['reliability'] = { inherentsPerEpoch }
 
     const reason = {
-      size: size.sizeRatio,
       missedEpochs: activeEpochStates.map((s, i) => s === 0 ? range.fromEpoch + i : -1).filter(e => e !== -1),
       goodSlots: Array.from(inherentsPerEpoch.values()).reduce((acc, { rewarded }) => acc + rewarded, 0),
       badSlots: Array.from(inherentsPerEpoch.values()).reduce((acc, { missed }) => acc + missed, 0),
     }
 
     const score = computeScore({ liveness, size, reliability })
+    const newScore: NewScore = { validatorId: Number(validatorId), fromEpoch: range.fromEpoch, toEpoch: range.toEpoch, ...score, reason }
     const newScore: NewScore = { validatorId: Number(validatorId), fromEpoch: range.fromEpoch, toEpoch: range.toEpoch, ...score, reason }
     return newScore
   })
