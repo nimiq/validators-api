@@ -85,6 +85,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     const reliability: ScoreParams['reliability'] = { inherentsPerEpoch }
 
     const reason = {
+      size: size.sizeRatio,
       missedEpochs: activeEpochStates.map((s, i) => s === 0 ? range.fromEpoch + i : -1).filter(e => e !== -1),
       goodSlots: Array.from(inherentsPerEpoch.values()).reduce((acc, { rewarded }) => acc + rewarded, 0),
       badSlots: Array.from(inherentsPerEpoch.values()).reduce((acc, { missed }) => acc + missed, 0),
