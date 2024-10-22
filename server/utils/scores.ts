@@ -19,6 +19,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length > 0)
     consola.warn(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
+  consola.warn(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
 
   // TODO Decide how we want to handle the case of missing activity
   // const { data: range, error: rangeError } = await adjustRangeForAvailableData(expectedRange)
