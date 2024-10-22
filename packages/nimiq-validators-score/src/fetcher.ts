@@ -6,13 +6,13 @@ import type { EpochActivity, EpochsActivities } from './types'
  * For a given block number, fetches the validator slots assignation.
  * The block number MUST be an election block otherwise it will throw an error.
  */
-export async function fetchActivity(client: NimiqRPCClient, epochIndex: number) {
-  const { batchesPerEpoch, genesisBlockNumber, blocksPerBatch, slots: slotsCount, blocksPerEpoch } = await getPolicyConstants(client)
+export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, maxRetries = 5): Promise<EpochActivity> {
+  const { batchesPerEpoch, genesisBlockNumber, slots: slotsCount, blocksPerEpoch } = await getPolicyConstants(client)
 
-  const electionBlock = genesisBlockNumber + (epochIndex * blocksPerEpoch)
+  // Epochs start at 1, but election block is the first block of the epoch
+  const electionBlock = genesisBlockNumber + ((epochIndex - 1) * blocksPerEpoch)
   const { data: block, error } = await client.blockchain.getBlockByNumber(electionBlock, { includeTransactions: true })
   if (error || !block) {
-    // throw new Error(JSON.stringify({ epochIndex, error, block }))
     console.error(JSON.stringify({ epochIndex, error, block }))
     return {}
   }
@@ -26,9 +26,9 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number) 
     throw new Error(`You tried to fetch an epoch that is not finished yet: ${JSON.stringify({ epochIndex, currentEpoch })}`)
 
   // The election block will be the first block of the epoch, since we only fetch finished epochs, we can assume that all the batches in this epoch can be fetched
-  // First, we need to know in which batch this block is. Batches start at 0
-  const firstBatchIndex = (electionBlock - genesisBlockNumber) / blocksPerBatch
-  if (firstBatchIndex % 1 !== 0)
+  // First, we need to know in which batch this block is. Batches start at 1
+  const firstBatchIndex = 1 + (epochIndex - 1) * batchesPerEpoch
+  if (firstBatchIndex % 1 !== 0 || firstBatchIndex < 1)
     // It should be an exact division since we are fetching election blocks
     throw new Error(JSON.stringify({ message: 'Something happened calculating batchIndex', firstBatchIndex, electionBlock, block }))
 
@@ -41,58 +41,54 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number) 
   const maxBatchSize = 120
   const minBatchSize = 10
   let batchSize = maxBatchSize
-  for (let i = 0; i < batchesPerEpoch; i += batchSize) {
-    const batchPromises = Array.from({ length: Math.min(batchSize, batchesPerEpoch - i) }, (_, j) => createPromise(i + j))
 
-    let results = await Promise.allSettled(batchPromises)
+  const createPromise = async (index: number, retryCount = 0): Promise<void> => {
+    try {
+      const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + index)
+      if (errorBatch || !inherents)
+        throw new Error(`Batch fetch failed: ${errorBatch}`)
 
-    let rejectedIndexes: number[] = results.reduce((acc: number[], result, index) => {
-      if (result.status === 'rejected') {
-        acc.push(index)
+      for (const { type, validatorAddress } of inherents) {
+        if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000' || !epochActivity[validatorAddress])
+          continue
+
+        if (type === InherentType.Reward)
+          epochActivity[validatorAddress].rewarded++
+        else if ([InherentType.Penalize, InherentType.Jail].includes(type))
+          epochActivity[validatorAddress].missed++
       }
-      return acc
-    }, [])
-
-    if (rejectedIndexes.length > 0) {
-      // Lowering the batch size to prevent more rejections
-      batchSize = Math.max(minBatchSize, Math.floor(batchSize / 2))
     }
-    else {
-      // Increasing the batch size to speed up the process
-      batchSize = Math.min(maxBatchSize, Math.floor(batchSize + batchSize / 2))
-    }
+    catch (error) {
+      if (retryCount >= maxRetries)
+        throw new Error(`Max retries exceeded for batch ${firstBatchIndex + index}: ${error}`)
 
-    while (rejectedIndexes.length > 0) {
-      const retryPromises = rejectedIndexes.map(index => createPromise(i + index))
-      results = await Promise.allSettled(retryPromises)
-
-      rejectedIndexes = results.reduce((acc: number[], result, index) => {
-        if (result.status === 'rejected') {
-          acc.push(rejectedIndexes[index])
-        }
-        return acc
-      }, [])
+      await new Promise(resolve => setTimeout(resolve, 2 ** retryCount * 1000))
+      return createPromise(index, retryCount + 1)
     }
   }
 
-  async function createPromise(index: number) {
-    const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + index)
-    return new Promise<void>((resolve, reject) => {
-      if (errorBatch || !inherents) {
-        reject(JSON.stringify({ epochIndex, blockNumber: electionBlock, errorBatch, index, firstBatchIndex, currentIndex: firstBatchIndex + index }))
-      }
-      else {
-        for (const { type, validatorAddress } of inherents) {
-          if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000')
-            continue
-          if (!epochActivity[validatorAddress])
-            continue
-          epochActivity[validatorAddress].rewarded += type === InherentType.Reward ? 1 : 0
-          epochActivity[validatorAddress].missed += [InherentType.Penalize, InherentType.Jail].includes(type) ? 1 : 0
-        }
-        resolve()
-      }
-    })
+  // Process batches with dynamic sizing
+  for (let i = 0; i < batchesPerEpoch; i += batchSize) {
+    const currentBatchSize = Math.min(batchSize, batchesPerEpoch - i)
+    const batchPromises = Array.from({ length: currentBatchSize }, (_, j) => createPromise(i + j))
+
+    const results = await Promise.allSettled(batchPromises)
+    const failures = results.filter(result => result.status === 'rejected').length
+
+    // Adjust batch size based on success rate
+    if (failures > 0)
+      batchSize = Math.max(minBatchSize, Math.floor(batchSize / 2))
+    else
+      batchSize = Math.min(maxBatchSize, Math.floor(batchSize * 1.5))
+
+    // Check for any remaining errors
+    const errors = results
+      .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+      .map(result => result.reason)
+    if (errors.length > 0) {
+      console.error(errors)
+      throw new Error(`Failed to process batches: ${JSON.stringify(errors)}`)
+    }
   }
 
   return epochActivity

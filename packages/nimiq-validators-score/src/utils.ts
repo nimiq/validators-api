@@ -31,13 +31,13 @@ export async function getRange(client: NimiqRPCClient, options?: GetRangeOptions
   const toEpoch = options?.toEpochIndex ?? currentEpoch - 1
   const fromEpoch = Math.max(1, toEpoch - epochsCount)
 
-  const fromBlockNumber = genesisBlockNumber + blocksPerEpoch * fromEpoch
+  const fromBlockNumber = genesisBlockNumber + blocksPerEpoch * (fromEpoch - 1)
   const toBlockNumber = genesisBlockNumber + blocksPerEpoch * toEpoch
 
   if (fromBlockNumber < 0 || toBlockNumber < 0 || fromBlockNumber > toBlockNumber)
     throw new Error(`Invalid epoch range: [${fromBlockNumber}, ${toBlockNumber}]`)
-  if (fromEpoch === 0)
-    throw new Error(`Invalid epoch range: [${fromEpoch}, ${toEpoch}]. The range should start from epoch 1`)
+  if (fromEpoch < 0)
+    throw new Error(`Invalid epoch range: [${fromEpoch}, ${toEpoch}]. The range should start from epoch 0`)
 
   const { data: head, error: headError } = await client.blockchain.getBlockNumber()
   if (headError || !head)
@@ -60,7 +60,7 @@ export async function getPolicyConstants(client: NimiqRPCClient) {
   if (!policy) {
     const { data: _policy, error: errorPolicy } = await client.policy.getPolicyConstants()
     if (errorPolicy || !_policy)
-      throw new Error(errorPolicy?.message || 'No policy constants')
+      throw new Error(`Error getting policy constants: ${errorPolicy?.message}` || 'No policy constants')
     policy = _policy as PolicyConstants & { blockSeparationTime: number, genesisBlockNumber: number }
   }
   return policy
