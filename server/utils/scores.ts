@@ -1,5 +1,6 @@
 import { gte, inArray, lte } from 'drizzle-orm'
 import type { Range, ScoreParams } from 'nimiq-validators-score'
+import { consola } from 'consola'
 import { computeScore } from 'nimiq-validators-score'
 import type { NewScore } from './drizzle'
 import type { Result, ValidatorScore } from './types'
@@ -17,7 +18,7 @@ interface GetScoresResult {
 export async function calculateScores(range: Range): Result<GetScoresResult> {
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length > 0)
-    throw new Error(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
+    consola.warn(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
 
   // TODO Decide how we want to handle the case of missing activity
   // const { data: range, error: rangeError } = await adjustRangeForAvailableData(expectedRange)

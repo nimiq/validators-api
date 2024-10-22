@@ -75,6 +75,7 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
       if (done || !pair)
         break
       if (pair.activity === null) {
+        consola.warn(`Epoch ${pair.epochIndex} is missing`, pair)
         await storeSingleActivity({ address: '', activity: null, epochNumber: pair.epochIndex })
         continue
       }
@@ -93,6 +94,7 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
 
     if (epochs.length === 0 && (await findMissingEpochs(range)).length === 0)
       break
+
     await storeActivities(epochsActivities)
   }
 

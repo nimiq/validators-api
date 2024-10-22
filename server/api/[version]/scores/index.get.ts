@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: range, error: errorRange } = await extractRangeFromRequest(rpcClient, event)
   if (errorRange || !range)
-    throw err(errorRange || 'No range')
+    throw err(`Error extracting range from request ${errorRange}` || 'No range')
 
   // TODO Remove this block once scheduled tasks are implemented in NuxtHub and the data is being
   // fetched periodically
