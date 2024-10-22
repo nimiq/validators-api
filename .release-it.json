@@ -1,10 +1,6 @@
 {
   "github": {
-    "release": true,
-    "skipChecks": true
-  },
-  "npm": {
-    "publish": false
+    "release": true
   },
   "plugins": {
     "release-it-pnpm": {}
