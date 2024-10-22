@@ -16,7 +16,7 @@
     "lint:fix": "eslint . --fix",
     "db:generate": "drizzle-kit generate",
     "db:delete": "drizzle-kit drop",
-    "release": "dotenv release-it"
+    "release": "release-it"
   },
   "dependencies": {
     "@nimiq/core": "next",
@@ -54,6 +54,8 @@
     "eslint-plugin-format": "^0.1.2",
     "lint-staged": "catalog:",
     "nimiq-css": "^0.2.25",
+    "release-it": "^17.10.0",
+    "release-it-pnpm": "^4.6.3",
     "simple-git-hooks": "catalog:",
     "typescript": "^5.6.3",
     "unocss": "^0.63.4",
