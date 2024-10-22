@@ -1,4 +1,4 @@
-import { gte, lte } from 'drizzle-orm'
+import { eq, gte, lte, not } from 'drizzle-orm'
 import type { Activity, EpochsActivities, Range } from 'nimiq-validators-score'
 import type { NewActivity } from './drizzle'
 import { storeValidator } from './validators'
@@ -13,6 +13,8 @@ export async function findMissingEpochs(range: Range) {
     .where(and(
       gte(tables.activity.epochNumber, range.fromEpoch),
       lte(tables.activity.epochNumber, range.toEpoch),
+      // If every entry of the same epoch contains a likelihood of -1, then we consider it as missing
+      not(eq(tables.activity.likelihood, -1)),
     ))
     .execute().then(r => r.map(r => r.epochBlockNumber))
 
