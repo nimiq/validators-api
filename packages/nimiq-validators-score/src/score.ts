@@ -12,7 +12,7 @@ export function getSize({ threshold, steepness, sizeRatio }: ScoreParams['size']
 
 export function getLiveness({ activeEpochStates, weightFactor }: ScoreParams['liveness']) {
   if (!activeEpochStates || !weightFactor || activeEpochStates.length === 0)
-    throw new Error(`Invalid params: ${JSON.stringify({ activeEpochStates, weightFactor })}`)
+    throw new Error(`Invalid liveness params: ${JSON.stringify({ activeEpochStates, weightFactor })}`)
 
   let weightedSum = 0
   let weightTotal = 0
@@ -34,7 +34,7 @@ export function getLiveness({ activeEpochStates, weightFactor }: ScoreParams['li
 
 export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }: ScoreParams['reliability']) {
   if (!inherentsPerEpoch || !weightFactor || !curveCenter)
-    throw new Error(`Invalid params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}`)
+    throw new Error(`Invalid reliability params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}`)
 
   let numerator = 0
   let denominator = 0

@@ -44,12 +44,12 @@ export async function extractRangeFromRequest(rpcClient: NimiqRPCClient, event: 
     return { error: `Epoch ${epoch} is in the future or it didn't finished yet. The newest epoch you can fetch is ${currentEpoch - 1}.`, data: undefined }
   else
     epoch = userEpoch
+
   consola.info(`Fetching data for epoch ${epoch}`)
   let range: Range
-  consola.info(`Fetching data for epoch ${epoch}`)
   try {
     range = await getRange(rpcClient, { toEpochIndex: epoch })
   }
-  catch (error: unknown) { return { error: JSON.stringify(error), data: undefined } }
+  catch (error) { return { error: (error as Error).message, data: undefined } }
   return { data: range, error: undefined }
 }
