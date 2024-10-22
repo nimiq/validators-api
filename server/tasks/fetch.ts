@@ -8,11 +8,15 @@ export default defineTask({
     description: 'Fetches the necessary data from the blockchain',
   },
   async run() {
-    consola.info('Running fetch task...')
-    const client = getRpcClient()
-    const res = await retrieveActivity(client)
-    if (!res)
-      return { result: 'No new epochs fetched' }
-    return { result: `New ${res.missingEpochs.length} epochs fetched and ${res.missingValidators.length} validators of the current epoch stored ${JSON.stringify(res.addressesCurrentValidators)}` }
+    return await fetch()
   },
 })
+
+export async function fetch() {
+  consola.info('Running fetch task...')
+  const client = getRpcClient()
+  const res = await retrieveActivity(client)
+  if (!res)
+    return { result: 'No new epochs fetched' }
+  return { result: `New ${res.missingEpochs.length} epochs fetched and ${res.missingValidators.length} validators of the current epoch stored ${JSON.stringify(res.addressesCurrentValidators)}` }
+}

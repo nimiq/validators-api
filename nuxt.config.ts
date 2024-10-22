@@ -23,6 +23,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     rpcUrl: process.env.NUXT_RPC_URL || '',
+    GITHUB_ACTIONS: process.env.GITHUB_ACTIONS || '',
     public: {
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
     },
