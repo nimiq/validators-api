@@ -66,10 +66,6 @@ export default defineNuxtConfig({
       tasks: true,
       openAPI: true,
     },
-
-    scheduledTasks: {
-      '0 */12 * * *': ['fetch'],
-    },
   },
 
   app: {
