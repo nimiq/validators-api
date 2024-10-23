@@ -74,16 +74,17 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
       const { value: pair, done } = await epochGenerator.next()
       if (done || !pair)
         break
-      if (pair.activity === null) {
+
+      const { activity, address, epochIndex } = pair
+      if (activity === null) {
         consola.warn(`Epoch ${pair.epochIndex} is missing`, pair)
         await storeSingleActivity({ address: '', activity: null, epochNumber: pair.epochIndex })
         continue
       }
-      if (!epochsActivities[`${pair.epochIndex}`])
-        epochsActivities[`${pair.epochIndex}`] = {}
-      const epoch = epochsActivities[`${pair.epochIndex}`]
-      if (!epoch[pair.address])
-        epoch[pair.address] = pair.activity
+      // Initialize epoch object if it doesn't exist
+      epochsActivities[epochIndex] = epochsActivities[epochIndex] || {}
+      // Store activity for the address in this epoch
+      epochsActivities[epochIndex][address] = activity
     }
 
     const epochs = Object.keys(epochsActivities).map(Number)
