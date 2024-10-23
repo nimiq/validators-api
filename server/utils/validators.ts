@@ -151,6 +151,7 @@ export async function importValidatorsFromFiles(folderPath: string) {
     .filter(f => path.extname(f) === '.json')
     .filter(f => !f.endsWith('.example.json'))
 
+  const validators = []
   for (const file of files) {
     const filePath = path.join(folderPath, file)
     const fileContent = await readFile(filePath, 'utf8')
@@ -166,6 +167,7 @@ export async function importValidatorsFromFiles(folderPath: string) {
     if (jsonData.address !== fileNameAddress)
       throw new Error(`Address mismatch in file: ${file}`)
 
-    await storeValidator(validator.address, validator, { force: true })
+    validators.push(validator)
   }
+  await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { force: true })))
 }
