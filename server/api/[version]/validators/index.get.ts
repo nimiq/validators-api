@@ -1,6 +1,6 @@
 import type { Validator } from 'nimiq-rpc-client-ts'
-import { mainQuerySchema } from '../../utils/schemas'
-import { fetchValidators } from '../../utils/validators'
+import { mainQuerySchema } from '~~/server/utils/schemas'
+import { fetchValidators } from '~~/server/utils/validators'
 import { getRpcClient } from '~~/server/lib/client'
 
 export default defineEventHandler(async (event) => {
