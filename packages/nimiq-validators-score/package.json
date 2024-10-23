@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "defu": "^6.1.4",
-    "nimiq-rpc-client-ts": "^0.4.0",
+    "nimiq-rpc-client-ts": "^0.4.5",
     "vitest": "^2.0.5"
   },
   "devDependencies": {
