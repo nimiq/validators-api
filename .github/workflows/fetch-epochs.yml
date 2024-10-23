@@ -1,27 +1,48 @@
 name: Fetch Missing Epochs
 
 on:
+  workflow_dispatch: # Allows manual trigger
   schedule:
-    - cron: '0 */12 * * *'
+    - cron: '0 */6 * * *' # Runs every 6 hours
+
+env:
+  API_BASE_URL: 'https://validators-api-nimiq.nuxt.dev'
 
 jobs:
-  fetch:
+  fetch-epochs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Fetch missing epochs
+        id: fetch-missing
+        run: |
+          # Fetch the array of missing epochs and store it in a variable
+          MISSING_EPOCHS=$(curl -s "${{ env.API_BASE_URL }}/api/v1/epochs/missing")
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+          # Remove brackets from array and store as space-separated string
+          EPOCHS=$(echo $MISSING_EPOCHS | jq -r 'join(" ")')
 
-      - name: Set node
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
+          # Store the epochs in an output variable for next steps
+          echo "epochs=$EPOCHS" >> $GITHUB_OUTPUT
 
-      - name: Install
-        run: pnpm install --frozen-lockfile
+          # Print for logging
+          echo "Found missing epochs: $EPOCHS"
 
-      - name: Build
-        run: pnpm build
+      - name: Process each epoch
+        run: |
+          # Read the epochs from previous step
+          EPOCHS="${{ steps.fetch-missing.outputs.epochs }}"
+
+          # Loop through each epoch number
+          for epoch in $EPOCHS; do
+            echo "Processing epoch $epoch"
+
+            # Make the API call for this epoch
+            RESPONSE=$(curl -s "${{ env.API_BASE_URL }}/api/v1/epochs/$epoch")
+
+            if [ $? -eq 0 ]; then
+              echo "Successfully processed epoch $epoch"
+            else
+              echo "Error processing epoch $epoch"
+              exit 1
+            fi
+          done
