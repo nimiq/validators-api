@@ -5,8 +5,8 @@ import { importValidatorsFromFiles } from '../utils/validators'
 let validatorImported = false
 
 export default defineNitroPlugin(async () => {
-  // if (!import.meta.dev)
-  return
+  if (!import.meta.dev)
+    return
 
   onHubReady(async () => {
     await migrate(useDrizzle(), { migrationsFolder: 'server/database/migrations' })
