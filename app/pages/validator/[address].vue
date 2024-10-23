@@ -8,8 +8,8 @@ const validator = computed(() => getValidatorByAddress(route.params.address as s
 <template>
   <div v-if="validator">
     <div flex="~ gap-16 items-center">
-      <NuxtImg
-        :src="validator.icon" :alt="validator.name" size-64 shrink-0 object-contain
+      <Identicon
+        :validator size-64 shrink-0 object-contain
         :style="{ 'view-transition-name': `logo-${validator.id}` }"
       />
       <div flex="~ col gap-12" relative>
