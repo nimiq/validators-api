@@ -62,7 +62,7 @@
     "unocss": "^0.63.4",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0",
-    "wrangler": "^3.80.2"
+    "wrangler": "^3.82.0"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged"
