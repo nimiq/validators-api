@@ -154,8 +154,8 @@ importers:
         specifier: ^6.1.4
         version: 6.1.4
       nimiq-rpc-client-ts:
-        specifier: ^0.4.0
-        version: 0.4.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: ^0.4.5
+        version: 0.4.5(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       vitest:
         specifier: ^2.0.5
         version: 2.0.5(@types/node@22.5.1)(terser@5.31.6)
@@ -5383,9 +5383,6 @@ packages:
   nimiq-css@0.2.25:
     resolution: {integrity: sha512-eTCOYQcLlT4sNXuZ0/TA5JllvOns+pnbH0xeK0kjAo83doqMMsk3UfyuzsolOmQxuuywV5ItVPY23HUVjZHwvA==}
     engines: {node: '>=14'}
-
-  nimiq-rpc-client-ts@0.4.0:
-    resolution: {integrity: sha512-Syz4b3PrYEekQfcpmeFqN2ChNG2yV40hg8nMKRpb5LXrKj37YgRSpm6zjL7IStxfHCEcn5aQPw0U14DOh/jFvA==}
 
   nimiq-rpc-client-ts@0.4.5:
     resolution: {integrity: sha512-pXPzcqWQ7tfWyWf/iubbnxAklxNFK8VPNXvE46lHjjVVSyhsTXj2wDEESVAg8KUfoNmT15z9JOrEoPohq2G8Gg==}
@@ -13529,13 +13526,6 @@ snapshots:
       - rollup
       - supports-color
       - vite
-
-  nimiq-rpc-client-ts@0.4.0(bufferutil@4.0.8)(utf-8-validate@5.0.10):
-    dependencies:
-      ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   nimiq-rpc-client-ts@0.4.5(bufferutil@4.0.8)(utf-8-validate@5.0.10):
     dependencies:
