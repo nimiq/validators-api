@@ -2,7 +2,7 @@ import { consola } from 'consola'
 import { fetch } from '../tasks/fetch'
 
 export default defineNitroPlugin(async () => {
-  if (!import.meta.dev || !useRuntimeConfig().GITHUB_ACTIONS)
+  if (!import.meta.dev)
     return
 
   onHubReady(async () => {
