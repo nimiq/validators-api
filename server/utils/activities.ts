@@ -1,6 +1,6 @@
-import { eq, gte, lte, not } from 'drizzle-orm'
 import type { Activity, EpochsActivities, Range } from 'nimiq-validators-score'
 import type { NewActivity } from './drizzle'
+import { eq, gte, lte, not } from 'drizzle-orm'
 import { storeValidator } from './validators'
 
 /**
@@ -16,7 +16,8 @@ export async function findMissingEpochs(range: Range) {
       // If every entry of the same epoch contains a likelihood of -1, then we consider it as missing
       not(eq(tables.activity.likelihood, -1)),
     ))
-    .execute().then(r => r.map(r => r.epochBlockNumber))
+    .execute()
+    .then(r => r.map(r => r.epochBlockNumber))
 
   const missingEpochs = []
   for (let i = range.fromEpoch; i <= range.toEpoch; i++) {
@@ -71,11 +72,10 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
   const sizeRatio = updateSizeColumns ? _sizeRatio : sizeRatioDb
   const sizeRatioViaSlots = updateSizeColumns ? _sizeRatioViaSlots : viaSlotsDb
 
-  await useDrizzle().delete(tables.activity)
-    .where(and(
-      eq(tables.activity.epochNumber, epochNumber),
-      eq(tables.activity.validatorId, validatorId),
-    ))
+  await useDrizzle().delete(tables.activity).where(and(
+    eq(tables.activity.epochNumber, epochNumber),
+    eq(tables.activity.validatorId, validatorId),
+  ))
   const activityDb: NewActivity = { likelihood, rewarded, missed, epochNumber, validatorId, sizeRatio, sizeRatioViaSlots }
   await useDrizzle().insert(tables.activity).values(activityDb)
 }

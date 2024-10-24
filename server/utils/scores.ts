@@ -1,11 +1,11 @@
-import { gte, inArray, lte } from 'drizzle-orm'
 import type { Range, ScoreParams } from 'nimiq-validators-score'
-import { consola } from 'consola'
-import { computeScore } from 'nimiq-validators-score'
 import type { NewScore } from './drizzle'
 import type { Result, ValidatorScore } from './types'
-import { fetchValidatorsScoreByIds } from './validators'
+import { consola } from 'consola'
+import { gte, inArray, lte } from 'drizzle-orm'
+import { computeScore } from 'nimiq-validators-score'
 import { findMissingEpochs } from './activities'
+import { fetchValidatorsScoreByIds } from './validators'
 
 interface GetScoresResult {
   validators: ValidatorScore[]

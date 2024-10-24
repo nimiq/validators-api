@@ -1,7 +1,7 @@
 import type { Validator } from 'nimiq-rpc-client-ts'
+import { getRpcClient } from '~~/server/lib/client'
 import { mainQuerySchema } from '~~/server/utils/schemas'
 import { fetchValidators } from '~~/server/utils/validators'
-import { getRpcClient } from '~~/server/lib/client'
 
 export default defineEventHandler(async (event) => {
   const { pools, active } = await getValidatedQuery(event, mainQuerySchema.parse)

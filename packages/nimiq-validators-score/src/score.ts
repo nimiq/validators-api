@@ -1,5 +1,5 @@
-import { defu } from 'defu'
 import type { ScoreParams, ScoreValues } from './types'
+import { defu } from 'defu'
 
 export function getSize({ threshold, steepness, sizeRatio }: ScoreParams['size']) {
   if (!threshold || !steepness || !sizeRatio)

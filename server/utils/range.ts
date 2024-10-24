@@ -1,9 +1,9 @@
-import type { Range } from 'nimiq-validators-score'
-import { getRange } from 'nimiq-validators-score'
-import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { EventHandlerRequest, H3Event } from 'h3'
-import { consola } from 'consola'
+import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
+import type { Range } from 'nimiq-validators-score'
 import type { Result } from './types'
+import { consola } from 'consola'
+import { getRange } from 'nimiq-validators-score'
 import { rangeQuerySchema } from './schemas'
 
 /**

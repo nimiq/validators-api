@@ -1,6 +1,6 @@
+import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from '~~/packages/nimiq-validators-score/src'
 import { z } from 'zod'
 import { PayoutType } from './types'
-import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from '~~/packages/nimiq-validators-score/src'
 
 export const rangeQuerySchema = z.object({
   epoch: z.literal('latest').or(z.number().min(1)).default('latest'),

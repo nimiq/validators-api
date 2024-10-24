@@ -1,9 +1,9 @@
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import { consola } from 'consola'
 import type { EpochsActivities } from 'nimiq-validators-score'
+import { consola } from 'consola'
 import { fetchCurrentEpoch, fetchEpochs, getRange } from 'nimiq-validators-score'
-import { findMissingValidators, storeValidator } from '../utils/validators'
 import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
+import { findMissingValidators, storeValidator } from '../utils/validators'
 
 const EPOCHS_IN_PARALLEL = 3
 

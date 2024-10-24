@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { desc, inArray } from 'drizzle-orm'
 // @ts-expect-error no types in the package
@@ -19,7 +19,8 @@ export async function findMissingValidators(addresses: string[]) {
     .select({ address: tables.validators.address })
     .from(tables.validators)
     .where(inArray(tables.validators.address, addresses))
-    .execute().then(r => r.map(r => r.address))
+    .execute()
+    .then(r => r.map(r => r.address))
 
   const missingAddresses = addresses.filter(a => !existingAddresses.includes(a))
   return missingAddresses
@@ -85,7 +86,8 @@ export async function storeValidator(
       .insert(tables.validators)
       .values({ ...rest, address, icon })
       .returning()
-      .get().then(r => r.id)
+      .get()
+      .then(r => r.id)
   }
 
   validators.set(address, validatorId!)
