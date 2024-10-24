@@ -34,45 +34,43 @@ export default defineEventHandler(async (event) => {
     ))
     .all()
 
-  if (!epoch || epoch.length === 0) {
-    consola.info(`Epoch ${epochNumber} is missing, fetching it...`)
-    const rpcClient = getRpcClient()
-    const epochGenerator = fetchEpochs(rpcClient, [epochNumber])
-
-    const epochsActivities: EpochsActivities = {}
-
-    while (true) {
-      const { value: pair, done } = await epochGenerator.next()
-      if (done || !pair)
-        break
-
-      const { activity, address, epochIndex } = pair
-
-      if (activity === null) {
-        await storeSingleActivity({ address: '', activity: null, epochNumber: pair.epochIndex })
-        return err(`Epoch ${pair.epochIndex} is missing`)
-      }
-      // Initialize epoch object if it doesn't exist
-      epochsActivities[epochIndex] = epochsActivities[epochIndex] || {}
-      // Store activity for the address in this epoch
-      epochsActivities[epochIndex][address] = activity
-    }
-    await storeActivities(epochsActivities)
-    const epochActivity = epochsActivities[epochNumber]
-    const epoch = []
-    for (const address in epochActivity) {
-      epoch.push({
-        epochNumber,
-        likelihood: epochActivity[address].likelihood,
-        rewarded: epochActivity[address].rewarded,
-        missed: epochActivity[address].missed,
-        sizeRatio: epochActivity[address].sizeRatio,
-        sizeRatioViaSlots: epochActivity[address].sizeRatioViaSlots,
-        validatorAddress: address,
-      })
-    }
-
+  if (epoch.length > 0)
     return epoch
+
+  consola.info(`Epoch ${epochNumber} is missing, fetching it...`)
+  const rpcClient = getRpcClient()
+  const epochGenerator = fetchEpochs(rpcClient, [epochNumber])
+
+  const epochsActivities: EpochsActivities = {}
+
+  while (true) {
+    const { value: pair, done } = await epochGenerator.next()
+    if (done || !pair)
+      break
+
+    const { activity, address, epochIndex } = pair
+
+    if (activity === null) {
+      await storeSingleActivity({ address: '', activity: null, epochNumber: pair.epochIndex })
+      return err(`Epoch ${pair.epochIndex} is missing`)
+    }
+    // Initialize epoch object if it doesn't exist
+    epochsActivities[epochIndex] = epochsActivities[epochIndex] || {}
+    // Store activity for the address in this epoch
+    epochsActivities[epochIndex][address] = activity
+  }
+  await storeActivities(epochsActivities)
+  const epochActivity = epochsActivities[epochNumber]
+  for (const address in epochActivity) {
+    epoch.push({
+      epochNumber,
+      likelihood: epochActivity[address].likelihood,
+      rewarded: epochActivity[address].rewarded,
+      missed: epochActivity[address].missed,
+      sizeRatio: epochActivity[address].sizeRatio,
+      sizeRatioViaSlots: epochActivity[address].sizeRatioViaSlots,
+      validatorAddress: address,
+    })
   }
 
   return epoch
