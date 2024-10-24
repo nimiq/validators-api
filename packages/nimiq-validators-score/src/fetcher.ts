@@ -115,9 +115,6 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
     // If validatorActivities is empty, it means that the epoch cannot be fetched
     if (Object.keys(validatorActivities).length === 0)
       yield { epochIndex, address: '', activity: null }
-    // If validatorActivities is empty, it means that the epoch cannot be fetched
-    if (Object.keys(validatorActivities).length === 0)
-      yield { epochIndex, address: '', activity: null }
     for (const [address, activity] of Object.entries(validatorActivities)) {
       yield { address, epochIndex, activity }
     }
