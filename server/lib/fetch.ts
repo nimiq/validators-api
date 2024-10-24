@@ -4,8 +4,6 @@ import { consola } from 'consola'
 import { fetchCurrentEpoch, fetchEpochs, getRange } from 'nimiq-validators-score'
 import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
 import { findMissingValidators, storeValidator } from '../utils/validators'
-import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
-import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
 
 const EPOCHS_IN_PARALLEL = 3
 

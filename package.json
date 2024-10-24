@@ -24,7 +24,6 @@
     "@unovis/ts": "^1.4.4",
     "@unovis/vue": "^1.4.4",
     "@vueuse/core": "^11.1.0",
-    "@vueuse/core": "^11.1.0",
     "defu": "^6.1.4",
     "drizzle-orm": "^0.35.3",
     "nimiq-rpc-client-ts": "^0.4.5",
