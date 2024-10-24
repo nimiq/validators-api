@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { desc, inArray } from 'drizzle-orm'
@@ -7,6 +8,7 @@ import { consola } from 'consola'
 // import { Address } from '@nimiq/core'
 import type { NewValidator, Validator } from './drizzle'
 import type { PayoutType, Result, ValidatorScore } from './types'
+import { reduceEachTrailingCommentRange } from 'typescript'
 import { validatorSchema } from './schemas'
 
 /**
@@ -73,7 +75,15 @@ export async function storeValidator(
 
   consola.info(`${force ? 'Updating' : 'Storing'} validator ${address}`)
 
-  const icon = rest.icon || (await Identicons.default?.toDataUrl(address)) || ''
+  async function getIcon() {
+    if (rest.icon)
+      return rest.icon
+    const svg: string = await Identicons.svg(address, true)
+    const base64string = Buffer.from(svg).toString('base64')
+    return `data:image/svg+xml;base64,${base64string}`
+  }
+
+  const icon = await getIcon()
   if (validatorId) {
     await useDrizzle()
       .update(tables.validators)
