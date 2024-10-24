@@ -1,5 +1,5 @@
-import { desc } from 'drizzle-orm'
 import { consola } from 'consola'
+import { desc } from 'drizzle-orm'
 
 export default defineTask({
   meta: {

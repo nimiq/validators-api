@@ -2,6 +2,6 @@
   "name": "Pooly McPoolface",
   "address": "NQ24 DJE3 KX3U HG5X 1BXP 8XQ3 SK7S X364 N7G7",
   "fee": 0.09,
-  "isPool": true,
+  "payoutType": "restake",
   "isMaintainedByNimiq": true
 }

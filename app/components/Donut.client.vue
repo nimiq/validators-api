@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { VisDonut, VisSingleContainer, VisTooltip } from '@unovis/vue'
 import { Donut } from '@unovis/ts'
+import { VisDonut, VisSingleContainer, VisTooltip } from '@unovis/vue'
 import { render } from 'vue'
 import ScorePies from './ScorePies.vue'
 

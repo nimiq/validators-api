@@ -1,9 +1,9 @@
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import { consola } from 'consola'
 import type { EpochsActivities } from 'nimiq-validators-score'
+import { consola } from 'consola'
 import { fetchCurrentEpoch, fetchEpochs, getRange } from 'nimiq-validators-score'
-import { findMissingValidators, storeValidator } from '../utils/validators'
 import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
+import { findMissingValidators, storeValidator } from '../utils/validators'
 
 const EPOCHS_IN_PARALLEL = 3
 
@@ -74,17 +74,21 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
       const { value: pair, done } = await epochGenerator.next()
       if (done || !pair)
         break
-
-      const { activity, address, epochIndex } = pair
-      if (activity === null) {
+      if (pair.activity === null) {
         consola.warn(`Epoch ${pair.epochIndex} is missing`, pair)
         await storeSingleActivity({ address: '', activity: null, epochNumber: pair.epochIndex })
         continue
       }
-      // Initialize epoch object if it doesn't exist
-      epochsActivities[epochIndex] = epochsActivities[epochIndex] || {}
-      // Store activity for the address in this epoch
-      epochsActivities[epochIndex][address] = activity
+      if (!epochsActivities[`${pair.epochIndex}`])
+        epochsActivities[`${pair.epochIndex}`] = {}
+      const epoch = epochsActivities[`${pair.epochIndex}`]
+      if (!epoch[pair.address])
+        epoch[pair.address] = pair.activity
+      if (!epochsActivities[`${pair.epochIndex}`])
+        epochsActivities[`${pair.epochIndex}`] = {}
+      const epoch = epochsActivities[`${pair.epochIndex}`]
+      if (!epoch[pair.address])
+        epoch[pair.address] = pair.activity
     }
 
     const epochs = Object.keys(epochsActivities).map(Number)
@@ -93,8 +97,10 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
     const percentage = Math.round((fetchedEpochs.length / missingEpochs.length) * 100).toFixed(2)
     consola.info(`Fetched ${newestEpoch} epochs. ${percentage}%`)
 
-    if (epochs.length === 0 && (await findMissingEpochs(range)).length === 0)
+    if ((await findMissingEpochs(range)).length === 0)
+    if ((await findMissingEpochs(range)).length === 0)
       break
+
 
     await storeActivities(epochsActivities)
   }
@@ -103,6 +109,7 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
 }
 
 async function fetchActiveEpoch(client: NimiqRPCClient) {
+  // We need to fetch the data of the active validators that are active in the current epoch
   // We need to fetch the data of the active validators that are active in the current epoch
   // but we don't have the data yet.
   const epoch = await fetchCurrentEpoch(client)

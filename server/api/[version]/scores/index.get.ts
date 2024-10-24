@@ -1,7 +1,7 @@
-import { consola } from 'consola'
-import { desc, isNotNull } from 'drizzle-orm'
 import { getRpcClient } from '~~/server/lib/client'
 import { retrieveActivity } from '~~/server/lib/fetch'
+import { consola } from 'consola'
+import { desc, isNotNull } from 'drizzle-orm'
 
 function err(error: any) {
   consola.error(error)
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
       name: tables.validators.name,
       address: tables.validators.address,
       fee: tables.validators.fee,
-      isPool: tables.validators.isPool,
+      payoutType: tables.validators.payoutType,
       description: tables.validators.description,
       icon: tables.validators.icon,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,

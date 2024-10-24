@@ -2,6 +2,6 @@
   "name": "Kiddie Pool",
   "address": "NQ57 UQJL 5A3H N45M 1FHS 2454 C7L5 BTE6 KEU1",
   "fee": 0.1,
-  "isPool": true,
+  "payoutType": "restake",
   "isMaintainedByNimiq": true
 }

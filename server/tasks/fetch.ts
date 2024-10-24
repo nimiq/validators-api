@@ -1,6 +1,6 @@
 import { consola } from 'consola'
-import { retrieveActivity } from '../lib/fetch'
 import { getRpcClient } from '../lib/client'
+import { retrieveActivity } from '../lib/fetch'
 
 export default defineTask({
   meta: {

@@ -2,6 +2,6 @@
   "name": "Monopooly",
   "address": "NQ71 CK94 3V7U H62Y 4L0F GUUK DPA4 6SA6 DKKM",
   "fee": 0.11,
-  "isPool": false,
+  "payoutType": "restake",
   "isMaintainedByNimiq": true
 }

@@ -1,11 +1,11 @@
-import { gte, inArray, lte } from 'drizzle-orm'
 import type { Range, ScoreParams } from 'nimiq-validators-score'
-import { consola } from 'consola'
-import { computeScore } from 'nimiq-validators-score'
 import type { NewScore } from './drizzle'
 import type { Result, ValidatorScore } from './types'
-import { fetchValidatorsScoreByIds } from './validators'
+import { consola } from 'consola'
+import { gte, inArray, lte } from 'drizzle-orm'
+import { computeScore } from 'nimiq-validators-score'
 import { findMissingEpochs } from './activities'
+import { fetchValidatorsScoreByIds } from './validators'
 
 interface GetScoresResult {
   validators: ValidatorScore[]
@@ -19,6 +19,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length > 0)
     consola.warn(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
+  consola.warn(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
 
   // TODO Decide how we want to handle the case of missing activity
   // const { data: range, error: rangeError } = await adjustRangeForAvailableData(expectedRange)
@@ -79,6 +80,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     validatorInherents.set(epoch, { rewarded: accRewarded + rewarded, missed: accMissed + missed })
   }
 
+
   const scores = Array.from(validatorsParams.entries()).map(([validatorId, { inherentsPerEpoch }]) => {
     const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => inherentsPerEpoch.has(range.fromEpoch + i) ? 1 : 0)
     const size: ScoreParams['size'] = { sizeRatio: sizeLastEpochByValidator.get(validatorId)?.sizeRatio ?? -1 }
@@ -86,13 +88,13 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     const reliability: ScoreParams['reliability'] = { inherentsPerEpoch }
 
     const reason = {
-      size: size.sizeRatio,
       missedEpochs: activeEpochStates.map((s, i) => s === 0 ? range.fromEpoch + i : -1).filter(e => e !== -1),
       goodSlots: Array.from(inherentsPerEpoch.values()).reduce((acc, { rewarded }) => acc + rewarded, 0),
       badSlots: Array.from(inherentsPerEpoch.values()).reduce((acc, { missed }) => acc + missed, 0),
     }
 
     const score = computeScore({ liveness, size, reliability })
+    const newScore: NewScore = { validatorId: Number(validatorId), fromEpoch: range.fromEpoch, toEpoch: range.toEpoch, ...score, reason }
     const newScore: NewScore = { validatorId: Number(validatorId), fromEpoch: range.fromEpoch, toEpoch: range.toEpoch, ...score, reason }
     return newScore
   })

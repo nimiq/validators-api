@@ -2,6 +2,6 @@
   "name": "Puddle",
   "address": "NQ82 BHPS UR9K 07X1 X6QH 3DY3 J325 UCSP UHV3",
   "fee": 0.095,
-  "isPool": false,
+  "payoutType": "direct",
   "isMaintainedByNimiq": true
 }

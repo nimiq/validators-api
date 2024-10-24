@@ -1,6 +1,6 @@
-import { eq, gte, lte, not } from 'drizzle-orm'
 import type { Activity, EpochsActivities, Range } from 'nimiq-validators-score'
 import type { NewActivity } from './drizzle'
+import { eq, gte, lte, not } from 'drizzle-orm'
 import { storeValidator } from './validators'
 
 /**
@@ -15,8 +15,11 @@ export async function findMissingEpochs(range: Range) {
       lte(tables.activity.epochNumber, range.toEpoch),
       // If every entry of the same epoch contains a likelihood of -1, then we consider it as missing
       not(eq(tables.activity.likelihood, -1)),
+      // If every entry of the same epoch contains a likelihood of -1, then we consider it as missing
+      not(eq(tables.activity.likelihood, -1)),
     ))
-    .execute().then(r => r.map(r => r.epochBlockNumber))
+    .execute()
+    .then(r => r.map(r => r.epochBlockNumber))
 
   const missingEpochs = []
   for (let i = range.fromEpoch; i <= range.toEpoch; i++) {
@@ -41,9 +44,13 @@ export async function storeActivities(epochs: EpochsActivities) {
 interface StoreActivityParams {
   address: string
   activity: Activity | null
+  activity: Activity | null
   epochNumber: number
 }
 
+const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: 0, sizeRatioViaSlots: false }
+
+export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
 const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: 0, sizeRatioViaSlots: false }
 
 export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
@@ -61,6 +68,7 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
     ))
 
   const { likelihood, rewarded, missed, sizeRatio: _sizeRatio, sizeRatioViaSlots: _sizeRatioViaSlots } = activity || defaultActivity
+  const { likelihood, rewarded, missed, sizeRatio: _sizeRatio, sizeRatioViaSlots: _sizeRatioViaSlots } = activity || defaultActivity
 
   // We always want to update db except the columns `sizeRatio` and `sizeRatioViaSlots`.
   // If we have `sizeRatioViaSlots` as false and `sizeRatio` > 0, then we won't update only those columns
@@ -71,11 +79,10 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
   const sizeRatio = updateSizeColumns ? _sizeRatio : sizeRatioDb
   const sizeRatioViaSlots = updateSizeColumns ? _sizeRatioViaSlots : viaSlotsDb
 
-  await useDrizzle().delete(tables.activity)
-    .where(and(
-      eq(tables.activity.epochNumber, epochNumber),
-      eq(tables.activity.validatorId, validatorId),
-    ))
+  await useDrizzle().delete(tables.activity).where(and(
+    eq(tables.activity.epochNumber, epochNumber),
+    eq(tables.activity.validatorId, validatorId),
+  ))
   const activityDb: NewActivity = { likelihood, rewarded, missed, epochNumber, validatorId, sizeRatio, sizeRatioViaSlots }
   await useDrizzle().insert(tables.activity).values(activityDb)
 }

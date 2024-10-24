@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "267d6f3a-7f36-4213-ae28-38bcb2aff5ec",
+  "id": "ea914e7e-5c1b-46e1-b84a-781bfc5f99c7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -221,13 +221,13 @@
           "autoincrement": false,
           "default": -1
         },
-        "is_pool": {
-          "name": "is_pool",
-          "type": "integer",
+        "payout_type": {
+          "name": "payout_type",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": false
+          "default": "'none'"
         },
         "is_maintained_by_nimiq": {
           "name": "is_maintained_by_nimiq",

@@ -1,6 +1,6 @@
+import { getRpcClient } from '~~/server/lib/client'
 import { consola } from 'consola'
 import { getRange } from 'nimiq-validators-score'
-import { getRpcClient } from '~~/server/lib/client'
 
 function err(error: any) {
   consola.error(error)
