@@ -5,5 +5,5 @@
   "address": "NQXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX",
   "icon": "Optional. A base64 encoded SVG icon. By default identicon is used.",
   "fee": -1,
-  "payoutType": "none "
+  "payoutType": "none"
 }

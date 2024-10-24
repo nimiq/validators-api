@@ -6,7 +6,6 @@ CREATE TABLE `activity` (
 	`missed` integer NOT NULL,
 	`size_ratio` integer NOT NULL,
 	`size_ratio_via_slots` integer NOT NULL,
-	PRIMARY KEY(`validator_id`, `epoch_number`),
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
@@ -20,7 +19,6 @@ CREATE TABLE `scores` (
 	`size` real NOT NULL,
 	`reliability` real NOT NULL,
 	`reason` text NOT NULL,
-	PRIMARY KEY(`validator_id`, `from_epoch`, `to_epoch`),
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
@@ -34,8 +32,7 @@ CREATE TABLE `validators` (
 	`payout_type` text DEFAULT 'none',
 	`is_maintained_by_nimiq` integer DEFAULT false,
 	`icon` text NOT NULL,
-	`website` text,
-	CONSTRAINT "enum_check" CHECK("validators"."payout_type" IN (?))
+	`website` text
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `validators_address_unique` ON `validators` (`address`);

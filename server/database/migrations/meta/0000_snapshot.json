@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "2f7bf5c1-f916-473c-a823-eee97f5af016",
+  "id": "68dee06a-36fa-441e-a06b-13c1ae0b9918",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -81,15 +81,7 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "activity_validator_id_epoch_number_pk": {
-          "columns": [
-            "validator_id",
-            "epoch_number"
-          ],
-          "name": "activity_validator_id_epoch_number_pk"
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
@@ -177,16 +169,7 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "scores_validator_id_from_epoch_to_epoch_pk": {
-          "columns": [
-            "validator_id",
-            "from_epoch",
-            "to_epoch"
-          ],
-          "name": "scores_validator_id_from_epoch_to_epoch_pk"
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
@@ -273,12 +256,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {
-        "enum_check": {
-          "name": "enum_check",
-          "value": "\"validators\".\"payout_type\" IN (?)"
-        }
-      }
+      "checkConstraints": {}
     }
   },
   "views": {},
