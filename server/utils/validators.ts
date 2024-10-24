@@ -76,9 +76,10 @@ export async function storeValidator(
   async function getIcon() {
     if (rest.icon)
       return rest.icon
-    const svg: string = await Identicons.default?.svg(address)
-    const base64string = Buffer.from(svg).toString('base64')
-    return `data:image/svg+xml;base64,${base64string}`
+    // const svg: string = await Identicons.default?.svg(address)
+    // const base64string = Buffer.from(svg).toString('base64')
+    // return `data:image/svg+xml;base64,${base64string}`
+    return ''
   }
 
   const icon = await getIcon()
