@@ -47,14 +47,14 @@ jobs:
             fi
           done
 
-      - name: Import validators
-        run: |
-          echo "Importing validators..."
-          RESPONSE=$(curl -s -X POST "${{ env.API_BASE_URL }}/api/v1/validators/import")
+      # - name: Import validators
+      #   run: |
+      #     echo "Importing validators..."
+      #     RESPONSE=$(curl -s -X POST "${{ env.API_BASE_URL }}/api/v1/validators/import")
 
-          if [ $? -eq 0 ]; then
-            echo "Successfully imported validators"
-          else
-            echo "Error importing validators"
-            exit 1  # Fail the workflow if validator import fails
-          fi
+      #     if [ $? -eq 0 ]; then
+      #       echo "Successfully imported validators"
+      #     else
+      #       echo "Error importing validators"
+      #       exit 1  # Fail the workflow if validator import fails
+      #     fi
