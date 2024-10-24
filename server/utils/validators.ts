@@ -1,3 +1,5 @@
+import type { NewValidator, Validator } from './drizzle'
+import type { PayoutType, Result, ValidatorScore } from './types'
 import { Buffer } from 'node:buffer'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -5,10 +7,6 @@ import { desc, inArray } from 'drizzle-orm'
 // @ts-expect-error no types in the package
 import Identicons from '@nimiq/identicons'
 import { consola } from 'consola'
-// import { Address } from '@nimiq/core'
-import type { NewValidator, Validator } from './drizzle'
-import type { PayoutType, Result, ValidatorScore } from './types'
-import { reduceEachTrailingCommentRange } from 'typescript'
 import { validatorSchema } from './schemas'
 
 /**
@@ -79,7 +77,6 @@ export async function storeValidator(
     if (rest.icon)
       return rest.icon
     const svg: string = await Identicons.default?.svg(address)
-    console.log({ svg })
     const base64string = Buffer.from(svg).toString('base64')
     return `data:image/svg+xml;base64,${base64string}`
   }

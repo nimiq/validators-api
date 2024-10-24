@@ -58,7 +58,6 @@ export default defineEventHandler(async (event) => {
       epochsActivities[epochIndex][address] = activity
     }
     await storeActivities(epochsActivities)
-    consola.info(epochsActivities)
     const epochActivity = epochsActivities[epochNumber]
     const epoch = []
     for (const address in epochActivity) {
