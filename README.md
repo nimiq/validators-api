@@ -9,6 +9,8 @@
 Details of validators in the Nimiq Blockchain and their scores, calculated using Nimiq's VTS algorithm.
 <p>
 
+[![Fetch Missing Epochs](https://github.com/nimiq/validators-api/actions/workflows/fetch-epochs.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/fetch-epochs.yml)
+
 > [!NOTE]
 > If you're a validator and would like to add your data to the API, please open a pull request (PR) with your JSON file, following the structure of `./public/validators/.example` in the `./public/validators` directory.
 
