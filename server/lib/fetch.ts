@@ -101,6 +101,7 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
     if ((await findMissingEpochs(range)).length === 0)
       break
 
+
     await storeActivities(epochsActivities)
   }
 
@@ -108,6 +109,7 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
 }
 
 async function fetchActiveEpoch(client: NimiqRPCClient) {
+  // We need to fetch the data of the active validators that are active in the current epoch
   // We need to fetch the data of the active validators that are active in the current epoch
   // but we don't have the data yet.
   const epoch = await fetchCurrentEpoch(client)

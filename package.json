@@ -2,6 +2,7 @@
   "name": "nimiq-validators",
   "type": "module",
   "version": "0.0.1",
+  "version": "0.0.1",
   "private": true,
   "packageManager": "pnpm@9.12.2",
   "scripts": {
@@ -17,6 +18,8 @@
     "db:generate": "drizzle-kit generate",
     "db:delete": "drizzle-kit drop",
     "release": "dotenv release-it"
+    "db:delete": "drizzle-kit drop",
+    "release": "dotenv release-it"
   },
   "dependencies": {
     "@nimiq/core": "next",
@@ -24,10 +27,18 @@
     "@unovis/ts": "^1.4.4",
     "@unovis/vue": "^1.4.4",
     "@vueuse/core": "^11.1.0",
+    "@vueuse/core": "^11.1.0",
     "defu": "^6.1.4",
     "drizzle-orm": "^0.35.3",
     "nimiq-rpc-client-ts": "^0.4.5",
+    "drizzle-orm": "^0.35.3",
+    "nimiq-rpc-client-ts": "^0.4.5",
     "nimiq-validators-score": "workspace:*",
+    "nuxt": "^3.13.2",
+    "pinia": "^2.2.4",
+    "radix-vue": "^1.9.7",
+    "vue": "^3.5.12",
+    "vue-router": "^4.4.5",
     "nuxt": "^3.13.2",
     "pinia": "^2.2.4",
     "radix-vue": "^1.9.7",
