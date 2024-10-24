@@ -7,6 +7,7 @@ export default defineNitroPlugin(async () => {
     return
 
   onHubReady(async () => {
+    // Migrate database
     await migrate(useDrizzle(), { migrationsFolder: 'server/database/migrations' })
       .then(() => {
         consola.success('Database migrations done')
@@ -14,6 +15,11 @@ export default defineNitroPlugin(async () => {
       .catch((err) => {
         consola.error('Database migrations failed', JSON.stringify(err))
       })
+
+    // Import validators
     await importValidatorsFromFiles('./public/validators')
+
+    // Fetch missing data
+    await runTask('fetch')
   })
 })
