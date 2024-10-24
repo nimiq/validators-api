@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1727802053225,
-      "tag": "0000_supreme_puppet_master",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1728763387299,
-      "tag": "0001_tiny_triathlon",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1728763387299,
-      "tag": "0001_tiny_triathlon",
+      "when": 1729779742534,
+      "tag": "0000_overjoyed_wolf_cub",
       "breakpoints": true
     }
   ]

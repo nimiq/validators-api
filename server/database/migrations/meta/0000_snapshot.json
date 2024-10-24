@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "ea914e7e-5c1b-46e1-b84a-781bfc5f99c7",
+  "id": "2f7bf5c1-f916-473c-a823-eee97f5af016",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -90,7 +90,8 @@
           "name": "activity_validator_id_epoch_number_pk"
         }
       },
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "scores": {
       "name": "scores",
@@ -143,6 +144,13 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -179,7 +187,8 @@
           "name": "scores_validator_id_from_epoch_to_epoch_pk"
         }
       },
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "validators": {
       "name": "validators",
@@ -263,9 +272,16 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "enum_check": {
+          "name": "enum_check",
+          "value": "\"validators\".\"payout_type\" IN (?)"
+        }
+      }
     }
   },
+  "views": {},
   "enums": {},
   "_meta": {
     "schemas": {},

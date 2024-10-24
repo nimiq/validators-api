@@ -10,6 +10,7 @@ CREATE TABLE `activity` (
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE INDEX `idx_election_block` ON `activity` (`epoch_number`);--> statement-breakpoint
 CREATE TABLE `scores` (
 	`validator_id` integer NOT NULL,
 	`from_epoch` integer NOT NULL,
@@ -18,10 +19,12 @@ CREATE TABLE `scores` (
 	`liveness` real NOT NULL,
 	`size` real NOT NULL,
 	`reliability` real NOT NULL,
+	`reason` text NOT NULL,
 	PRIMARY KEY(`validator_id`, `from_epoch`, `to_epoch`),
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE INDEX `idx_validator_id` ON `scores` (`validator_id`);--> statement-breakpoint
 CREATE TABLE `validators` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text DEFAULT 'Unknown validator' NOT NULL,
@@ -31,9 +34,8 @@ CREATE TABLE `validators` (
 	`payout_type` text DEFAULT 'none',
 	`is_maintained_by_nimiq` integer DEFAULT false,
 	`icon` text NOT NULL,
-	`website` text
+	`website` text,
+	CONSTRAINT "enum_check" CHECK("validators"."payout_type" IN (?))
 );
 --> statement-breakpoint
-CREATE INDEX `idx_election_block` ON `activity` (`epoch_number`);--> statement-breakpoint
-CREATE INDEX `idx_validator_id` ON `scores` (`validator_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `validators_address_unique` ON `validators` (`address`);
