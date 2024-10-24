@@ -15,8 +15,6 @@ export async function findMissingEpochs(range: Range) {
       lte(tables.activity.epochNumber, range.toEpoch),
       // If every entry of the same epoch contains a likelihood of -1, then we consider it as missing
       not(eq(tables.activity.likelihood, -1)),
-      // If every entry of the same epoch contains a likelihood of -1, then we consider it as missing
-      not(eq(tables.activity.likelihood, -1)),
     ))
     .execute()
     .then(r => r.map(r => r.epochBlockNumber))
@@ -44,13 +42,9 @@ export async function storeActivities(epochs: EpochsActivities) {
 interface StoreActivityParams {
   address: string
   activity: Activity | null
-  activity: Activity | null
   epochNumber: number
 }
 
-const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: 0, sizeRatioViaSlots: false }
-
-export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
 const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: 0, sizeRatioViaSlots: false }
 
 export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
@@ -67,7 +61,6 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
       eq(tables.activity.validatorId, validatorId),
     ))
 
-  const { likelihood, rewarded, missed, sizeRatio: _sizeRatio, sizeRatioViaSlots: _sizeRatioViaSlots } = activity || defaultActivity
   const { likelihood, rewarded, missed, sizeRatio: _sizeRatio, sizeRatioViaSlots: _sizeRatioViaSlots } = activity || defaultActivity
 
   // We always want to update db except the columns `sizeRatio` and `sizeRatioViaSlots`.

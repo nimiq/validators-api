@@ -43,7 +43,7 @@ You can also checkout [JSON example](`./public/validators/.example.json`).
 
 3. Submit a PR to this repo. Someone in the team will review it.
 4. Once the PR is submitted, check that the [API endpoint](https://validators-api-nimiq.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
-4. Once the PR is submitted, check that the [API endpoint](https://validators-api-nimiq.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
+5. Once the PR is submitted, check that the [API endpoint](https://validators-api-nimiq.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
 
 > [!INFO]
 > By submitting this information, various Nimiq applications, such as the Nimiq Wallet, will show users the fields you have submitted and the Validator Score associated with your validator in the future. You can read more about the Validator Score in the [Developer's Center (Preview)](https://deploy-preview-21--developer-center.netlify.app/learn/validator-trust-score).

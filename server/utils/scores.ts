@@ -80,7 +80,6 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     validatorInherents.set(epoch, { rewarded: accRewarded + rewarded, missed: accMissed + missed })
   }
 
-
   const scores = Array.from(validatorsParams.entries()).map(([validatorId, { inherentsPerEpoch }]) => {
     const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => inherentsPerEpoch.has(range.fromEpoch + i) ? 1 : 0)
     const size: ScoreParams['size'] = { sizeRatio: sizeLastEpochByValidator.get(validatorId)?.sizeRatio ?? -1 }
@@ -94,7 +93,6 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     }
 
     const score = computeScore({ liveness, size, reliability })
-    const newScore: NewScore = { validatorId: Number(validatorId), fromEpoch: range.fromEpoch, toEpoch: range.toEpoch, ...score, reason }
     const newScore: NewScore = { validatorId: Number(validatorId), fromEpoch: range.fromEpoch, toEpoch: range.toEpoch, ...score, reason }
     return newScore
   })
