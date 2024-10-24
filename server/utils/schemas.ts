@@ -17,7 +17,6 @@ export const validatorSchema = z.object({
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
   fee: z.number().min(0).max(1),
   payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
-  payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
   isMaintainedByNimiq: z.boolean().optional(),
   description: z.string().optional(),
   website: z.string().url().optional(),
