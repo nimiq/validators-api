@@ -16,8 +16,10 @@ export default defineNitroPlugin(async () => {
         consola.error('Database migrations failed', JSON.stringify(err))
       })
 
+    const { nimiqNetwork } = useRuntimeConfig().public
+
     // Import validators
-    await importValidatorsFromFiles('./public/validators')
+    await importValidatorsFromFiles(`./public/validators/${nimiqNetwork}/`)
 
     // Fetch missing data
     await runTask('fetch')

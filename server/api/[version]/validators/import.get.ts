@@ -7,8 +7,10 @@ export default defineEventHandler(async () => {
     const validators = await useDrizzle().select().from(tables.validators).all()
     await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { force: true })))
 
+    const { nimiqNetwork } = useRuntimeConfig().public
+
     // Now, get the custom validators from the public/validators folder
-    await importValidatorsFromFiles('./public/validators')
+    await importValidatorsFromFiles(`./public/validators/${nimiqNetwork}/`)
   }
   catch (e) {
     return createError((e as Error))

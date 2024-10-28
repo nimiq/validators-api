@@ -12,7 +12,7 @@ Details of validators in the Nimiq Blockchain and their scores, calculated using
 [![Fetch Missing Epochs](https://github.com/nimiq/validators-api/actions/workflows/fetch-epochs.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/fetch-epochs.yml)
 
 > [!NOTE]
-> If you're a validator and would like to add your data to the API, please open a pull request (PR) with your JSON file, following the structure of `./public/validators/.example` in the `./public/validators` directory.
+> If you're a validator and would like to add your data to the API, please open a pull request (PR) with your JSON file, following the structure of [example.json](`./public/validators/albatross/.example.json`) in the `./public/validators/albatross` directory.
 
 ## Add your validator information
 
@@ -21,7 +21,7 @@ If you run your own validator and want it to be recognized, you can add a name, 
 In order to do so, follow these steps:
 
 1. [Fork this repository](https://github.com/nimiq/validators-api/fork).
-2. Create a new file in the [validators folder](./public/validators/) with the structure explained below:
+2. Create a new file in the [validators folder](./public/validators/albatross) with the structure explained below:
 
 <details>
   <summary>Validator JSON fields</summary>
@@ -39,7 +39,7 @@ When you add your validator information, you'll need to include certain keys in 
 - `website` (optional): The URL of your validator's website.
 - `icon` (optional): An SVG icon representing your pool, encoded in base64 format. It is preferred that the icon has the Nimiq hexagon shape. For reference, please check the bottom part of the 'Colours' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
 
-You can also checkout [JSON example](`./public/validators/.example.json`).
+You can also checkout [JSON example](`./public/validators/albatross/.example.json`).
 
 </details>
 
