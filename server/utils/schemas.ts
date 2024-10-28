@@ -24,6 +24,6 @@ export const validatorSchema = z.object({
 })
 
 export const mainQuerySchema = z.object({
-  pools: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
   active: z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
 })

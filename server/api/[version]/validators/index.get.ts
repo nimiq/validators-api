@@ -4,7 +4,7 @@ import { mainQuerySchema } from '~~/server/utils/schemas'
 import { fetchValidators } from '~~/server/utils/validators'
 
 export default defineEventHandler(async (event) => {
-  const { pools, active } = await getValidatedQuery(event, mainQuerySchema.parse)
+  const { payoutType, active } = await getValidatedQuery(event, mainQuerySchema.parse)
 
   let addresses: string[] = []
   let activeValidators: Validator[] = []
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     addresses = activeValidators.map(v => v.address)
   }
 
-  const { data: validators, error: errorValidators } = await fetchValidators({ pools, addresses })
+  const { data: validators, error: errorValidators } = await fetchValidators({ payoutType, addresses })
   if (errorValidators || !validators)
     throw createError(errorValidators)
 
