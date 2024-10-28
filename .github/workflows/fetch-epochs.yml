@@ -36,14 +36,21 @@ jobs:
           for epoch in $EPOCHS; do
             echo "Processing epoch $epoch"
 
-            # Make the API call for this epoch
-            RESPONSE=$(curl -s "${{ env.API_BASE_URL }}/api/v1/epochs/$epoch")
+            # Make the API call and capture both response and status code
+            HTTP_RESPONSE=$(curl -s -w "%{http_code}" "${{ env.API_BASE_URL }}/api/v1/epochs/$epoch")
+            HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
+            RESPONSE_BODY=$(echo "$HTTP_RESPONSE" | sed '$ d')
 
-            if [ $? -eq 0 ]; then
-              echo "Successfully processed epoch $epoch"
+            if [ "$HTTP_STATUS" -eq 500 ]; then
+              echo "Error 500 received for epoch $epoch"
+              echo "Response body: $RESPONSE_BODY"
+              continue  # Skip to next epoch on 500 error
+            elif [ "$HTTP_STATUS" -ne 200 ]; then
+              echo "Error: HTTP status $HTTP_STATUS for epoch $epoch"
+              echo "Response body: $RESPONSE_BODY"
+              continue  # Skip to next epoch on other errors
             else
-              echo "Error processing epoch $epoch"
-              exit 1
+              echo "Successfully processed epoch $epoch"
             fi
           done
 
