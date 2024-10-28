@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "68dee06a-36fa-441e-a06b-13c1ae0b9918",
+  "id": "f05f3a21-331e-468a-a367-75e97f516b61",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -81,7 +81,15 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "activity_validator_id_epoch_number_pk": {
+          "columns": [
+            "validator_id",
+            "epoch_number"
+          ],
+          "name": "activity_validator_id_epoch_number_pk"
+        }
+      },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
@@ -169,7 +177,16 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "scores_validator_id_from_epoch_to_epoch_pk": {
+          "columns": [
+            "validator_id",
+            "from_epoch",
+            "to_epoch"
+          ],
+          "name": "scores_validator_id_from_epoch_to_epoch_pk"
+        }
+      },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
@@ -256,7 +273,12 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "checkConstraints": {
+        "enum_check": {
+          "name": "enum_check",
+          "value": "\"validators\".\"payout_type\" IN ('none', 'restake', 'direct')"
+        }
+      }
     }
   },
   "views": {},

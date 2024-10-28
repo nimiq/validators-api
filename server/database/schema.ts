@@ -16,7 +16,7 @@ export const validators = sqliteTable('validators', {
   uniqueAddress: uniqueIndex('validators_address_unique').on(table.address),
   enumCheck: check(
     'enum_check',
-    sql`${table.payoutType} IN (${Object.values(PayoutType).map(value => `'${value}'`).join(', ')})`,
+    sql`${table.payoutType} IN ('none', 'restake', 'direct')`, // Make sure to update these values if the PayoutType changes
   ),
 }))
 

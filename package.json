@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@9.12.2",
+  "packageManager": "pnpm@9.12.3",
   "scripts": {
     "build": "nuxi build",
     "dev:packages": "pnpm --filter=./packages/* --parallel run dev",
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@nimiq/core": "next",
-    "@nuxthub/core": "^0.7.36",
+    "@nuxthub/core": "^0.8.3",
     "@unovis/ts": "^1.4.4",
     "@unovis/vue": "^1.4.4",
     "@vueuse/core": "^11.1.0",
@@ -30,7 +30,7 @@
     "nimiq-validators-score": "workspace:*",
     "nuxt": "^3.13.2",
     "pinia": "^2.2.4",
-    "radix-vue": "^1.9.7",
+    "radix-vue": "^1.9.8",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5",
     "zod": "^3.23.8"
