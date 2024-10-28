@@ -1,11 +1,11 @@
 import type { NewValidator, Validator } from './drizzle'
 import type { PayoutType, Result, ValidatorScore } from './types'
-import { Buffer } from 'node:buffer'
+// import { Buffer } from 'node:buffer'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { desc, inArray } from 'drizzle-orm'
-// @ts-expect-error no types in the package
-import Identicons from '@nimiq/identicons'
+// // @ts-expect-error no types in the package
+// import Identicons from '@nimiq/identicons'
 import { consola } from 'consola'
 import { validatorSchema } from './schemas'
 
