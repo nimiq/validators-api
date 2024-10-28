@@ -11,7 +11,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
 
   // Epochs start at 1, but election block is the first block of the epoch
   const electionBlock = genesisBlockNumber + ((epochIndex - 1) * blocksPerEpoch)
-  const { data: block, error } = await client.blockchain.getBlockByNumber(electionBlock, { includeBody: true })
+  const { data: block, error } = await client.blockchain.getBlockByNumber(electionBlock, { includeBody: false })
   if (error || !block) {
     console.error(JSON.stringify({ epochIndex, error, block }))
     return {}
