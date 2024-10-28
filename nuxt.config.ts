@@ -59,7 +59,7 @@ export default defineNuxtConfig({
   hooks: {
     'build:before': async () => {
       const nimiqNetwork = process.env.NUXT_PUBLIC_NIMIQ_NETWORK as string
-      const validNimiqNetworks = ['albatross', 'devalbatross']
+      const validNimiqNetworks = ['albatross', 'testalbatross']
       if (!validNimiqNetworks.includes(nimiqNetwork)) {
         throw new Error(`Invalid nimiqNetwork: ${nimiqNetwork}. Please make sure it is one of: ${validNimiqNetworks.join(', ')}`)
       }
