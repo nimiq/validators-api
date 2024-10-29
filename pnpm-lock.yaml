@@ -44,6 +44,9 @@ importers:
       drizzle-orm:
         specifier: ^0.35.3
         version: 0.35.3(@cloudflare/workers-types@4.20241022.0)(@libsql/client-wasm@0.14.0)
+      identicons-esm:
+        specifier: ^0.0.6
+        version: 0.0.6
       nimiq-rpc-client-ts:
         specifier: ^0.4.5
         version: 0.4.5(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -72,9 +75,6 @@ importers:
       '@antfu/eslint-config':
         specifier: 'catalog:'
         version: 3.8.0(@typescript-eslint/utils@8.11.0(eslint@9.13.0(jiti@2.3.3))(typescript@5.6.3))(@unocss/eslint-plugin@0.63.6(eslint@9.13.0(jiti@2.3.3))(typescript@5.6.3))(@vue/compiler-sfc@3.5.12)(eslint-plugin-format@0.1.2(eslint@9.13.0(jiti@2.3.3)))(eslint@9.13.0(jiti@2.3.3))(typescript@5.6.3)(vitest@2.0.5(@types/node@22.8.1)(terser@5.36.0))
-      '@nimiq/identicons':
-        specifier: ^1.6.2
-        version: 1.6.2
       '@nuxt/eslint':
         specifier: ^0.6.0
         version: 0.6.0(bufferutil@4.0.8)(eslint@9.13.0(jiti@2.3.3))(magicast@0.3.5)(rollup@4.24.2)(typescript@5.6.3)(utf-8-validate@5.0.10)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0))(webpack-sources@3.2.3)
@@ -1683,9 +1683,6 @@ packages:
 
   '@nimiq/core@2.0.0-next.rc.0':
     resolution: {integrity: sha512-mExuJIO9VIuH/MO/Od0o357hcUQ5hxdRzReTieGP1XO7tD/X+saHDsCWfCM+SowWyrbqzOBtEDzWmRpAktQzzg==}
-
-  '@nimiq/identicons@1.6.2':
-    resolution: {integrity: sha512-O8XaSRoOwDjnQjOaWIi4wnELoYSu48WXfApYtz2dzMlFpY+pzekTmQaqS2kYR9uj+6KUiUfBSIVPJUhpWkp88w==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -3635,9 +3632,6 @@ packages:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
     engines: {node: '>=6.0.0'}
 
-  dom-parser@0.1.6:
-    resolution: {integrity: sha512-3nVRKbLEwmGfghLoeT1dxlK/0votalnOfasP+8VCHYDfDuCETY4LeMblfOeqww6XZk2ymZ1Uewy/hVad6Dy3yw==}
-
   dom-serializer@2.0.0:
     resolution: {integrity: sha512-wIkAryiqt/nV5EQKqQpo3SToSOV9J0DnbJqwK7Wv/Trc92zIAYZ4FlMu+JPFW1DfGFt81ZTCGgDEabffXeLyJg==}
 
@@ -4448,6 +4442,9 @@ packages:
   iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
     engines: {node: '>=0.10.0'}
+
+  identicons-esm@0.0.6:
+    resolution: {integrity: sha512-dENh3JdQKm9wrKc1Ui4zBy4VHQY06MTBiqT+88H2+IRct149o6UKA43x58EU2obVhJZ70mTYkGrhtkprOmLEtg==}
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -8065,10 +8062,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@nimiq/identicons@1.6.2':
-    dependencies:
-      dom-parser: 0.1.6
-
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -10615,8 +10608,6 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
-  dom-parser@0.1.6: {}
-
   dom-serializer@2.0.0:
     dependencies:
       domelementtype: 2.3.0
@@ -11603,6 +11594,8 @@ snapshots:
   iconv-lite@0.6.3:
     dependencies:
       safer-buffer: 2.1.2
+
+  identicons-esm@0.0.6: {}
 
   ieee754@1.2.1: {}
 
