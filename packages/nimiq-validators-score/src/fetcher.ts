@@ -45,8 +45,8 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
   const createPromise = async (index: number, retryCount = 0): Promise<void> => {
     try {
       const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + index)
-      if (errorBatch || !inherents)
-        throw new Error(`Batch fetch failed: ${errorBatch}`)
+      if (errorBatch || !inherents || inherents.length === 0)
+        throw new Error(inherents?.length === 0 ? `No inherents found in batch ${firstBatchIndex + index}` : `Batch fetch failed: ${errorBatch}`)
 
       for (const { type, validatorAddress } of inherents) {
         if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000' || !epochActivity[validatorAddress])
@@ -59,6 +59,8 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
       }
     }
     catch (error) {
+      if ((error as Error).message.includes('No inherents found'))
+        throw error
       if (retryCount >= maxRetries)
         throw new Error(`Max retries exceeded for batch ${firstBatchIndex + index}: ${error}`)
 
