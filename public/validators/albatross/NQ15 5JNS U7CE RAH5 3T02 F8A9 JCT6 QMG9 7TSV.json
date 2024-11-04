@@ -1,7 +1,7 @@
 {
   "name": "ObsidianStake",
-  "description": "Direct payout after every epoch (12 hours)",
-  "website": "https://pool.nimiq-validator.com",
+  "description": "Choose your payout method on our website. Payout after every epoch (12 hours)",
+  "website": "https://obsidianstake.com",
   "address": "NQ15 5JNS U7CE RAH5 3T02 F8A9 JCT6 QMG9 7TSV",
   "fee": 0.05,
   "payoutType": "direct",
