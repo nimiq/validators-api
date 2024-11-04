@@ -3,7 +3,7 @@ name: Fetch Missing Epochs
 on:
   workflow_dispatch: # Allows manual trigger
   schedule:
-    - cron: '0 */6 * * *' # Runs every 6 hours
+    - cron: '0 * * * *' # Runs every hour
 
 env:
   API_BASE_URL: 'https://validators-api-nimiq.nuxt.dev'
