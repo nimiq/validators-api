@@ -32,7 +32,7 @@ When you add your validator information, you'll need to include certain keys in 
 - `fee` (required): A number between 0 and 1 representing the fee percentage charged by your validator. For example, 0.05 represents a 5% fee.
 - `payoutType` (required): The method used to pay out validator rewards. Possible values are:
   - `restake`: Rewards are automatically restaked.
-  - `direct`: Rewards are paid directly into the staker's wallet and are not automatically repaid.
+  - `direct`: Rewards are paid directly into the staker's wallet and are not automatically restaked.
   - `none`: No rewards will be paid out.
 - `name` (optional): The name of the validator. If not specified, the address of the validator is used by default.
 - `description` (optional): A short description of your validator.
