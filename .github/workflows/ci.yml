@@ -23,6 +23,9 @@ jobs:
         with:
           node-version: lts/*
 
+      - name: Set .env file
+        run: echo "NUXT_PUBLIC_NIMIQ_NETWORK=test-albatross" > .env
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
@@ -41,6 +44,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+
+      - name: Set .env file
+        run: echo "NUXT_PUBLIC_NIMIQ_NETWORK=test-albatross" > .env
 
       - name: Install
         run: pnpm install --frozen-lockfile
