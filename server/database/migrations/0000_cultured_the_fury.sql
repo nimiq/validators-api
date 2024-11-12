@@ -32,9 +32,12 @@ CREATE TABLE `validators` (
 	`description` text,
 	`fee` real DEFAULT -1,
 	`payout_type` text DEFAULT 'none',
+	`payout_schedule` text DEFAULT '',
 	`is_maintained_by_nimiq` integer DEFAULT false,
 	`icon` text NOT NULL,
+	`accent_color` text NOT NULL,
 	`website` text,
+	`contact` text,
 	CONSTRAINT "enum_check" CHECK("validators"."payout_type" IN ('none', 'restake', 'direct'))
 );
 --> statement-breakpoint

@@ -4,7 +4,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
 import { desc, inArray } from 'drizzle-orm'
-import { createIdenticon } from 'identicons-esm'
+import { createIdenticon, getIdenticonsParams } from 'identicons-esm'
 import { validatorSchema } from './schemas'
 
 /**
@@ -31,12 +31,12 @@ interface StoreValidatorOptions {
    * If true, it will store the validator even if it already exists in the database.
    * @default false
    */
-  force?: boolean
+  upsert?: boolean
 }
 
 export async function storeValidator(
   address: string,
-  rest: Omit<NewValidator, 'address' | 'icon'> & { icon?: string } = {},
+  rest: Omit<NewValidator, 'address' | 'icon' | 'accentColor'> & { icon?: string, accentColor?: string } = {},
   options: StoreValidatorOptions = {},
 ): Promise<number | undefined> {
   try {
@@ -48,10 +48,10 @@ export async function storeValidator(
     return
   }
 
-  const { force = false } = options
+  const { upsert = false } = options
 
-  // If the validator is cached and force is not true, return it
-  if (!force && validators.has(address)) {
+  // If the validator is cached and upsert is not true, return it
+  if (!upsert && validators.has(address)) {
     return validators.get(address)
   }
 
@@ -63,32 +63,38 @@ export async function storeValidator(
     .get()
     .then(r => r?.id)
 
-  // If the validator exists and force is not true, return it
-  if (validatorId && !force) {
+  // If the validator exists and upsert is not true, return it
+  if (validatorId && !upsert) {
     validators.set(address, validatorId)
     return validatorId
   }
 
-  consola.info(`${force ? 'Updating' : 'Storing'} validator ${address}`)
+  consola.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`)
 
-  async function getIcon() {
-    if (rest.icon)
-      return rest.icon
-    return await createIdenticon(address, { format: 'image/svg+xml' })
+  async function getBrandingParameters() {
+    if (rest.icon) {
+      // TODO Once the validators have accent colors, re-enable this check
+      // if (!rest.accentColor)
+      //   throw new Error(`The validator ${address} does have an icon but not an accent color`)
+      return { icon: rest.icon, accentColor: rest.accentColor! }
+    }
+    const icon = await createIdenticon(address, { format: 'image/svg+xml' })
+    const { colors: { background: accentColor } } = await getIdenticonsParams(address)
+    return { icon, accentColor }
   }
 
-  const icon = await getIcon()
+  const brandingParameters = await getBrandingParameters()
   if (validatorId) {
     await useDrizzle()
       .update(tables.validators)
-      .set({ ...rest, icon })
+      .set({ ...rest, ...brandingParameters })
       .where(eq(tables.validators.id, validatorId))
       .execute()
   }
   else {
     validatorId = await useDrizzle()
       .insert(tables.validators)
-      .values({ ...rest, address, icon })
+      .values({ ...rest, address, ...brandingParameters })
       .returning()
       .get()
       .then(r => r.id)
@@ -175,5 +181,5 @@ export async function importValidatorsFromFiles(folderPath: string) {
 
     validators.push(validator)
   }
-  await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { force: true })))
+  await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
 }

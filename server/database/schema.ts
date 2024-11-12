@@ -9,9 +9,12 @@ export const validators = sqliteTable('validators', {
   description: text('description'),
   fee: real('fee').default(-1),
   payoutType: text('payout_type').default(PayoutType.None),
+  payoutSchedule: text('payout_schedule').default(''),
   isMaintainedByNimiq: integer('is_maintained_by_nimiq', { mode: 'boolean' }).default(false),
   icon: text('icon').notNull(),
+  accentColor: text('accent_color').notNull(),
   website: text('website'),
+  contact: text('contact', { mode: 'json' }),
 }, table => ({
   uniqueAddress: uniqueIndex('validators_address_unique').on(table.address),
   enumCheck: check(

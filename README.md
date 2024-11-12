@@ -34,10 +34,23 @@ When you add your validator information, you'll need to include certain keys in 
   - `restake`: Rewards are automatically restaked.
   - `direct`: Rewards are paid directly into the staker's wallet and are not automatically restaked.
   - `none`: No rewards will be paid out.
+- `payoutSchedule` (optional): A string to indicate the payout schedule. This could be helpful for users to know when to expect rewards. Any string is valid. e.g: 'Daily', 'Twice a day', 'Once per trimester'...
 - `name` (optional): The name of the validator. If not specified, the address of the validator is used by default.
 - `description` (optional): A short description of your validator.
 - `website` (optional): The URL of your validator's website.
 - `icon` (optional): An SVG icon representing your pool, encoded in base64 format. It is preferred that the icon has the Nimiq hexagon shape. For reference, please check the bottom part of the 'Colours' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
+- `accentColor` (optional). Required if `icon` is set. An optional color to align with the validator's branding, defaulting to the identicon background color if left blank. Needs to be in hexadecimal. e.g. '#1f2348'.
+- `contact` (optional). An optional field allowing validators to share contact details so users can easily get in touch. The structure would look like this:
+  - `email` (optional)
+  - `telegram` (optional). e.g. `@nimiq`
+  - `twitter` (optional). e.g. `@nimiq`
+  - `discordInvitationUrl` (optional). A URL to your Discord invitation.
+  - `bluesky` (optional). e.g. `@nimiq`
+  - `github` (optional). e.g. `nimiq`
+  - `linkedin` (optional). e.g. `nimiq`
+  - `facebook` (optional). e.g. `nimiq`
+  - `instagram` (optional). e.g. `@nimiq`
+  - `youtube` (optional). e.g. `nimiq`
 
 You can also checkout [JSON example](./public/validators/albatross/.example.json).
 

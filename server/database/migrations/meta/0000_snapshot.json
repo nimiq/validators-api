@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a8f8ee04-5f9a-4672-8ed2-a1d521ebeba5",
+  "id": "d7d79ad4-d12e-4e49-95be-b90392fdf615",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -238,6 +238,14 @@
           "autoincrement": false,
           "default": "'none'"
         },
+        "payout_schedule": {
+          "name": "payout_schedule",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "''"
+        },
         "is_maintained_by_nimiq": {
           "name": "is_maintained_by_nimiq",
           "type": "integer",
@@ -253,8 +261,22 @@
           "notNull": true,
           "autoincrement": false
         },
+        "accent_color": {
+          "name": "accent_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "website": {
           "name": "website",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "contact": {
+          "name": "contact",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

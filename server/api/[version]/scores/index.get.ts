@@ -41,6 +41,7 @@ export default defineEventHandler(async (event) => {
       address: tables.validators.address,
       fee: tables.validators.fee,
       payoutType: tables.validators.payoutType,
+      payoutSchedule: tables.validators.payoutSchedule,
       description: tables.validators.description,
       icon: tables.validators.icon,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,

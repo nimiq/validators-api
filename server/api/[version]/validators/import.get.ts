@@ -5,7 +5,7 @@ export default defineEventHandler(async () => {
   try {
     // First update database with default data, this will populate the icon of unknown validators that didn't have an icon
     const validators = await useDrizzle().select().from(tables.validators).all()
-    await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { force: true })))
+    await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
 
     const { nimiqNetwork } = useRuntimeConfig().public
 

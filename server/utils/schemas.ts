@@ -17,10 +17,24 @@ export const validatorSchema = z.object({
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
   fee: z.number().min(0).max(1),
   payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
+  payoutSchedule: z.string().optional().default(''),
   isMaintainedByNimiq: z.boolean().optional(),
   description: z.string().optional(),
   website: z.string().url().optional(),
   icon: z.string().optional(),
+  accentColor: z.string().optional(),
+  contact: z.object({
+    email: z.string().email().optional(),
+    twitter: z.string().regex(/^@?(\w){1,15}$/).optional(),
+    telegram: z.string().regex(/^@?(\w){5,32}$/).optional(),
+    discordInvitationUrl: z.string().url().optional(),
+    bluesky: z.string().regex(/^@?(\w){1,32}$/).optional(),
+    github: z.string().regex(/^@?(\w){1,39}$/).optional(),
+    linkedin: z.string().regex(/^@?(\w){1,50}$/).optional(),
+    facebook: z.string().regex(/^@?(\w){1,50}$/).optional(),
+    instagram: z.string().regex(/^@?(\w){1,30}$/).optional(),
+    youtube: z.string().regex(/^@?(\w){1,50}$/).optional(),
+  }).optional(),
 })
 
 export const mainQuerySchema = z.object({
