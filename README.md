@@ -12,7 +12,7 @@ Details of validators in the Nimiq Blockchain and their scores, calculated using
 [![Fetch Missing Epochs](https://github.com/nimiq/validators-api/actions/workflows/fetch-epochs.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/fetch-epochs.yml)
 
 > [!NOTE]
-> If you're a validator and would like to add your data to the API, please open a pull request (PR) with your JSON file, following the structure of [example.json](./public/validators/albatross/.example.json) in the `./public/validators/albatross` directory.
+> If you're a validator and would like to add your data to the API, please open a pull request (PR) with your JSON file, following the structure of [example.json](./public/validators/main-albatross/.example.json) in the `./public/validators/main-albatross` directory.
 
 ## Add your validator information
 
@@ -21,7 +21,7 @@ If you run your own validator and want it to be recognized, you can add a name, 
 In order to do so, follow these steps:
 
 1. [Fork this repository](https://github.com/nimiq/validators-api/fork).
-2. Create a new file in the [validators folder](./public/validators/albatross) with the structure explained below:
+2. Create a new file in the [validators folder](./public/validators/main-albatross) with the structure explained below:
 
 <details>
   <summary>Validator JSON fields</summary>
@@ -52,20 +52,17 @@ When you add your validator information, you'll need to include certain keys in 
   - `instagram` (optional). e.g. `@nimiq`
   - `youtube` (optional). e.g. `nimiq`
 
-You can also checkout [JSON example](./public/validators/albatross/.example.json).
+You can also checkout [JSON example](./public/validators/main-albatross/.example.json).
 
 </details>
 
 3. Submit a PR to this repo. Someone in the team will review it.
 4. Once the PR is submitted, check that the [API endpoint](https://validators-api-nimiq.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
-5. Once the PR is submitted, check that the [API endpoint](https://validators-api-nimiq.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
 
 > By submitting this information, various Nimiq applications, such as the Nimiq Wallet, will show users the fields you have submitted and the Validator Score associated with your validator in the future. You can read more about the Validator Score in the [Developer's Center (Preview)](https://deploy-preview-21--developer-center.netlify.app/learn/validator-trust-score).
 
-
 > [!WARNING]
 > Nimiq reserves the right to make minor adjustments to the content submitted by validator owners, if deemed necessary.
-
 
 ## Validators Dashboard
 
