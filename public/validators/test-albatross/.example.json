@@ -4,7 +4,7 @@
   "website": "Optional. The website of the validator.",
   "address": "NQXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX",
   "icon": "Optional. A base64 encoded SVG icon. By default identicon is used.",
-  "brandColor": "Required if icon is set. The brand color of the validator. Hex color code. e.g. '#1f2348'. Default to identicon background color.",
+  "accentColor": "Required if icon is set. The brand color of the validator. Hex color code. e.g. '#1f2348'. Default to identicon background color.",
   "fee": -1,
   "payoutType": "none",
   "payoutSchedule": "Optional. The payout frecuency of the validator. Any string is valid. e.g: 'Daily', 'Twice a day'",
