@@ -8,7 +8,7 @@ defineProps<{ data: ValidatorScore[] }>()
 
 const isMounted = useMounted()
 
-const value = (d: ValidatorScore) => d.sizeRatio
+const value = (d: ValidatorScore) => d.size
 const label = (d: ValidatorScore) => d.name || d.address
 
 const colors = ['red', 'orange', 'blue', 'green', 'gold']

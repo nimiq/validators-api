@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
+    "@iconify-json/nimiq": "https://pkg.pr.new/onmax/nimiq-ui/nimiq-icons@814b6a1",
     "@nuxt/eslint": "^0.6.0",
     "@nuxt/image": "^1.8.1",
     "@nuxtjs/color-mode": "^3.5.2",

@@ -11,6 +11,6 @@ export default defineNitroPlugin(async () => {
     await importValidatorsFromFiles(`./public/validators/${nimiqNetwork}/`)
 
     // Fetch missing data
-    await runTask('fetch')
+    // await runTask('fetch')
   })
 })

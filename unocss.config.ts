@@ -1,6 +1,6 @@
 import { presetRemToPx } from '@unocss/preset-rem-to-px'
 import { presetNimiq } from 'nimiq-css'
-import { defineConfig, presetAttributify, presetUno } from 'unocss'
+import { defineConfig, presetAttributify, presetIcons, presetUno } from 'unocss'
 
 export default defineConfig({
   presets: [
@@ -12,6 +12,7 @@ export default defineConfig({
     }),
     presetRemToPx({ baseFontSize: 4 }),
     presetAttributify(),
+    presetIcons(),
   ],
   rules: [
     [/^view-transition-([\w-]+)$/, ([, name]: [string, string]) => ({ 'view-transition-name': name })],
