@@ -1,9 +1,9 @@
 {
-  "name": "nimiq-validators-score",
+  "name": "nimiq-supply-calculator",
   "type": "module",
   "version": "0.0.1",
   "packageManager": "pnpm@9.9.0",
-  "description": "The algorithm to compute the Nimiq's Validator Score",
+  "description": "Utilities to compute the cryptocurrency supply for Nimiq during the transition from Proof-of-Work (PoW) to Proof-of-Stake (PoS)",
   "license": "MIT",
   "homepage": "https://github.com/nimiq/validators-api#readme",
   "repository": {
@@ -18,6 +18,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.mjs",
+      "require": "./dist/utils.cjs"
+    },
+    "./pos": {
+      "types": "./dist/pos.d.ts",
+      "import": "./dist/pos.mjs",
+      "require": "./dist/pos.cjs"
+    },
+    "./pow": {
+      "types": "./dist/pow.d.ts",
+      "import": "./dist/pow.mjs",
+      "require": "./dist/pow.cjs"
     }
   },
   "main": "./dist/index.mjs",
@@ -45,11 +60,6 @@
     "test": "vitest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
-  },
-  "dependencies": {
-    "defu": "^6.1.4",
-    "nimiq-rpc-client-ts": "^0.4.5",
-    "vitest": "^2.0.5"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",

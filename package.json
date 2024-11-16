@@ -44,6 +44,7 @@
     "@nuxt/image": "^1.8.1",
     "@nuxtjs/color-mode": "^3.5.2",
     "@pinia/nuxt": "^0.5.5",
+    "@types/node": "^22.9.0",
     "@unocss/eslint-config": "^0.63.6",
     "@unocss/nuxt": "^0.63.6",
     "@unocss/preset-rem-to-px": "^0.63.6",
