@@ -41,6 +41,6 @@ export const validatorSchema = z.object({
 export const mainQuerySchema = z.object({
   payoutType: z.nativeEnum(PayoutType).optional(),
   onlyActive: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
-  onlyKnown: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  onlyKnown: z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
   withIdenticon: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
 })
