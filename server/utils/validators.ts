@@ -5,6 +5,7 @@ import path from 'node:path'
 import { consola } from 'consola'
 import { desc, inArray, not } from 'drizzle-orm'
 import { createIdenticon, getIdenticonsParams } from 'identicons-esm'
+import { optimize } from 'svgo'
 import { validatorSchema } from './schemas'
 
 /**
@@ -76,7 +77,8 @@ export async function storeValidator(
       // TODO Once the validators have accent colors, re-enable this check
       // if (!rest.accentColor)
       //   throw new Error(`The validator ${address} does have an icon but not an accent color`)
-      return { icon: rest.icon, accentColor: rest.accentColor!, hasDefaultIcon: false }
+      const { data: icon } = optimize(rest.icon, { plugins: [{ name: 'preset-default' }] })
+      return { icon, accentColor: rest.accentColor!, hasDefaultIcon: false }
     }
     const icon = await createIdenticon(address, { format: 'image/svg+xml' })
     const { colors: { background: accentColor } } = await getIdenticonsParams(address)

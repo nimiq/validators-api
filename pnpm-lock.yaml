@@ -25,7 +25,7 @@ importers:
     dependencies:
       '@nimiq/core':
         specifier: next
-        version: 2.0.0-next.rc.0
+        version: 2.0.0-next.rc.4
       '@nuxthub/core':
         specifier: ^0.8.3
         version: 0.8.3(ioredis@5.4.1)(magicast@0.3.5)(rollup@4.24.2)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0))(webpack-sources@3.2.3)
@@ -62,6 +62,9 @@ importers:
       radix-vue:
         specifier: ^1.9.8
         version: 1.9.8(vue@3.5.12(typescript@5.6.3))
+      svgo:
+        specifier: ^3.3.2
+        version: 3.3.2
       vue:
         specifier: ^3.5.12
         version: 3.5.12(typescript@5.6.3)
@@ -1681,8 +1684,8 @@ packages:
     resolution: {integrity: sha512-q3L9i3HoNfz0SGpTIS4zTcKBbRkxzCRpd169eyiTuk3IwcPC3/85mzLHranlKo2b+HYT0gu37YxGB45aD8A3Tw==}
     engines: {node: '>=18.0.0'}
 
-  '@nimiq/core@2.0.0-next.rc.0':
-    resolution: {integrity: sha512-mExuJIO9VIuH/MO/Od0o357hcUQ5hxdRzReTieGP1XO7tD/X+saHDsCWfCM+SowWyrbqzOBtEDzWmRpAktQzzg==}
+  '@nimiq/core@2.0.0-next.rc.4':
+    resolution: {integrity: sha512-qSBy/Mg0rbqAstEnrgzGhqeQpmQdOjCZPWmBV5uFxAMAAYl9nrABaXWQXo3Jvemvx5VQE9pz5/ma3I8Z0ROy1g==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -8055,7 +8058,7 @@ snapshots:
       '@netlify/node-cookies': 0.1.0
       urlpattern-polyfill: 8.0.2
 
-  '@nimiq/core@2.0.0-next.rc.0':
+  '@nimiq/core@2.0.0-next.rc.4':
     dependencies:
       comlink: 4.4.1
       websocket: 1.0.35
