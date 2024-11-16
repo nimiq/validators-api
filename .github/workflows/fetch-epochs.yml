@@ -6,8 +6,8 @@ on:
     - cron: '0 * * * *' # Runs every hour
 
 env:
-  API_BASE_URL: 'https://validators-api-nimiq.nuxt.dev'
-  API_BASE_URL_TESTNET: 'https://validators-api-nimiq-testnet.nuxt.dev'
+  API_BASE_URL: 'https://validators-api-mainnet.nuxt.dev'
+  API_BASE_URL_TESTNET: 'https://validators-api-testnet.nuxt.dev'
 
 jobs:
   fetch-epochs-mainnet:

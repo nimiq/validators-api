@@ -1,7 +1,7 @@
 <h1 align="center">Nimiq Validators</h1>
 
 <p align="center">
-  <a href="https://validators-api.pages.dev">
+  <a href="https://validators-api-mainnet.pages.dev">
     <img src="./public/favicon.svg" alt="Nimiq Validators" width="64" />
   </a>
 
@@ -57,7 +57,7 @@ You can also checkout [JSON example](./public/validators/main-albatross/.example
 </details>
 
 3. Submit a PR to this repo. Someone in the team will review it.
-4. Once the PR is submitted, check that the [API endpoint](https://validators-api-nimiq.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
+4. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
 
 > By submitting this information, various Nimiq applications, such as the Nimiq Wallet, will show users the fields you have submitted and the Validator Score associated with your validator in the future. You can read more about the Validator Score in the [Developer's Center (Preview)](https://deploy-preview-21--developer-center.netlify.app/learn/validator-trust-score).
 
@@ -66,22 +66,22 @@ You can also checkout [JSON example](./public/validators/main-albatross/.example
 
 ## Validators Dashboard
 
-https://validators-api.pages.dev/
+https://validators-api-mainnet.pages.dev/
 
 The dashboard is a simple Nuxt application that displays all validators and their scores.
 
 ## Validators API
 
-| Endpoint                                                                       | Description                                                       |
-| ------------------------------------------------------------------------------ | :---------------------------------------------------------------- |
-| [/api/v1/scores](https://validators-api.pages.dev/api/v1/scores)               | An endpoint that returns the list of validators and their scores. |
-| [/api/v1/scores/health](https://validators-api.pages.dev/api/v1/scores/health) | An endpoint that returns the state of the database.               |
+| Endpoint                                                                               | Description                                                       |
+| -------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
+| [/api/v1/scores](https://validators-api-mainnet.pages.dev/api/v1/scores)               | An endpoint that returns the list of validators and their scores. |
+| [/api/v1/scores/health](https://validators-api-mainnet.pages.dev/api/v1/scores/health) | An endpoint that returns the state of the database.               |
 
 ## Validator Score
 
 [Source code](./packages/nimiq-validators-score/)
 
-This is a npm package that calculates the Trust Score of a validator. You can read more about the Score [here](https://validators-api.pages.dev/scores).
+This is a npm package that calculates the Trust Score of a validator. You can read more about the Score [here](https://validators-api-mainnet.pages.dev/scores).
 
 ## Validator Details
 
