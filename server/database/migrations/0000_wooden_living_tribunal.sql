@@ -35,6 +35,7 @@ CREATE TABLE `validators` (
 	`payout_schedule` text DEFAULT '',
 	`is_maintained_by_nimiq` integer DEFAULT false,
 	`icon` text NOT NULL,
+	`has_default_icon` integer DEFAULT true NOT NULL,
 	`accent_color` text NOT NULL,
 	`website` text,
 	`contact` text,

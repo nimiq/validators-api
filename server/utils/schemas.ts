@@ -22,7 +22,7 @@ export const validatorSchema = z.object({
   description: z.string().optional(),
   website: z.string().url().optional(),
   icon: z.string().optional(),
-  hasDefaultIcon: z.boolean(),
+  hasDefaultIcon: z.boolean().default(true),
   accentColor: z.string().optional(),
   contact: z.object({
     email: z.string().email().optional(),

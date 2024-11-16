@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d7d79ad4-d12e-4e49-95be-b90392fdf615",
+  "id": "50f27077-e094-4dbf-83d3-fe2c4c9f788d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -260,6 +260,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "has_default_icon": {
+          "name": "has_default_icon",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
         },
         "accent_color": {
           "name": "accent_color",
