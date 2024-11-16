@@ -15,13 +15,13 @@ export const rangeQuerySchema = z.object({
 export const validatorSchema = z.object({
   name: z.string().optional(),
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
-  fee: z.number().min(0).max(1),
+  fee: z.literal(-1).or(z.number().min(0).max(1)).default(-1),
   payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
   payoutSchedule: z.string().optional().default(''),
   isMaintainedByNimiq: z.boolean().optional(),
   description: z.string().optional(),
   website: z.string().url().optional(),
-  icon: z.string().optional(),
+  icon: z.string().regex(/^data:image\/(png|svg\+xml|webp);base64,/).optional(),
   hasDefaultIcon: z.boolean().default(true),
   accentColor: z.string().optional(),
   contact: z.object({
@@ -39,8 +39,9 @@ export const validatorSchema = z.object({
 })
 
 export const mainQuerySchema = z.object({
-  payoutType: z.nativeEnum(PayoutType).optional(),
-  onlyActive: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
-  onlyKnown: z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
-  withIdenticon: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'payoutType': z.nativeEnum(PayoutType).optional(),
+  'onlyActive': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'only-known': z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
+  'withIdenticon': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'with-scores': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
 })
