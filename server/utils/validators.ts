@@ -3,7 +3,7 @@ import type { PayoutType, Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray } from 'drizzle-orm'
+import { desc, inArray, not } from 'drizzle-orm'
 import { createIdenticon, getIdenticonsParams } from 'identicons-esm'
 import { validatorSchema } from './schemas'
 
@@ -133,14 +133,17 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
 export interface FetchValidatorsOptions {
   payoutType?: PayoutType
   addresses?: string[]
+  onlyKnown?: boolean
 }
 
-export async function fetchValidators({ payoutType, addresses = [] }: FetchValidatorsOptions): Result<Validator[]> {
+export async function fetchValidators({ payoutType, addresses = [], onlyKnown = false }: FetchValidatorsOptions): Result<Validator[]> {
   const filters = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
   if (addresses?.length > 0)
     filters.push(inArray(tables.validators.address, addresses))
+  if (onlyKnown)
+    filters.push(not(eq(tables.validators.name, 'Unknown validator')))
 
   const validators = await useDrizzle()
     .select()

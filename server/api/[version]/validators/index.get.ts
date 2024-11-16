@@ -4,11 +4,11 @@ import { mainQuerySchema } from '~~/server/utils/schemas'
 import { fetchValidators } from '~~/server/utils/validators'
 
 export default defineEventHandler(async (event) => {
-  const { payoutType, active } = await getValidatedQuery(event, mainQuerySchema.parse)
+  const { payoutType, onlyActive, onlyKnown } = await getValidatedQuery(event, mainQuerySchema.parse)
 
   let addresses: string[] = []
   let activeValidators: Validator[] = []
-  if (active) {
+  if (onlyActive) {
     const { data: _activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
     if (errorActiveValidators)
       return createError(errorActiveValidators)
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     addresses = activeValidators.map(v => v.address)
   }
 
-  const { data: validators, error: errorValidators } = await fetchValidators({ payoutType, addresses })
+  const { data: validators, error: errorValidators } = await fetchValidators({ payoutType, addresses, onlyKnown })
   if (errorValidators || !validators)
     throw createError(errorValidators)
 
