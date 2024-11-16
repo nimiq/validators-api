@@ -36,7 +36,7 @@ interface StoreValidatorOptions {
 
 export async function storeValidator(
   address: string,
-  rest: Omit<NewValidator, 'address' | 'icon' | 'accentColor'> & { icon?: string, accentColor?: string } = {},
+  rest: Omit<NewValidator, 'address' | 'icon' | 'accentColor' | 'hasDefaultIcon'> & { icon?: string, accentColor?: string } = {},
   options: StoreValidatorOptions = {},
 ): Promise<number | undefined> {
   try {
@@ -76,11 +76,11 @@ export async function storeValidator(
       // TODO Once the validators have accent colors, re-enable this check
       // if (!rest.accentColor)
       //   throw new Error(`The validator ${address} does have an icon but not an accent color`)
-      return { icon: rest.icon, accentColor: rest.accentColor! }
+      return { icon: rest.icon, accentColor: rest.accentColor!, hasDefaultIcon: false }
     }
     const icon = await createIdenticon(address, { format: 'image/svg+xml' })
     const { colors: { background: accentColor } } = await getIdenticonsParams(address)
-    return { icon, accentColor }
+    return { icon, accentColor, hasDefaultIcon: true }
   }
 
   const brandingParameters = await getBrandingParameters()
@@ -134,9 +134,10 @@ export interface FetchValidatorsOptions {
   payoutType?: PayoutType
   addresses?: string[]
   onlyKnown?: boolean
+  withIdenticon?: boolean
 }
 
-export async function fetchValidators({ payoutType, addresses = [], onlyKnown = false }: FetchValidatorsOptions): Result<Validator[]> {
+export async function fetchValidators({ payoutType, addresses = [], onlyKnown = false, withIdenticon = false }: FetchValidatorsOptions): Result<Validator[]> {
   const filters = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
@@ -144,6 +145,8 @@ export async function fetchValidators({ payoutType, addresses = [], onlyKnown = 
     filters.push(inArray(tables.validators.address, addresses))
   if (onlyKnown)
     filters.push(not(eq(tables.validators.name, 'Unknown validator')))
+  if (!withIdenticon)
+    filters.push(eq(tables.validators.hasDefaultIcon, true))
 
   const validators = await useDrizzle()
     .select()

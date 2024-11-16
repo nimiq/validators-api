@@ -12,6 +12,7 @@ export const validators = sqliteTable('validators', {
   payoutSchedule: text('payout_schedule').default(''),
   isMaintainedByNimiq: integer('is_maintained_by_nimiq', { mode: 'boolean' }).default(false),
   icon: text('icon').notNull(),
+  hasDefaultIcon: integer('has_default_icon', { mode: 'boolean' }).notNull().default(true),
   accentColor: text('accent_color').notNull(),
   website: text('website'),
   contact: text('contact', { mode: 'json' }),

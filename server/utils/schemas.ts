@@ -22,6 +22,7 @@ export const validatorSchema = z.object({
   description: z.string().optional(),
   website: z.string().url().optional(),
   icon: z.string().optional(),
+  hasDefaultIcon: z.boolean(),
   accentColor: z.string().optional(),
   contact: z.object({
     email: z.string().email().optional(),
@@ -41,4 +42,5 @@ export const mainQuerySchema = z.object({
   payoutType: z.nativeEnum(PayoutType).optional(),
   onlyActive: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   onlyKnown: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  withIdenticon: z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
 })
