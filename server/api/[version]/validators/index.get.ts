@@ -3,7 +3,7 @@ import { getRpcClient } from '~~/server/lib/client'
 import { mainQuerySchema } from '~~/server/utils/schemas'
 import { fetchValidators } from '~~/server/utils/validators'
 
-export default defineEventHandler(async (event) => {
+export default defineCachedEventHandler(async (event) => {
   const { payoutType, onlyActive, onlyKnown, withIdenticon } = await getValidatedQuery(event, mainQuerySchema.parse)
 
   let addresses: string[] = []
@@ -30,4 +30,6 @@ export default defineEventHandler(async (event) => {
   validators.sort((a, b) => b.balance - a.balance)
 
   return validators
+}, {
+  maxAge: 60 * 10, // 10 minutes
 })
