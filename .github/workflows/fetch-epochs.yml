@@ -7,9 +7,10 @@ on:
 
 env:
   API_BASE_URL: 'https://validators-api-nimiq.nuxt.dev'
+  API_BASE_URL_TESTNET: 'https://validators-api-nimiq-testnet.nuxt.dev'
 
 jobs:
-  fetch-epochs:
+  fetch-epochs-mainnet:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch missing epochs
@@ -38,6 +39,50 @@ jobs:
 
             # Make the API call and capture both response and status code
             HTTP_RESPONSE=$(curl -s -w "%{http_code}" "${{ env.API_BASE_URL }}/api/v1/epochs/$epoch")
+            HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
+            RESPONSE_BODY=$(echo "$HTTP_RESPONSE" | sed '$ d')
+
+            if [ "$HTTP_STATUS" -eq 500 ]; then
+              echo "Error 500 received for epoch $epoch"
+              echo "Response body: $RESPONSE_BODY"
+              continue  # Skip to next epoch on 500 error
+            elif [ "$HTTP_STATUS" -ne 200 ]; then
+              echo "Error: HTTP status $HTTP_STATUS for epoch $epoch"
+              echo "Response body: $RESPONSE_BODY"
+              continue  # Skip to next epoch on other errors
+            else
+              echo "Successfully processed epoch $epoch"
+            fi
+          done
+  fetch-epochs-testnet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch missing epochs
+        id: fetch-missing
+        run: |
+          # Fetch the array of missing epochs and store it in a variable
+          MISSING_EPOCHS=$(curl -s "${{ env.API_BASE_URL_TESTNET }}/api/v1/epochs/missing")
+
+          # Remove brackets from array and store as space-separated string
+          EPOCHS=$(echo $MISSING_EPOCHS | jq -r 'join(" ")')
+
+          # Store the epochs in an output variable for next steps
+          echo "epochs=$EPOCHS" >> $GITHUB_OUTPUT
+
+          # Print for logging
+          echo "Found missing epochs: $EPOCHS"
+
+      - name: Process each epoch
+        run: |
+          # Read the epochs from previous step
+          EPOCHS="${{ steps.fetch-missing.outputs.epochs }}"
+
+          # Loop through each epoch number
+          for epoch in $EPOCHS; do
+            echo "Processing epoch $epoch"
+
+            # Make the API call and capture both response and status code
+            HTTP_RESPONSE=$(curl -s -w "%{http_code}" "${{ env.API_BASE_URL_TESTNET }}/api/v1/epochs/$epoch")
             HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
             RESPONSE_BODY=$(echo "$HTTP_RESPONSE" | sed '$ d')
 
