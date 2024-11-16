@@ -1,9 +1,10 @@
+import type { ScoreValues } from '~~/packages/nimiq-validators-score/src'
 import type { NewValidator, Validator } from './drizzle'
 import type { PayoutType, Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray, not } from 'drizzle-orm'
+import { desc, inArray, isNotNull, not } from 'drizzle-orm'
 import { createIdenticon, getIdenticonsParams } from 'identicons-esm'
 import { optimize } from 'svgo'
 import { validatorSchema } from './schemas'
@@ -78,6 +79,7 @@ export async function storeValidator(
       // if (!rest.accentColor)
       //   throw new Error(`The validator ${address} does have an icon but not an accent color`)
       const { data: icon } = optimize(rest.icon, { plugins: [{ name: 'preset-default' }] })
+      consola.info(`Optimized icon for validator ${address}`)
       return { icon, accentColor: rest.accentColor!, hasDefaultIcon: false }
     }
     const icon = await createIdenticon(address, { format: 'image/svg+xml' })
@@ -86,6 +88,7 @@ export async function storeValidator(
   }
 
   const brandingParameters = await getBrandingParameters()
+  consola.info(`Generated branding parameters for validator ${address}`)
   if (validatorId) {
     await useDrizzle()
       .update(tables.validators)
@@ -137,11 +140,14 @@ export interface FetchValidatorsOptions {
   addresses?: string[]
   onlyKnown?: boolean
   withIdenticon?: boolean
+  withScores?: boolean
 }
 
-type FetchedValidator = Omit<Validator, 'icon'> & { icon?: string }
+type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & { icon?: string } & { score?: ScoreValues | null }
 
-export async function fetchValidators({ payoutType, addresses = [], onlyKnown = false, withIdenticon = false }: FetchValidatorsOptions): Result<FetchedValidator[]> {
+export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
+  const { payoutType, addresses = [], onlyKnown = false, withIdenticon = false, withScores = false } = params
+  consola.info(`Fetching validators with params: ${JSON.stringify(params)}`)
   const filters = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
@@ -151,14 +157,38 @@ export async function fetchValidators({ payoutType, addresses = [], onlyKnown = 
     filters.push(not(eq(tables.validators.name, 'Unknown validator')))
 
   const validators = await useDrizzle()
-    .select()
+    .select({
+      id: tables.validators.id,
+      name: tables.validators.name,
+      address: tables.validators.address,
+      fee: tables.validators.fee,
+      payoutType: tables.validators.payoutType,
+      payoutSchedule: tables.validators.payoutSchedule,
+      description: tables.validators.description,
+      icon: tables.validators.icon,
+      accentColor: tables.validators.accentColor,
+      isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
+      hasDefaultIcon: tables.validators.hasDefaultIcon,
+      website: tables.validators.website,
+      score: {
+        liveness: tables.scores.liveness,
+        total: tables.scores.total,
+        size: tables.scores.size,
+        reliability: tables.scores.reliability,
+      },
+    })
     .from(tables.validators)
-    .where(and(...filters))
-    .groupBy(tables.validators.id)
-    .all() as FetchedValidator[]
+    .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
+    .where(isNotNull(tables.scores.validatorId))
+    // .groupBy(tables.validators.id)
+    .orderBy(desc(tables.scores.total))
+    .all() satisfies FetchedValidator[] as FetchedValidator[]
+  consola.info(`Fetched ${validators.length} validators`)
 
   if (!withIdenticon)
     validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)
+  if (!withScores)
+    validators.forEach(v => delete v.score)
 
   return { data: validators, error: undefined }
 }

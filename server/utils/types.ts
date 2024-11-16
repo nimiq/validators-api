@@ -10,14 +10,13 @@ export enum PayoutType {
 }
 
 export type ValidatorScore =
-  Pick<Validator, 'id' | 'name' | 'address' | 'fee' | 'payoutType' | 'description' | 'icon' | 'isMaintainedByNimiq' | 'website'>
+  Omit<Validator, 'hasDefaultIcon' | 'accentColor' | 'contact'>
   & Pick<Score, 'total' | 'liveness' | 'size' | 'reliability' | 'reason'>
 
 export enum HealthFlag {
   MissingEpochs = 'missing-epochs',
   NoValidators = 'no-validators',
-  // TOD
-  O,
+  // TODO,
   // ScoreNotComputed = 'score-not-computed',
 }
 

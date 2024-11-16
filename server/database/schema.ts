@@ -9,7 +9,7 @@ export const validators = sqliteTable('validators', {
   description: text('description'),
   fee: real('fee').default(-1),
   payoutType: text('payout_type').default(PayoutType.None),
-  payoutSchedule: text('payout_schedule').default(''),
+  payoutSchedule: text('payout_schedule'),
   isMaintainedByNimiq: integer('is_maintained_by_nimiq', { mode: 'boolean' }).default(false),
   icon: text('icon').notNull(),
   hasDefaultIcon: integer('has_default_icon', { mode: 'boolean' }).notNull().default(true),
