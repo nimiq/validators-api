@@ -7,9 +7,9 @@
   "payoutType": "restake",
   "payoutSchedule": "Every 4 hours",
   "contact": {
-    "telegram": "https://t.me/AceStaking",
-    "twitter": "https://x.com/acestaking",
+    "telegram": "@AceStaking",
+    "twitter": "@acestaking",
     "discordInvitationUrl": "https://discord.gg/PnvC5VJMyC",
-    "github": "https://github.com/Beardsoft"
+    "github": "beardsoft"
   }
 }
