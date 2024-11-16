@@ -1,4 +1,3 @@
-import type { SelectedFields } from 'drizzle-orm/sqlite-core'
 import type { NewValidator, Validator } from './drizzle'
 import type { PayoutType, Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
@@ -149,28 +148,15 @@ export async function fetchValidators({ payoutType, addresses = [], onlyKnown = 
   if (onlyKnown)
     filters.push(not(eq(tables.validators.name, 'Unknown validator')))
 
-  const columns: SelectedFields = {
-    id: tables.validators.id,
-    accentColor: tables.validators.accentColor,
-    address: tables.validators.address,
-    description: tables.validators.description,
-    fee: tables.validators.fee,
-    isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
-    name: tables.validators.name,
-    payoutSchedule: tables.validators.payoutSchedule,
-    payoutType: tables.validators.payoutType,
-    website: tables.validators.website,
-  }
-
-  if (withIdenticon)
-    columns.icon = tables.validators.icon
-
   const validators = await useDrizzle()
-    .select(columns)
+    .select()
     .from(tables.validators)
     .where(and(...filters))
     .groupBy(tables.validators.id)
     .all() as FetchedValidator[]
+
+  if (!withIdenticon)
+    validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)
 
   return { data: validators, error: undefined }
 }
