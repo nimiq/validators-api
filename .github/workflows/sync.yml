@@ -1,4 +1,4 @@
-name: Sync database workflow
+name: Sync workflow
 
 on:
   workflow_call:

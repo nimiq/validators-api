@@ -1,4 +1,4 @@
-name: Sync database with Testnet
+name: Sync Testnet
 
 on:
   workflow_dispatch:
@@ -6,9 +6,9 @@ on:
     - cron: '0 * * * *' # Runs every hour
 
 jobs:
-  mainnet:
+  testnet:
     needs: []
     uses: ./.github/workflows/sync.yml
     with:
-      network: mainnet
+      network: testnet
       api_url: 'https://validators-api-testnet.nuxt.dev'

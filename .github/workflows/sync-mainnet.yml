@@ -1,4 +1,4 @@
-name: Sync database with Mainnet
+name: Sync Mainnet
 
 on:
   workflow_dispatch:
