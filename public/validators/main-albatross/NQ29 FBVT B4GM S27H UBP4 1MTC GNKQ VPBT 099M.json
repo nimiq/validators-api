@@ -7,7 +7,7 @@
   "accentColor": "#FFC107",
   "fee": 0.05,
   "payoutType": "direct",
-  "payoutSchedule": "every 8 hour",
+  "payoutSchedule": "Every 8 hour",
   "contact": {
     "email": "snimpool@proton.me",
     "telegram": "@Koniczyslaw",
