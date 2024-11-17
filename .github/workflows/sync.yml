@@ -11,8 +11,26 @@ on:
         type: string
 
 jobs:
-  process-network:
-    name: Process ${{ inputs.network }}
+  import-validators:
+    name: Import validators ${{ inputs.network }}
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Import validators
+        run: |
+          echo "Importing validators for ${{ inputs.network }}..."
+          RESPONSE=$(curl -s -X POST "${{ inputs.api_url }}/api/v1/validators/import")
+
+          if [ $? -eq 0 ]; then
+            echo "Successfully imported validators for ${{ inputs.network }}"
+          else
+            echo "Error importing validators for ${{ inputs.network }}"
+            exit 1
+          fi
+
+  sync-epoch-activity:
+    name: ${{ inputs.network }}
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
@@ -49,26 +67,8 @@ jobs:
             fi
           done
 
-  import-validators:
-    name: Process ${{ inputs.network }}
-    strategy:
-      fail-fast: false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Import validators
-        run: |
-          echo "Importing validators for ${{ inputs.network }}..."
-          RESPONSE=$(curl -s -X POST "${{ inputs.api_url }}/api/v1/validators/import")
-
-          if [ $? -eq 0 ]; then
-            echo "Successfully imported validators for ${{ inputs.network }}"
-          else
-            echo "Error importing validators for ${{ inputs.network }}"
-            exit 1
-          fi
-
-  validator-balances:
-    name: Syncs the balances of validators with the database
+  sync-validator-balances:
+    name: Syncs the validator balances
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
