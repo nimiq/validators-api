@@ -48,6 +48,7 @@ export const activity = sqliteTable('activity', {
   // TODO Remove sizeRatioViaSlots bool and instead store also the sizeRatioPrecise
   // sizeRatioViaSlots: integer('size_ratio_via_slots').notNull(),
   sizeRatioViaSlots: integer('size_ratio_via_slots', { mode: 'boolean' }).notNull(),
+  balance: real('balance').notNull().default(-1),
 }, table => ({
   idxElectionBlock: index('idx_election_block').on(table.epochNumber),
   compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.epochNumber] }),
