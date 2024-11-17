@@ -65,7 +65,7 @@ export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }:
     return 0
 
   // Plot into the curve
-  return -curveCenter + 1 - Math.sqrt(discriminant)
+  return Math.max(-curveCenter + 1 - Math.sqrt(discriminant), 1)
 }
 
 // The default values for the computeScore function
