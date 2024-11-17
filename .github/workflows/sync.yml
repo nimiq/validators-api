@@ -1,4 +1,4 @@
-name: Sync workflow
+name: Sync Workflow
 
 on:
   workflow_call:
@@ -30,7 +30,7 @@ jobs:
           fi
 
   sync-epoch-activity:
-    name: ${{ inputs.network }}
+    name: Syncs the epoch activity
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
