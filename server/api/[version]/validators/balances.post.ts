@@ -1,4 +1,3 @@
-import { validators as validatorsTable } from '~~/server/database/schema'
 import { getRpcClient } from '~~/server/lib/client'
 
 export default defineEventHandler(async () => {
@@ -10,7 +9,7 @@ export default defineEventHandler(async () => {
   const validators = await useDrizzle()
     .select({ id: tables.validators.id, address: tables.validators.address })
     .from(tables.validators)
-    .leftJoin(validatorsTable, eq(tables.activity.validatorId, tables.validators.id))
+    .leftJoin(tables.activity, eq(tables.activity.validatorId, tables.validators.id))
     .where(and(eq(tables.activity.epochNumber, epochNumber), eq(tables.activity.balance, -1)))
     .all()
 
