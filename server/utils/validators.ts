@@ -199,12 +199,24 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     if (!withIdenticons)
       validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)
 
-    return { data: validators, error: undefined }
+    return { data: transformNullToUndefined(validators), error: undefined }
   }
   catch (error) {
     consola.error(`Error fetching validators: ${error}`)
     return { data: undefined, error: JSON.stringify(error) }
   }
+}
+
+function transformNullToUndefined<T extends object>(data: T): T {
+  const entries = Object.entries(data).map(([key, value]) => {
+    if (value === null) {
+      return [key, undefined]
+    }
+    else {
+      return [key, value]
+    }
+  })
+  return Object.fromEntries(entries) as T
 }
 
 /**
