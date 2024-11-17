@@ -141,12 +141,13 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
   return { data: validators, error: undefined }
 }
 
-export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[] }
+export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[], epochNumber?: number }
 
-type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & { icon?: string } & { score?: ScoreValues | null }
+type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & { icon?: string } & { score?: ScoreValues | null, sizeRatio?: number }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, 'with-scores': withScores = false } = params
+  // This function is a mess. It should be refactored and create better API
+  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, 'with-scores': withScores = false, epochNumber = -1 } = params
   const filters: SQLWrapper[] = [isNotNull(tables.scores.validatorId)]
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
@@ -173,6 +174,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
   const columns = withScores
     ? {
         ...baseColumns,
+        sizeRatio: tables.activity.sizeRatio,
         score: {
           liveness: tables.scores.liveness,
           total: tables.scores.total,
@@ -183,13 +185,16 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     : baseColumns
 
   try {
-    const validators = await useDrizzle()
-      .select(columns)
-      .from(tables.validators)
-      .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
-      .where(and(...filters))
-      .orderBy(desc(tables.scores.total))
-      .all() satisfies FetchedValidator[] as FetchedValidator[]
+    let query = useDrizzle().select(columns).from(tables.validators).where(and(...filters)).$dynamic()
+
+    if (withScores) {
+      consola.info(`Fetching validators with scores for epoch ${epochNumber}`)
+      query = query
+        .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
+        .leftJoin(tables.activity, and(eq(tables.validators.id, tables.activity.validatorId), eq(tables.activity.epochNumber, epochNumber)))
+    }
+
+    const validators = await query.orderBy(desc(tables.scores.total)).all() satisfies FetchedValidator[] as FetchedValidator[]
 
     if (!withIdenticons)
       validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)
