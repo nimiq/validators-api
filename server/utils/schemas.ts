@@ -30,7 +30,7 @@ export const validatorSchema = z.object({
     telegram: z.string().regex(/^@?(\w){5,32}$/).optional(),
     discordInvitationUrl: z.string().url().optional(),
     bluesky: z.string().regex(/^@?(\w){1,32}$/).optional(),
-    github: z.string().regex(/^@?(\w){1,39}$/).optional(),
+    github: z.string().regex(/^@?[\w-]{1,39}$/).optional(),
     linkedin: z.string().regex(/^@?(\w){1,50}$/).optional(),
     facebook: z.string().regex(/^@?(\w){1,50}$/).optional(),
     instagram: z.string().regex(/^@?(\w){1,30}$/).optional(),
@@ -39,9 +39,9 @@ export const validatorSchema = z.object({
 })
 
 export const mainQuerySchema = z.object({
-  'payoutType': z.nativeEnum(PayoutType).optional(),
-  'onlyActive': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'payout-type': z.nativeEnum(PayoutType).optional(),
+  'only-active': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'only-known': z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
-  'withIdenticon': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'with-identicons': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'with-scores': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
 })

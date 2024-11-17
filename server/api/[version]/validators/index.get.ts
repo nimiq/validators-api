@@ -8,7 +8,7 @@ export default defineCachedEventHandler(async (event) => {
 
   let addresses: string[] = []
   let activeValidators: Validator[] = []
-  if (params.onlyActive) {
+  if (params['only-active']) {
     const { data: _activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
     if (errorActiveValidators)
       return createError(errorActiveValidators)

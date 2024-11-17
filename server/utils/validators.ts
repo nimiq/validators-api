@@ -1,10 +1,11 @@
 import type { ScoreValues } from '~~/packages/nimiq-validators-score/src'
+import type { SQLWrapper } from 'drizzle-orm'
 import type { NewValidator, Validator } from './drizzle'
-import type { PayoutType, Result, ValidatorScore } from './types'
+import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray, isNotNull, not } from 'drizzle-orm'
+import { desc, inArray, isNotNull } from 'drizzle-orm'
 import { createIdenticon, getIdenticonsParams } from 'identicons-esm'
 import { optimize } from 'svgo'
 import { validatorSchema } from './schemas'
@@ -78,9 +79,10 @@ export async function storeValidator(
       // TODO Once the validators have accent colors, re-enable this check
       // if (!rest.accentColor)
       //   throw new Error(`The validator ${address} does have an icon but not an accent color`)
-      const { data: icon } = optimize(rest.icon, { plugins: [{ name: 'preset-default' }] })
-      consola.info(`Optimized icon for validator ${address}`)
-      return { icon, accentColor: rest.accentColor!, hasDefaultIcon: false }
+      if (rest.icon.startsWith('data:image/svg+xml')) {
+        rest.icon = optimize(rest.icon, { plugins: [{ name: 'preset-default' }] }).data
+      }
+      return { icon: rest.icon, accentColor: rest.accentColor!, hasDefaultIcon: false }
     }
     const icon = await createIdenticon(address, { format: 'image/svg+xml' })
     const { colors: { background: accentColor } } = await getIdenticonsParams(address)
@@ -88,21 +90,25 @@ export async function storeValidator(
   }
 
   const brandingParameters = await getBrandingParameters()
-  consola.info(`Generated branding parameters for validator ${address}`)
-  if (validatorId) {
-    await useDrizzle()
-      .update(tables.validators)
-      .set({ ...rest, ...brandingParameters })
-      .where(eq(tables.validators.id, validatorId))
-      .execute()
+  try {
+    if (validatorId) {
+      await useDrizzle()
+        .update(tables.validators)
+        .set({ ...rest, ...brandingParameters })
+        .where(eq(tables.validators.id, validatorId))
+        .execute()
+    }
+    else {
+      validatorId = await useDrizzle()
+        .insert(tables.validators)
+        .values({ ...rest, address, ...brandingParameters })
+        .returning()
+        .get()
+        .then(r => r.id)
+    }
   }
-  else {
-    validatorId = await useDrizzle()
-      .insert(tables.validators)
-      .values({ ...rest, address, ...brandingParameters })
-      .returning()
-      .get()
-      .then(r => r.id)
+  catch (e) {
+    consola.error(`There was an error while writing ${address} into the database`, e)
   }
 
   validators.set(address, validatorId!)
@@ -135,62 +141,65 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
   return { data: validators, error: undefined }
 }
 
-export interface FetchValidatorsOptions {
-  payoutType?: PayoutType
-  addresses?: string[]
-  onlyKnown?: boolean
-  withIdenticon?: boolean
-  withScores?: boolean
-}
+export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[] }
 
 type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & { icon?: string } & { score?: ScoreValues | null }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { payoutType, addresses = [], onlyKnown = false, withIdenticon = false, withScores = false } = params
-  consola.info(`Fetching validators with params: ${JSON.stringify(params)}`)
-  const filters = []
+  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, 'with-scores': withScores = false } = params
+  const filters: SQLWrapper[] = [isNotNull(tables.scores.validatorId)]
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
   if (addresses?.length > 0)
     filters.push(inArray(tables.validators.address, addresses))
   if (onlyKnown)
-    filters.push(not(eq(tables.validators.name, 'Unknown validator')))
+    filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
-  const validators = await useDrizzle()
-    .select({
-      id: tables.validators.id,
-      name: tables.validators.name,
-      address: tables.validators.address,
-      fee: tables.validators.fee,
-      payoutType: tables.validators.payoutType,
-      payoutSchedule: tables.validators.payoutSchedule,
-      description: tables.validators.description,
-      icon: tables.validators.icon,
-      accentColor: tables.validators.accentColor,
-      isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
-      hasDefaultIcon: tables.validators.hasDefaultIcon,
-      website: tables.validators.website,
-      score: {
-        liveness: tables.scores.liveness,
-        total: tables.scores.total,
-        size: tables.scores.size,
-        reliability: tables.scores.reliability,
-      },
-    })
-    .from(tables.validators)
-    .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
-    .where(isNotNull(tables.scores.validatorId))
-    // .groupBy(tables.validators.id)
-    .orderBy(desc(tables.scores.total))
-    .all() satisfies FetchedValidator[] as FetchedValidator[]
-  consola.info(`Fetched ${validators.length} validators`)
+  const baseColumns = {
+    id: tables.validators.id,
+    name: tables.validators.name,
+    address: tables.validators.address,
+    fee: tables.validators.fee,
+    payoutType: tables.validators.payoutType,
+    payoutSchedule: tables.validators.payoutSchedule,
+    description: tables.validators.description,
+    icon: tables.validators.icon,
+    accentColor: tables.validators.accentColor,
+    isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
+    hasDefaultIcon: tables.validators.hasDefaultIcon,
+    website: tables.validators.website,
+  }
 
-  if (!withIdenticon)
-    validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)
-  if (!withScores)
-    validators.forEach(v => delete v.score)
+  const columns = withScores
+    ? {
+        ...baseColumns,
+        score: {
+          liveness: tables.scores.liveness,
+          total: tables.scores.total,
+          size: tables.scores.size,
+          reliability: tables.scores.reliability,
+        },
+      }
+    : baseColumns
 
-  return { data: validators, error: undefined }
+  try {
+    const validators = await useDrizzle()
+      .select(columns)
+      .from(tables.validators)
+      .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
+      .where(and(...filters))
+      .orderBy(desc(tables.scores.total))
+      .all() satisfies FetchedValidator[] as FetchedValidator[]
+
+    if (!withIdenticons)
+      validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)
+
+    return { data: validators, error: undefined }
+  }
+  catch (error) {
+    consola.error(`Error fetching validators: ${error}`)
+    return { data: undefined, error: JSON.stringify(error) }
+  }
 }
 
 /**
