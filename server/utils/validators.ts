@@ -207,16 +207,30 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
   }
 }
 
-function transformNullToUndefined<T extends object>(data: T): T {
-  const entries = Object.entries(data).map(([key, value]) => {
-    if (value === null) {
-      return [key, undefined]
-    }
-    else {
+function transformNullToUndefined<T>(data: T): T {
+  if (Array.isArray(data)) {
+    return data.map((item) => {
+      if (typeof item === 'object' && item !== null) {
+        return transformNullToUndefined(item)
+      }
+      return item === null ? undefined : item
+    }) as T
+  }
+
+  if (typeof data === 'object' && data !== null) {
+    const entries = Object.entries(data).map(([key, value]) => {
+      if (value === null) {
+        return [key, undefined]
+      }
+      if (typeof value === 'object' && value !== null) {
+        return [key, transformNullToUndefined(value)]
+      }
       return [key, value]
-    }
-  })
-  return Object.fromEntries(entries) as T
+    })
+    return Object.fromEntries(entries) as T
+  }
+
+  return data
 }
 
 /**
