@@ -72,9 +72,6 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
   consola.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`)
 
   const brandingParameters = await getBrandingParameters(address, rest)
-  if (address === 'NQ37 6EL5 BP9K XL1A 3ED0 L3EC NPR5 C9D3 BRKG') {
-    consola.info(`Branding parameters for ${address}: ${JSON.stringify(brandingParameters)}`)
-  }
   try {
     if (validatorId) {
       await useDrizzle()
