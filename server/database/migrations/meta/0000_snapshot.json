@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e54c5a51-b101-4a2c-86df-40390d779f61",
+  "id": "0dbbc139-06ce-4ee6-b038-3571770487bd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -111,15 +111,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "from_epoch": {
-          "name": "from_epoch",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "to_epoch": {
-          "name": "to_epoch",
+        "epoch_number": {
+          "name": "epoch_number",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -186,13 +179,12 @@
         }
       },
       "compositePrimaryKeys": {
-        "scores_validator_id_from_epoch_to_epoch_pk": {
+        "scores_validator_id_epoch_number_pk": {
           "columns": [
             "validator_id",
-            "from_epoch",
-            "to_epoch"
+            "epoch_number"
           ],
-          "name": "scores_validator_id_from_epoch_to_epoch_pk"
+          "name": "scores_validator_id_epoch_number_pk"
         }
       },
       "uniqueConstraints": {},

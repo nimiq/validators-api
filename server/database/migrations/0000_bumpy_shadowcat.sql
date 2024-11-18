@@ -14,14 +14,13 @@ CREATE TABLE `activity` (
 CREATE INDEX `idx_election_block` ON `activity` (`epoch_number`);--> statement-breakpoint
 CREATE TABLE `scores` (
 	`validator_id` integer NOT NULL,
-	`from_epoch` integer NOT NULL,
-	`to_epoch` integer NOT NULL,
+	`epoch_number` integer NOT NULL,
 	`total` real NOT NULL,
 	`availability` real NOT NULL,
 	`dominance` real NOT NULL,
 	`reliability` real NOT NULL,
 	`reason` text NOT NULL,
-	PRIMARY KEY(`validator_id`, `from_epoch`, `to_epoch`),
+	PRIMARY KEY(`validator_id`, `epoch_number`),
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
