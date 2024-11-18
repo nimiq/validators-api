@@ -9,7 +9,8 @@
 Details of validators in the Nimiq Blockchain and their scores, calculated using Nimiq's VTS algorithm.
 <p>
 
-[![Fetch Missing Epochs](https://github.com/nimiq/validators-api/actions/workflows/fetch-epochs.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/fetch-epochs.yml)
+[![Sync Mainnet](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml)
+[![Sync Testnet](https://github.com/nimiq/validators-api/actions/workflows/sync-testnet.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/sync-testnet.yml)
 
 ## Add your validator information
 
@@ -19,10 +20,10 @@ In order to do so, follow these steps:
 
 1. [Fork this repository](https://github.com/nimiq/validators-api/fork).
 2. Create a new file in the [validators folder](./public/validators/main-albatross).
-   2.1 Read the [Recommendations for Writing Your Validator Information](#recommendations-for-your-validator-information)
-   2.2 Learn about the [JSON schema](#validator-json-schema)
-3. Submit a PR to this repo. Someone in the team will review it.
-4. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
+3. Read the [Recommendations for Writing Your Validator Information](#recommendations-for-your-validator-information)
+4. Learn about the [JSON schema](#validator-json-schema)
+5. Submit a PR to this repo. Someone in the team will review it.
+6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.nuxt.dev/api/v1) is returning your information. It can take a few minutes.
 
 > [!WARNING]
 > Nimiq reserves the right to make minor adjustments to the content submitted by validator owners, if deemed necessary.
