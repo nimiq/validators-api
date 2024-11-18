@@ -37,6 +37,19 @@ export const validatorSchema = z.object({
     youtube: z.string().regex(/^@?(\w){1,50}$/).optional(),
   }).optional(),
 })
+export type ValidatorJSON = z.infer<typeof validatorSchema>
+
+function getDefaults<Schema extends z.AnyZodObject>(schema: Schema) {
+  return Object.fromEntries(
+    Object.entries(schema.shape).map(([key, value]) => {
+      if (value instanceof z.ZodDefault)
+        return [key, value._def.defaultValue()]
+      return [key, undefined]
+    }),
+  )
+}
+
+export const defaultValidatorJSON = getDefaults(validatorSchema) as ValidatorJSON
 
 export const mainQuerySchema = z.object({
   'payout-type': z.nativeEnum(PayoutType).optional(),
