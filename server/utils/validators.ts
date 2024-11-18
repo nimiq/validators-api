@@ -169,6 +169,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
     hasDefaultIcon: tables.validators.hasDefaultIcon,
     website: tables.validators.website,
+    balance: tables.activity.balance,
   }
 
   const columns = withScores
@@ -191,8 +192,8 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
       consola.info(`Fetching validators with scores for epoch ${epochNumber}`)
       query = query
         .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
-        .leftJoin(tables.activity, and(eq(tables.validators.id, tables.activity.validatorId), eq(tables.activity.epochNumber, epochNumber)))
     }
+    query.leftJoin(tables.activity, and(eq(tables.validators.id, tables.activity.validatorId), eq(tables.activity.epochNumber, epochNumber)))
 
     const validators = await query.orderBy(desc(tables.scores.total)).all() satisfies FetchedValidator[] as FetchedValidator[]
 
