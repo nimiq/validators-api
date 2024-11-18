@@ -1,19 +1,14 @@
-import { powi, PROOF_OF_STAKE_FORK_BLOCK, PROOF_OF_STAKE_FORK_DATE, TOTAL_SUPPLY } from './utils'
-
-const INITIAL_SUPPLY = 2520000000e5
-const EMISSION_SPEED = powi(2, 22)
-const EMISSION_TAIL_START = 48692960 // PoW block number
-const EMISSION_TAIL_REWARD = 4000
+import { PROOF_OF_STAKE_FORK_BLOCK, PROOF_OF_STAKE_FORK_DATE, PROOF_OF_WORK_EMISSION_SPEED, PROOF_OF_WORK_EMISSION_TAIL_REWARD, PROOF_OF_WORK_EMISSION_TAIL_START, PROOF_OF_WORK_INITIAL_SUPPLY } from './constants'
 
 function _powBlockRewardAt(currentSupply: number, blockHeight: number): number {
   if (blockHeight <= 0)
     return 0
-  const remaining = TOTAL_SUPPLY - currentSupply
-  if (blockHeight >= EMISSION_TAIL_START && remaining >= EMISSION_TAIL_REWARD) {
-    return EMISSION_TAIL_REWARD
+  const remaining = PROOF_OF_WORK_INITIAL_SUPPLY - currentSupply
+  if (blockHeight >= PROOF_OF_WORK_EMISSION_TAIL_START && remaining >= PROOF_OF_WORK_EMISSION_TAIL_REWARD) {
+    return PROOF_OF_WORK_EMISSION_TAIL_REWARD
   }
-  const remainder = remaining % EMISSION_SPEED
-  return (remaining - remainder) / EMISSION_SPEED
+  const remainder = remaining % PROOF_OF_WORK_EMISSION_SPEED
+  return (remaining - remainder) / PROOF_OF_WORK_EMISSION_SPEED
 }
 
 function _powSupplyAfter(initialSupply: number | undefined, blockHeight: number, startHeight = 0): number {
@@ -49,7 +44,7 @@ export function powSupplyAfter(blockHeight: number): number {
   const endI = Math.floor(blockHeight / supplyCacheInterval)
 
   // The starting supply is the initial supply at the beginning and a cached value afterwards.
-  let supply = startHeight === 0 ? INITIAL_SUPPLY : supplyCache.get(startHeight)
+  let supply = startHeight === 0 ? PROOF_OF_WORK_INITIAL_SUPPLY : supplyCache.get(startHeight)
   // Use and update cache.
   for (let i = startI; i < endI; ++i) {
     startHeight = i * supplyCacheInterval

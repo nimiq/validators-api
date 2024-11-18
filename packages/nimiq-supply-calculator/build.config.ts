@@ -6,6 +6,7 @@ export default defineBuildConfig({
     'src/utils',
     'src/pow',
     'src/pos',
+    'src/constants',
   ],
   declaration: true,
   clean: true,
