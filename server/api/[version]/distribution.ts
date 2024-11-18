@@ -1,33 +1,35 @@
+import { posSupplyAt } from '~~/packages/nimiq-supply-calculator/src'
+import { getRpcClient } from '~~/server/lib/client'
+import { not, sql } from 'drizzle-orm'
+
 export default defineCachedEventHandler(async () => {
   const db = useDrizzle()
-  const latestBalances = await db
-    .select({
-      validatorId: tables.activity.validatorId, // Added for debugging
-      epoch: tables.activity.epochNumber, // Added for debugging
-      balance: tables.activity.balance,
-    })
+
+  const result = await db.select({
+    totalStaked: sql<number>`sum(${tables.activity.balance})`,
+  })
     .from(tables.activity)
-    .innerJoin(
-      db
-        .select({
-          validatorId: tables.activity.validatorId,
-          maxEpoch: sql<number>`MAX(${tables.activity.epochNumber})`,
-        })
-        .from(tables.activity)
-        .groupBy(tables.activity.validatorId)
-        .as('latest'),
-      join =>
-        and(
-          eq(tables.activity.validatorId, join.validatorId),
-          eq(tables.activity.epochNumber, join.maxEpoch),
-        ),
+    .where(
+      and(
+        not(sql`${tables.activity.balance} = -1`),
+        sql`${tables.activity.epochNumber} = (
+          SELECT MAX(epoch_number)
+          FROM activity a2
+          WHERE a2.validator_id = ${tables.activity.validatorId}
+        )`,
+      ),
     )
+    .get()
 
-  const total = latestBalances.reduce((sum, row) => sum + row.balance, 0)
+  const staked = result?.totalStaked ?? 0
 
-  return {
-    staked: total,
-  }
+  const { data: currentEpoch, error: errorCurrentEpoch } = await getRpcClient().blockchain.getEpochNumber()
+  if (errorCurrentEpoch)
+    return createError(errorCurrentEpoch)
+  const circulating = posSupplyAt(currentEpoch) * 1e5
+
+  const ratio = staked / circulating
+  return { staked, circulating, ratio }
 }, {
   maxAge: import.meta.dev ? 0 : 60 * 60, // 60 minutes
 })

@@ -69,7 +69,7 @@ export interface ScoreParams {
 }
 
 // The activity of the validator and their block production activity for a given election block
-export interface Activity { likelihood: number, missed: number, rewarded: number, sizeRatio: number, sizeRatioViaSlots: boolean }
+export interface Activity { likelihood: number, missed: number, rewarded: number, sizeRatio: number, sizeRatioViaSlots: boolean, balance: number }
 
 // A map of validator addresses to their activities in a single epoch
 export type EpochActivity = Record<string /* address */, Activity>

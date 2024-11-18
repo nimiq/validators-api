@@ -45,7 +45,7 @@ interface StoreActivityParams {
   epochNumber: number
 }
 
-const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: 0, sizeRatioViaSlots: false }
+const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: 0, sizeRatioViaSlots: false, balance: -1 }
 
 export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
@@ -54,14 +54,14 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
   // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
   // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
   const existingActivity = await useDrizzle()
-    .select({ sizeRatioViaSlots: tables.activity.sizeRatioViaSlots, sizeRatio: tables.activity.sizeRatio })
+    .select({ sizeRatioViaSlots: tables.activity.sizeRatioViaSlots, sizeRatio: tables.activity.sizeRatio, balance: tables.activity.balance })
     .from(tables.activity)
     .where(and(
       eq(tables.activity.epochNumber, epochNumber),
       eq(tables.activity.validatorId, validatorId),
     ))
 
-  const { likelihood, rewarded, missed, sizeRatio: _sizeRatio, sizeRatioViaSlots: _sizeRatioViaSlots } = activity || defaultActivity
+  const { likelihood, rewarded, missed, sizeRatio: _sizeRatio, sizeRatioViaSlots: _sizeRatioViaSlots, balance: _balance } = activity || defaultActivity
 
   // We always want to update db except the columns `sizeRatio` and `sizeRatioViaSlots`.
   // If we have `sizeRatioViaSlots` as false and `sizeRatio` > 0, then we won't update only those columns
@@ -71,11 +71,12 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
   const updateSizeColumns = viaSlotsDb !== false || sizeRatioDb <= 0
   const sizeRatio = updateSizeColumns ? _sizeRatio : sizeRatioDb
   const sizeRatioViaSlots = updateSizeColumns ? _sizeRatioViaSlots : viaSlotsDb
+  const balance = existingActivity.at(0)?.balance === -1 ? _balance : existingActivity.at(0)?.balance
 
   await useDrizzle().delete(tables.activity).where(and(
     eq(tables.activity.epochNumber, epochNumber),
     eq(tables.activity.validatorId, validatorId),
   ))
-  const activityDb: NewActivity = { likelihood, rewarded, missed, epochNumber, validatorId, sizeRatio, sizeRatioViaSlots }
+  const activityDb: NewActivity = { likelihood, rewarded, missed, epochNumber, validatorId, sizeRatio, sizeRatioViaSlots, balance }
   await useDrizzle().insert(tables.activity).values(activityDb)
 }

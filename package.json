@@ -29,6 +29,7 @@
     "drizzle-orm": "^0.35.3",
     "identicons-esm": "^0.0.6",
     "nimiq-rpc-client-ts": "^0.4.5",
+    "nimiq-supply-calculator": "workspace:*",
     "nimiq-validators-score": "workspace:*",
     "nuxt": "^3.13.2",
     "pinia": "^2.2.4",
