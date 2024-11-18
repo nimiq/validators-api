@@ -97,30 +97,24 @@ When you add your validator information, you'll need to include certain keys in 
   - `instagram` (optional). e.g. `@nimiq`
   - `youtube` (optional). e.g. `nimiq`
 
+## Validator Trustscore
+
+- [Read the docs](https://nimiq.com/developers/learn/validator-trustscore).
+- [See implementation](./packages/nimiq-validators-score/)
+
+## Validators API
+
+| Endpoint                                                                         | Description                                                                     |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [/api/v1/validators](https://validators-api-mainnet.pages.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
+
 ## Validators Dashboard
 
 https://validators-api-mainnet.pages.dev/
 
 The dashboard is a simple Nuxt application that displays all validators and their scores.
 
-## Validators API
-
-| Endpoint                                                                               | Description                                                       |
-| -------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
-| [/api/v1/scores](https://validators-api-mainnet.pages.dev/api/v1/scores)               | An endpoint that returns the list of validators and their scores. |
-| [/api/v1/scores/health](https://validators-api-mainnet.pages.dev/api/v1/scores/health) | An endpoint that returns the state of the database.               |
-
-## Validator Score
-
-[Source code](./packages/nimiq-validators-score/)
-
-This is a npm package that calculates the Trust Score of a validator. You can read more about the Score [here](https://validators-api-mainnet.pages.dev/scores).
-
-## Validator Details
-
-The validator details are hardcoded into the [server/database/seed.ts](./server/database/seed.ts) file. If you are responsible for a validator and want to update the information, please open a PR with your information. This process may change in the future.
-
-### Development
+## Development
 
 ```bash
 pnpm install
