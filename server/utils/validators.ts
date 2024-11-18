@@ -108,9 +108,9 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
       icon: tables.validators.icon,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
       website: tables.validators.website,
-      liveness: tables.scores.liveness,
+      availability: tables.scores.availability,
       total: tables.scores.total,
-      size: tables.scores.size,
+      dominance: tables.scores.dominance,
       reliability: tables.scores.reliability,
     })
     .from(tables.validators)
@@ -126,7 +126,7 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 
 type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & {
   icon?: string
-  score?: { total: number, liveness: number, size: number, reliability: number }
+  score?: { total: number, availability: number, dominance: number, reliability: number }
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
@@ -157,8 +157,8 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         accentColor: tables.validators.accentColor,
         score: {
           total: tables.scores.total,
-          size: tables.scores.size,
-          liveness: tables.scores.liveness,
+          dominance: tables.scores.dominance,
+          availability: tables.scores.availability,
           reliability: tables.scores.reliability,
         },
       })

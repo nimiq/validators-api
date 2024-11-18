@@ -30,7 +30,7 @@
     "identicons-esm": "^0.0.6",
     "nimiq-rpc-client-ts": "^0.4.5",
     "nimiq-supply-calculator": "workspace:*",
-    "nimiq-validators-score": "workspace:*",
+    "nimiq-validators-trustscore": "workspace:*",
     "nuxt": "^3.13.2",
     "pinia": "^2.2.4",
     "radix-vue": "^1.9.8",

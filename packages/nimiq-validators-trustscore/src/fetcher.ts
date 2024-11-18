@@ -35,7 +35,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
   // Initialize the list of validators and their activity in the epoch
   const epochActivity: EpochActivity = {}
   for (const { numSlots: likelihood, validator } of (block as ElectionMacroBlock).slots) {
-    epochActivity[validator] = { likelihood, missed: 0, rewarded: 0, sizeRatio: likelihood / slotsCount, sizeRatioViaSlots: true, balance: -1 }
+    epochActivity[validator] = { likelihood, missed: 0, rewarded: 0, dominanceRatio: likelihood / slotsCount, dominanceRatioViaSlots: true, balance: -1 }
   }
 
   const maxBatchSize = 120
@@ -77,7 +77,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
     const results = await Promise.allSettled(batchPromises)
     const failures = results.filter(result => result.status === 'rejected').length
 
-    // Adjust batch size based on success rate
+    // Adjust batch dominance based on success rate
     if (failures > 0)
       batchSize = Math.max(minBatchSize, Math.floor(batchSize / 2))
     else
@@ -133,7 +133,7 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient) {
   const totalBalance = Object.values(activeValidators).reduce((acc, { balance }) => acc + balance, 0)
   const activity: EpochsActivities = {
     [currentEpoch]: Object.entries(activeValidators).reduce((acc, [, { address, balance }]) => {
-      acc[address] = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: balance / totalBalance, sizeRatioViaSlots: false, balance }
+      acc[address] = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatio: balance / totalBalance, dominanceRatioViaSlots: false, balance }
       return acc
     }, {} as EpochActivity),
   }

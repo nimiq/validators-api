@@ -1,18 +1,18 @@
 import type { ScoreParams, ScoreValues } from './types'
 import { defu } from 'defu'
 
-export function getSize({ threshold, steepness, sizeRatio }: ScoreParams['size']) {
-  if (!threshold || !steepness || !sizeRatio)
+export function getDominance({ threshold, steepness, dominanceRatio }: ScoreParams['dominance']) {
+  if (!threshold || !steepness || !dominanceRatio)
     throw new Error('Balance, threshold, steepness, or total balance is not set')
-  if (sizeRatio < 0 || sizeRatio > 1)
-    throw new Error(`Invalid size ratio: ${sizeRatio}`)
-  const s = Math.max(0, 1 - (sizeRatio / threshold) ** steepness)
+  if (dominanceRatio < 0 || dominanceRatio > 1)
+    throw new Error(`Invalid dominance ratio: ${dominanceRatio}`)
+  const s = Math.max(0, 1 - (dominanceRatio / threshold) ** steepness)
   return s
 }
 
-export function getLiveness({ activeEpochStates, weightFactor }: ScoreParams['liveness']) {
+export function getAvailability({ activeEpochStates, weightFactor }: ScoreParams['availability']) {
   if (!activeEpochStates || !weightFactor || activeEpochStates.length === 0)
-    throw new Error(`Invalid liveness params: ${JSON.stringify({ activeEpochStates, weightFactor })}`)
+    throw new Error(`Invalid availability params: ${JSON.stringify({ activeEpochStates, weightFactor })}`)
 
   let weightedSum = 0
   let weightTotal = 0
@@ -27,9 +27,9 @@ export function getLiveness({ activeEpochStates, weightFactor }: ScoreParams['li
     throw new Error('Weight total is zero, cannot divide by zero')
 
   const movingAverage = weightedSum / weightTotal
-  const liveness = -(movingAverage ** 2) + 2 * movingAverage
+  const availability = -(movingAverage ** 2) + 2 * movingAverage
 
-  return liveness
+  return availability
 }
 
 export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }: ScoreParams['reliability']) {
@@ -71,19 +71,19 @@ export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }:
 // The default values for the computeScore function
 // Negative values and empty arrays are used to indicate that the user must provide the values or an error will be thrown
 const defaultScoreParams: ScoreParams = {
-  size: { threshold: 0.25, steepness: 4, sizeRatio: -1 },
-  liveness: { weightFactor: 0.5, activeEpochStates: [] },
+  dominance: { threshold: 0.25, steepness: 4, dominanceRatio: -1 },
+  availability: { weightFactor: 0.5, activeEpochStates: [] },
   reliability: { weightFactor: 0.5, curveCenter: -0.16, inherentsPerEpoch: new Map() },
 }
 
 export function computeScore(params: ScoreParams) {
   const computeScoreParams = defu(params, defaultScoreParams)
 
-  const size = getSize(computeScoreParams.size)
-  const liveness = getLiveness(computeScoreParams.liveness)
+  const dominance = getDominance(computeScoreParams.dominance)
+  const availability = getAvailability(computeScoreParams.availability)
   const reliability = getReliability(computeScoreParams.reliability)
 
-  const total = size * liveness * reliability
-  const score: ScoreValues = { size, liveness, reliability, total }
+  const total = dominance * availability * reliability
+  const score: ScoreValues = { dominance, availability, reliability, total }
   return score
 }

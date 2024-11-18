@@ -1,9 +1,9 @@
 {
-  "name": "nimiq-validators-score",
+  "name": "nimiq-validators-trustscore",
   "type": "module",
   "version": "0.0.1",
   "packageManager": "pnpm@9.9.0",
-  "description": "The algorithm to compute the Nimiq's Validator Score",
+  "description": "The algorithm to compute the Nimiq's Validator Trustscore",
   "license": "MIT",
   "homepage": "https://github.com/nimiq/validators-api#readme",
   "repository": {

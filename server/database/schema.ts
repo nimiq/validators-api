@@ -24,13 +24,13 @@ export const validators = sqliteTable('validators', {
   ),
 }))
 
-// The scores only for the default window size
+// The scores only for the default window dominance
 export const scores = sqliteTable('scores', {
   validatorId: integer('validator_id').notNull().references(() => validators.id, { onDelete: 'cascade' }),
   epochNumber: integer('epoch_number').notNull(),
   total: real('total').notNull(),
-  liveness: real('liveness').notNull(),
-  size: real('size').notNull(),
+  availability: real('availability').notNull(),
+  dominance: real('dominance').notNull(),
   reliability: real('reliability').notNull(),
   reason: text('reason', { mode: 'json' }).notNull(),
 }, table => ({
@@ -44,10 +44,10 @@ export const activity = sqliteTable('activity', {
   likelihood: integer('likelihood').notNull(),
   rewarded: integer('rewarded').notNull(),
   missed: integer('missed').notNull(),
-  sizeRatio: integer('size_ratio').notNull(),
-  // TODO Remove sizeRatioViaSlots bool and instead store also the sizeRatioPrecise
-  // sizeRatioViaSlots: integer('size_ratio_via_slots').notNull(),
-  sizeRatioViaSlots: integer('size_ratio_via_slots', { mode: 'boolean' }).notNull(),
+  dominanceRatio: integer('dominance_ratio').notNull(),
+  // TODO Remove dominanceRatioViaSlots bool and instead store also the dominanceRatioPrecise
+  // dominanceRatioViaSlots: integer('dominance_ratio_via_slots').notNull(),
+  dominanceRatioViaSlots: integer('dominance_ratio_via_slots', { mode: 'boolean' }).notNull(),
   balance: real('balance').notNull().default(-1),
 }, table => ({
   idxElectionBlock: index('idx_election_block').on(table.epochNumber),

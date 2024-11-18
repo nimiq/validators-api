@@ -1,9 +1,9 @@
-import type { Range, ScoreParams } from 'nimiq-validators-score'
+import type { Range, ScoreParams } from '~~/packages/nimiq-validators-trustscore/dist/index.mjs'
 import type { NewScore } from './drizzle'
 import type { Result, ValidatorScore } from './types'
+import { computeScore, DEFAULT_WINDOW_IN_DAYS } from '~~/packages/nimiq-validators-trustscore/dist/index.mjs'
 import { consola } from 'consola'
 import { gte, inArray, lte } from 'drizzle-orm'
-import { computeScore, DEFAULT_WINDOW_IN_DAYS } from 'nimiq-validators-score'
 import { findMissingEpochs } from './activities'
 import { fetchValidatorsScoreByIds } from './validators'
 
@@ -29,10 +29,10 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
 
   // TODO Check if we already have scores for the given range and return from the database
 
-  const sizeLastEpoch = await useDrizzle()
+  const dominanceLastEpoch = await useDrizzle()
     .select({
-      sizeRatio: tables.activity.sizeRatio,
-      sizeRatioViaSlots: tables.activity.sizeRatioViaSlots,
+      dominanceRatio: tables.activity.dominanceRatio,
+      dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       validatorId: tables.activity.validatorId,
     })
     .from(tables.activity)
@@ -40,10 +40,10 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
       eq(tables.activity.epochNumber, range.toEpoch),
     ))
 
-  const sizeLastEpochByValidator = new Map<number, { sizeRatio: number, sizeRatioViaSlots: boolean }>()
-  sizeLastEpoch.forEach(({ validatorId, sizeRatio, sizeRatioViaSlots }) =>
-    sizeLastEpochByValidator.set(validatorId, { sizeRatio, sizeRatioViaSlots: Boolean(sizeRatioViaSlots) }))
-  const validatorsIds = Array.from(sizeLastEpochByValidator.keys())
+  const dominanceLastEpochByValidator = new Map<number, { dominanceRatio: number, dominanceRatioViaSlots: boolean }>()
+  dominanceLastEpoch.forEach(({ validatorId, dominanceRatio, dominanceRatioViaSlots }) =>
+    dominanceLastEpochByValidator.set(validatorId, { dominanceRatio, dominanceRatioViaSlots: Boolean(dominanceRatioViaSlots) }))
+  const validatorsIds = Array.from(dominanceLastEpochByValidator.keys())
 
   const _activities = await useDrizzle()
     .select({
@@ -62,16 +62,16 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     .orderBy(tables.activity.epochNumber)
     .execute()
 
-  type Activity = Map<number /* validatorId */, { inherentsPerEpoch: Map<number /* epoch */, { rewarded: number, missed: number }>, sizeRatio: number, sizeRatioViaSlots: boolean }>
+  type Activity = Map<number /* validatorId */, { inherentsPerEpoch: Map<number /* epoch */, { rewarded: number, missed: number }>, dominanceRatio: number, dominanceRatioViaSlots: boolean }>
 
   const validatorsParams: Activity = new Map()
 
   for (const { epoch, missed, rewarded, validatorId } of _activities) {
     if (!validatorsParams.has(validatorId)) {
-      const { sizeRatio, sizeRatioViaSlots } = sizeLastEpochByValidator.get(validatorId) ?? { sizeRatio: -1, sizeRatioViaSlots: false }
-      if (sizeRatio === -1)
-        return { error: `Missing size ratio for validator ${validatorId}. Range: ${range.fromEpoch}-${range.toEpoch}`, data: undefined }
-      validatorsParams.set(validatorId, { sizeRatio, sizeRatioViaSlots, inherentsPerEpoch: new Map() })
+      const { dominanceRatio, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? { dominanceRatio: -1, dominanceRatioViaSlots: false }
+      if (dominanceRatio === -1)
+        return { error: `Missing dominance ratio for validator ${validatorId}. Range: ${range.fromEpoch}-${range.toEpoch}`, data: undefined }
+      validatorsParams.set(validatorId, { dominanceRatio, dominanceRatioViaSlots, inherentsPerEpoch: new Map() })
     }
     const validatorInherents = validatorsParams.get(validatorId)!.inherentsPerEpoch
     if (!validatorInherents.has(epoch))
@@ -82,8 +82,8 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
 
   const scores = Array.from(validatorsParams.entries()).map(([validatorId, { inherentsPerEpoch }]) => {
     const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => inherentsPerEpoch.has(range.fromEpoch + i) ? 1 : 0)
-    const size: ScoreParams['size'] = { sizeRatio: sizeLastEpochByValidator.get(validatorId)?.sizeRatio ?? -1 }
-    const liveness: ScoreParams['liveness'] = { activeEpochStates }
+    const dominance: ScoreParams['dominance'] = { dominanceRatio: dominanceLastEpochByValidator.get(validatorId)?.dominanceRatio ?? -1 }
+    const availability: ScoreParams['availability'] = { activeEpochStates }
     const reliability: ScoreParams['reliability'] = { inherentsPerEpoch }
 
     const reason = {
@@ -92,12 +92,12 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
       badSlots: Array.from(inherentsPerEpoch.values()).reduce((acc, { missed }) => acc + missed, 0),
     }
 
-    const score = computeScore({ liveness, size, reliability })
+    const score = computeScore({ availability, dominance, reliability })
     const newScore: NewScore = { validatorId: Number(validatorId), epochNumber: range.toEpoch, ...score, reason }
     return newScore
   })
 
-  // If the range is the default window size or the range starts at the PoS fork block, we persist the scores
+  // If the range is the default window dominance or the range starts at the PoS fork block, we persist the scores
   // TODO Once the chain is older than 9 months, we should remove range.fromBlockNumber === 1
   if (range.toEpoch - range.fromEpoch + 1 === DEFAULT_WINDOW_IN_DAYS || range.fromBlockNumber === 1)
     await persistScores(scores)

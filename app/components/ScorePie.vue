@@ -35,7 +35,7 @@ const strokeColor = computed(() => {
 <template>
   <div grid="~ cols-1 rows-1 place-content-center *:row-span-full *:col-span-full">
     <template v-if="score !== null">
-      <div font-bold size-full grid="~ place-content-center">
+      <div font-bold dominance-full grid="~ place-content-center">
         {{ (score * 100).toFixed(0) }}
       </div>
       <svg
@@ -50,7 +50,7 @@ const strokeColor = computed(() => {
       </svg>
     </template>
     <template v-else>
-      <div font-bold size-full grid="~ place-content-center">
+      <div font-bold dominance-full grid="~ place-content-center">
         NA
       </div>
       <svg

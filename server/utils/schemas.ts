@@ -1,4 +1,4 @@
-import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from '~~/packages/nimiq-validators-score/src'
+import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from '~~/packages/nimiq-validators-trustscore/src'
 import { z } from 'zod'
 import { PayoutType } from './types'
 

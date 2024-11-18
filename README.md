@@ -65,7 +65,7 @@ This information will be displayed in mainly the wallet to help stakers decide w
 
 - **Shape**: It is preferred that the icon follows the Nimiq hexagon shape. For reference, please refer to the bottom of the 'Colours' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
 - **Background**: Do not add a background colour to the image.
-- **Format**: Prefer to use SVG. File size isn't an issue as we will optimise and serve the best performing version (e.g. PNG, JPG, SVG) for each validator.
+- **Format**: Prefer to use SVG. File dominance isn't an issue as we will optimise and serve the best performing version (e.g. PNG, JPG, SVG) for each validator.
 
 ### Validator JSON schema
 
@@ -100,7 +100,7 @@ When you add your validator information, you'll need to include certain keys in 
 ## Validator Trustscore
 
 - [Read the docs](https://nimiq.com/developers/learn/validator-trustscore).
-- [See implementation](./packages/nimiq-validators-score/)
+- [See implementation](./packages/nimiq-validators-trustscore/)
 
 ## Validators API
 
@@ -130,7 +130,7 @@ We use Drizzle to access the database.
 
 To calculate the score, we need to run two processes: the fetcher and the score calculator. We do this using a Nitro Task, which is currently an experimental feature of Nitro. Nitro Task is a feature that allows you to trigger an action in the server programmatically or manually from the Nuxt Dev Center(go to tasks page).
 
-Read more about the process of computing the score in the [nimiq-validators-score](./packages/nimiq-validators-score/README.md) package.
+Read more about the process of computing the score in the [nimiq-validators-trustscore](./packages/nimiq-validators-trustscore/README.md) package.
 
 #### Database
 

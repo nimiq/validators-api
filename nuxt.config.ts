@@ -99,7 +99,7 @@ export default defineNuxtConfig({
   },
 
   watch: [
-    '~~/packages/nimiq-validators-score',
+    '~~/packages/nimiq-validators-trustscore',
   ],
 
   features: {

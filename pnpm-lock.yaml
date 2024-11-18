@@ -65,9 +65,9 @@ importers:
       nimiq-supply-calculator:
         specifier: workspace:*
         version: link:packages/nimiq-supply-calculator
-      nimiq-validators-score:
+      nimiq-validators-trustscore:
         specifier: workspace:*
-        version: link:packages/nimiq-validators-score
+        version: link:packages/nimiq-validators-trustscore
       nuxt:
         specifier: ^3.13.2
         version: 3.13.2(@parcel/watcher@2.4.1)(@types/node@22.9.0)(bufferutil@4.0.8)(drizzle-orm@0.35.3(@cloudflare/workers-types@4.20241022.0)(@libsql/client-wasm@0.14.0))(eslint@9.13.0(jiti@2.3.3))(ioredis@5.4.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.24.2)(terser@5.36.0)(typescript@5.6.3)(utf-8-validate@5.0.10)(vite@5.4.10(@types/node@22.9.0)(terser@5.36.0))(webpack-sources@3.2.3)
@@ -218,7 +218,7 @@ importers:
         specifier: 'catalog:'
         version: 5.4.10(@types/node@22.9.0)(terser@5.36.0)
 
-  packages/nimiq-validators-score:
+  packages/nimiq-validators-trustscore:
     dependencies:
       defu:
         specifier: ^6.1.4
@@ -9262,8 +9262,8 @@ snapshots:
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.11
       '@rollup/pluginutils': 4.2.1
-      acorn: 8.12.1
-      acorn-import-attributes: 1.9.5(acorn@8.12.1)
+      acorn: 8.14.0
+      acorn-import-attributes: 1.9.5(acorn@8.14.0)
       async-sema: 3.1.1
       bindings: 1.5.0
       estree-walker: 2.0.2
@@ -9601,10 +9601,6 @@ snapshots:
   abort-controller@3.0.0:
     dependencies:
       event-target-shim: 5.0.1
-
-  acorn-import-attributes@1.9.5(acorn@8.12.1):
-    dependencies:
-      acorn: 8.12.1
 
   acorn-import-attributes@1.9.5(acorn@8.14.0):
     dependencies:
@@ -13558,7 +13554,7 @@ snapshots:
   terser@5.36.0:
     dependencies:
       '@jridgewell/source-map': 0.3.6
-      acorn: 8.12.1
+      acorn: 8.14.0
       commander: 2.20.3
       source-map-support: 0.5.21
 

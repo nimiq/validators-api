@@ -42,15 +42,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "size_ratio": {
-          "name": "size_ratio",
+        "dominance_ratio": {
+          "name": "dominance_ratio",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "size_ratio_via_slots": {
-          "name": "size_ratio_via_slots",
+        "dominance_ratio_via_slots": {
+          "name": "dominance_ratio_via_slots",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -132,15 +132,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "liveness": {
-          "name": "liveness",
+        "availability": {
+          "name": "availability",
           "type": "real",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "size": {
-          "name": "size",
+        "dominance": {
+          "name": "dominance",
           "type": "real",
           "primaryKey": false,
           "notNull": true,

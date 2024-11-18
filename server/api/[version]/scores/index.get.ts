@@ -46,10 +46,10 @@ export default defineEventHandler(async (event) => {
       icon: tables.validators.icon,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
       website: tables.validators.website,
-      liveness: tables.scores.liveness,
+      availability: tables.scores.availability,
       total: tables.scores.total,
-      size: tables.scores.size,
-      sizeRatio: tables.activity.sizeRatio,
+      dominance: tables.scores.dominance,
+      dominanceRatio: tables.activity.dominanceRatio,
       reliability: tables.scores.reliability,
       reason: tables.scores.reason,
     })

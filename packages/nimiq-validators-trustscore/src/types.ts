@@ -4,7 +4,7 @@ export enum ValidatorEpochState {
 }
 
 export interface ScoreParams {
-  liveness: {
+  availability: {
     /**
      * The weight factor is a number between 0 and 1 that controls the rate at which the importance of each epoch decreases.
      * - 0: All epochs have equal importance.
@@ -21,7 +21,7 @@ export interface ScoreParams {
     activeEpochStates: ValidatorEpochState[]
   }
 
-  size: {
+  dominance: {
     /**
      * The percentage of the total network stake at which a validator begins to receive a reduced score.
      * Validators with a stake percentage below this threshold receive a maximum score.
@@ -30,7 +30,7 @@ export interface ScoreParams {
     threshold?: number
 
     /**
-     * Controls how quickly the size score decreases once the validator's stake percentage surpasses the threshold.
+     * Controls how quickly the dominance score decreases once the validator's stake percentage surpasses the threshold.
      * A higher value results in a steeper decline in the score.
      * @default 7.5
      */
@@ -39,7 +39,7 @@ export interface ScoreParams {
     /**
      * The proportion of the validator's stake relative to the rest of the stake in the epoch.
      */
-    sizeRatio: number
+    dominanceRatio: number
   }
 
   reliability: {
@@ -69,7 +69,7 @@ export interface ScoreParams {
 }
 
 // The activity of the validator and their block production activity for a given election block
-export interface Activity { likelihood: number, missed: number, rewarded: number, sizeRatio: number, sizeRatioViaSlots: boolean, balance: number }
+export interface Activity { likelihood: number, missed: number, rewarded: number, dominanceRatio: number, dominanceRatioViaSlots: boolean, balance: number }
 
 // A map of validator addresses to their activities in a single epoch
 export type EpochActivity = Record<string /* address */, Activity>
@@ -77,7 +77,7 @@ export type EpochActivity = Record<string /* address */, Activity>
 // A map of validator addresses to their activities in a single epoch
 export type EpochsActivities = Record<number /* election block */, EpochActivity>
 
-export interface ScoreValues { liveness: number, reliability: number, size: number, total: number }
+export interface ScoreValues { availability: number, reliability: number, dominance: number, total: number }
 
 export interface Range {
   // The first epoch index that we will consider

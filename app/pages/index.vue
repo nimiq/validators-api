@@ -49,7 +49,7 @@ const averageScore = computed(() => {
     <ValidatorsTable :validators mt-96 />
 
     <h2 text-center mt-128>
-      Size distribution
+      Dominance distribution
     </h2>
 
     <Donut :data="validators" mt-48 />
