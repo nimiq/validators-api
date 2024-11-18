@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0dbbc139-06ce-4ee6-b038-3571770487bd",
+  "id": "158380c0-eb42-4584-bfc2-e52bace8fe24",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -42,8 +42,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "dominance_ratio": {
-          "name": "dominance_ratio",
+        "dominance_ratio_via_balance": {
+          "name": "dominance_ratio_via_balance",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,

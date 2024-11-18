@@ -1,4 +1,4 @@
-import type { Activity, EpochsActivities, Range } from '~~/packages/nimiq-validators-trustscore/dist/index.mjs'
+import type { Activity, EpochsActivities, Range } from 'nimiq-validators-trustscore'
 import type { NewActivity } from './drizzle'
 import { eq, gte, lte, not } from 'drizzle-orm'
 import { storeValidator } from './validators'
@@ -45,7 +45,7 @@ interface StoreActivityParams {
   epochNumber: number
 }
 
-const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatio: 0, dominanceRatioViaSlots: false, balance: -1 }
+const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1 }
 
 export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
@@ -54,29 +54,32 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
   // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
   // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
   const existingActivity = await useDrizzle()
-    .select({ dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots, dominanceRatio: tables.activity.dominanceRatio, balance: tables.activity.balance })
+    .select({
+      dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
+      dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
+      balance: tables.activity.balance,
+    })
     .from(tables.activity)
     .where(and(
       eq(tables.activity.epochNumber, epochNumber),
       eq(tables.activity.validatorId, validatorId),
     ))
 
-  const { likelihood, rewarded, missed, dominanceRatio: _dominanceRatio, dominanceRatioViaSlots: _dominanceRatioViaSlots, balance: _balance } = activity || defaultActivity
+  const { likelihood, rewarded, missed, dominanceRatioViaBalance: _dominanceRatioViaBalance, dominanceRatioViaSlots: _dominanceRatioViaSlots, balance: _balance } = activity || defaultActivity
 
-  // We always want to update db except the columns `dominanceRatio` and `dominanceRatioViaSlots`.
-  // If we have `dominanceRatioViaSlots` as false and `dominanceRatio` > 0, then we won't update only those columns
-  // As we want to keep the values from the first time we inserted the activity as they are more accurate
-  const viaSlotsDb = Boolean(existingActivity.at(0)?.dominanceRatioViaSlots)
-  const dominanceRatioDb = existingActivity.at(0)?.dominanceRatio || 0
-  const updateDominanceColumns = viaSlotsDb !== false || dominanceRatioDb <= 0
-  const dominanceRatio = updateDominanceColumns ? _dominanceRatio : dominanceRatioDb
-  const dominanceRatioViaSlots = updateDominanceColumns ? _dominanceRatioViaSlots : viaSlotsDb
+  // We always want to update db except the columns `dominanceRatioViaBalance` and `dominanceRatioViaSlots`.
+  const dominanceRatioViaSlotsDb = existingActivity.at(0)?.dominanceRatioViaSlots
+  const dominanceRatioViaSlots = dominanceRatioViaSlotsDb === -1 ? _dominanceRatioViaSlots : dominanceRatioViaSlotsDb || -1
+
+  const dominanceRatioViaBalanceDb = existingActivity.at(0)?.dominanceRatioViaBalance
+  const dominanceRatioViaBalance = dominanceRatioViaBalanceDb === -1 ? _dominanceRatioViaSlots : dominanceRatioViaBalanceDb || -1
+
   const balance = existingActivity.at(0)?.balance === -1 ? _balance : existingActivity.at(0)?.balance
 
   await useDrizzle().delete(tables.activity).where(and(
     eq(tables.activity.epochNumber, epochNumber),
     eq(tables.activity.validatorId, validatorId),
   ))
-  const activityDb: NewActivity = { likelihood, rewarded, missed, epochNumber, validatorId, dominanceRatio, dominanceRatioViaSlots, balance }
+  const activityDb: NewActivity = { likelihood, rewarded, missed, epochNumber, validatorId, dominanceRatioViaSlots, dominanceRatioViaBalance, balance }
   await useDrizzle().insert(tables.activity).values(activityDb)
 }

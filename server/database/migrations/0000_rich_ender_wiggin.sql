@@ -4,7 +4,7 @@ CREATE TABLE `activity` (
 	`likelihood` integer NOT NULL,
 	`rewarded` integer NOT NULL,
 	`missed` integer NOT NULL,
-	`dominance_ratio` integer NOT NULL,
+	`dominance_ratio_via_balance` integer NOT NULL,
 	`dominance_ratio_via_slots` integer NOT NULL,
 	`balance` real DEFAULT -1 NOT NULL,
 	PRIMARY KEY(`validator_id`, `epoch_number`),

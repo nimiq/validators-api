@@ -44,10 +44,8 @@ export const activity = sqliteTable('activity', {
   likelihood: integer('likelihood').notNull(),
   rewarded: integer('rewarded').notNull(),
   missed: integer('missed').notNull(),
-  dominanceRatio: integer('dominance_ratio').notNull(),
-  // TODO Remove dominanceRatioViaSlots bool and instead store also the dominanceRatioPrecise
-  // dominanceRatioViaSlots: integer('dominance_ratio_via_slots').notNull(),
-  dominanceRatioViaSlots: integer('dominance_ratio_via_slots', { mode: 'boolean' }).notNull(),
+  dominanceRatioViaBalance: integer('dominance_ratio_via_balance').notNull(),
+  dominanceRatioViaSlots: integer('dominance_ratio_via_slots').notNull(),
   balance: real('balance').notNull().default(-1),
 }, table => ({
   idxElectionBlock: index('idx_election_block').on(table.epochNumber),

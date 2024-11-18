@@ -1,9 +1,9 @@
-import type { Range, ScoreParams } from '~~/packages/nimiq-validators-trustscore/dist/index.mjs'
+import type { Range, ScoreParams } from 'nimiq-validators-trustscore'
 import type { NewScore } from './drizzle'
 import type { Result, ValidatorScore } from './types'
-import { computeScore, DEFAULT_WINDOW_IN_DAYS } from '~~/packages/nimiq-validators-trustscore/dist/index.mjs'
 import { consola } from 'consola'
 import { gte, inArray, lte } from 'drizzle-orm'
+import { computeScore, DEFAULT_WINDOW_IN_DAYS } from 'nimiq-validators-trustscore'
 import { findMissingEpochs } from './activities'
 import { fetchValidatorsScoreByIds } from './validators'
 
@@ -31,7 +31,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
 
   const dominanceLastEpoch = await useDrizzle()
     .select({
-      dominanceRatio: tables.activity.dominanceRatio,
+      dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
       dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       validatorId: tables.activity.validatorId,
     })
@@ -40,9 +40,9 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
       eq(tables.activity.epochNumber, range.toEpoch),
     ))
 
-  const dominanceLastEpochByValidator = new Map<number, { dominanceRatio: number, dominanceRatioViaSlots: boolean }>()
-  dominanceLastEpoch.forEach(({ validatorId, dominanceRatio, dominanceRatioViaSlots }) =>
-    dominanceLastEpochByValidator.set(validatorId, { dominanceRatio, dominanceRatioViaSlots: Boolean(dominanceRatioViaSlots) }))
+  const dominanceLastEpochByValidator = new Map<number, { dominanceRatioViaBalance: number, dominanceRatioViaSlots: number }>()
+  dominanceLastEpoch.forEach(({ validatorId, dominanceRatioViaBalance, dominanceRatioViaSlots }) =>
+    dominanceLastEpochByValidator.set(validatorId, { dominanceRatioViaBalance, dominanceRatioViaSlots }))
   const validatorsIds = Array.from(dominanceLastEpochByValidator.keys())
 
   const _activities = await useDrizzle()
@@ -62,16 +62,16 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     .orderBy(tables.activity.epochNumber)
     .execute()
 
-  type Activity = Map<number /* validatorId */, { inherentsPerEpoch: Map<number /* epoch */, { rewarded: number, missed: number }>, dominanceRatio: number, dominanceRatioViaSlots: boolean }>
+  type Activity = Map<number /* validatorId */, { inherentsPerEpoch: Map<number /* epoch */, { rewarded: number, missed: number }>, dominanceRatioViaBalance: number, dominanceRatioViaSlots: number }>
 
   const validatorsParams: Activity = new Map()
 
   for (const { epoch, missed, rewarded, validatorId } of _activities) {
     if (!validatorsParams.has(validatorId)) {
-      const { dominanceRatio, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? { dominanceRatio: -1, dominanceRatioViaSlots: false }
-      if (dominanceRatio === -1)
+      const { dominanceRatioViaBalance, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1 }
+      if (dominanceRatioViaBalance === -1)
         return { error: `Missing dominance ratio for validator ${validatorId}. Range: ${range.fromEpoch}-${range.toEpoch}`, data: undefined }
-      validatorsParams.set(validatorId, { dominanceRatio, dominanceRatioViaSlots, inherentsPerEpoch: new Map() })
+      validatorsParams.set(validatorId, { dominanceRatioViaBalance, dominanceRatioViaSlots, inherentsPerEpoch: new Map() })
     }
     const validatorInherents = validatorsParams.get(validatorId)!.inherentsPerEpoch
     if (!validatorInherents.has(epoch))
@@ -82,7 +82,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
 
   const scores = Array.from(validatorsParams.entries()).map(([validatorId, { inherentsPerEpoch }]) => {
     const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => inherentsPerEpoch.has(range.fromEpoch + i) ? 1 : 0)
-    const dominance: ScoreParams['dominance'] = { dominanceRatio: dominanceLastEpochByValidator.get(validatorId)?.dominanceRatio ?? -1 }
+    const dominance: ScoreParams['dominance'] = { dominanceRatio: dominanceLastEpochByValidator.get(validatorId)?.dominanceRatioViaBalance ?? -1 }
     const availability: ScoreParams['availability'] = { activeEpochStates }
     const reliability: ScoreParams['reliability'] = { inherentsPerEpoch }
 

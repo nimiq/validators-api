@@ -1,9 +1,9 @@
-import type { Range } from '~~/packages/nimiq-validators-trustscore/dist/index.mjs'
 import type { EventHandlerRequest, H3Event } from 'h3'
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
+import type { Range } from 'nimiq-validators-trustscore'
 import type { Result } from './types'
-import { getRange } from '~~/packages/nimiq-validators-trustscore/dist/index.mjs'
 import { consola } from 'consola'
+import { getRange } from 'nimiq-validators-trustscore'
 import { rangeQuerySchema } from './schemas'
 
 /**

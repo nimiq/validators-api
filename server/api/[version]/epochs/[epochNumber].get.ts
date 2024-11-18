@@ -1,8 +1,8 @@
-import type { EpochsActivities } from '~~/packages/nimiq-validators-trustscore/dist/index.mjs'
-import { fetchEpochs } from '~~/packages/nimiq-validators-trustscore/dist/index.mjs'
+import type { EpochsActivities } from 'nimiq-validators-trustscore'
 import { getRpcClient } from '~~/server/lib/client'
 import { consola } from 'consola'
 import { not } from 'drizzle-orm'
+import { fetchEpochs } from 'nimiq-validators-trustscore'
 
 function err(error: any) {
   consola.error(error)
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
       likelihood: tables.activity.likelihood,
       rewarded: tables.activity.rewarded,
       missed: tables.activity.missed,
-      dominanceRatio: tables.activity.dominanceRatio,
+      dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
       dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       validatorAddress: tables.validators.address,
     })
@@ -67,7 +67,7 @@ export default defineEventHandler(async (event) => {
       likelihood: epochActivity[address].likelihood,
       rewarded: epochActivity[address].rewarded,
       missed: epochActivity[address].missed,
-      dominanceRatio: epochActivity[address].dominanceRatio,
+      dominanceRatioViaBalance: epochActivity[address].dominanceRatioViaBalance,
       dominanceRatioViaSlots: epochActivity[address].dominanceRatioViaSlots,
       validatorAddress: address,
     })
