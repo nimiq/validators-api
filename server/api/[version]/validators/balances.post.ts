@@ -37,6 +37,10 @@ export default defineEventHandler(async (): Promise<BalanceResponse> => {
         return
       }
 
+      // Skip validators that are inactive, jailed, or retired
+      if (Boolean(data.inactivityFlag) || Boolean(data.jailedFrom) || data.retired)
+        return
+
       await db
         .update(tables.activity)
         .set({ balance: data.balance })
@@ -50,5 +54,6 @@ export default defineEventHandler(async (): Promise<BalanceResponse> => {
     results.push(...batchResults)
   }
 
-  return { data: results, issues }
+  const data = results.filter(({ status }) => status === 'fulfilled')
+  return { data, issues }
 })
