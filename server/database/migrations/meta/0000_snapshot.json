@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "50f27077-e094-4dbf-83d3-fe2c4c9f788d",
+  "id": "e54c5a51-b101-4a2c-86df-40390d779f61",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -55,6 +55,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "balance": {
+          "name": "balance",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": -1
         }
       },
       "indexes": {
@@ -243,8 +251,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false,
-          "default": "''"
+          "autoincrement": false
         },
         "is_maintained_by_nimiq": {
           "name": "is_maintained_by_nimiq",

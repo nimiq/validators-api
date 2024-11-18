@@ -6,6 +6,7 @@ CREATE TABLE `activity` (
 	`missed` integer NOT NULL,
 	`size_ratio` integer NOT NULL,
 	`size_ratio_via_slots` integer NOT NULL,
+	`balance` real DEFAULT -1 NOT NULL,
 	PRIMARY KEY(`validator_id`, `epoch_number`),
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
@@ -32,7 +33,7 @@ CREATE TABLE `validators` (
 	`description` text,
 	`fee` real DEFAULT -1,
 	`payout_type` text DEFAULT 'none',
-	`payout_schedule` text DEFAULT '',
+	`payout_schedule` text,
 	`is_maintained_by_nimiq` integer DEFAULT false,
 	`icon` text NOT NULL,
 	`has_default_icon` integer DEFAULT true NOT NULL,
