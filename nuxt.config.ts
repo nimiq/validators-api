@@ -61,7 +61,7 @@ export default defineNuxtConfig({
       const nimiqNetwork = process.env.NUXT_PUBLIC_NIMIQ_NETWORK as string
       const validNimiqNetworks = ['main-albatross', 'test-albatross']
       if (!validNimiqNetworks.includes(nimiqNetwork)) {
-        throw new Error(`Invalid nimiqNetwork: ${nimiqNetwork}. Please make sure it is one of: ${validNimiqNetworks.join(', ')}`)
+        consola.warn(`Invalid nimiqNetwork: ${nimiqNetwork}. Please make sure it is one of: ${validNimiqNetworks.join(', ')}`)
       }
     },
   },
