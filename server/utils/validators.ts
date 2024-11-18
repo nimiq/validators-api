@@ -1,14 +1,14 @@
 import type { ScoreValues } from '~~/packages/nimiq-validators-score/src'
 import type { SQLWrapper } from 'drizzle-orm'
-import type { NewValidator, Validator } from './drizzle'
+import type { Validator } from './drizzle'
+import type { ValidatorJSON } from './schemas'
 import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
 import { desc, inArray, isNotNull } from 'drizzle-orm'
-import { createIdenticon, getIdenticonsParams } from 'identicons-esm'
-import { optimize } from 'svgo'
-import { validatorSchema } from './schemas'
+import { getBrandingParameters } from './icon'
+import { defaultValidatorJSON, validatorSchema } from './schemas'
 
 /**
  * Given a list of validator addresses, it returns the addresses that are missing in the database.
@@ -37,11 +37,10 @@ interface StoreValidatorOptions {
   upsert?: boolean
 }
 
-export async function storeValidator(
-  address: string,
-  rest: Omit<NewValidator, 'address' | 'icon' | 'accentColor' | 'hasDefaultIcon'> & { icon?: string, accentColor?: string } = {},
-  options: StoreValidatorOptions = {},
-): Promise<number | undefined> {
+export async function storeValidator(address: string, rest: ValidatorJSON = defaultValidatorJSON, options: StoreValidatorOptions = {}): Promise<number | undefined> {
+  if (address !== 'NQ37 6EL5 BP9K XL1A 3ED0 L3EC NPR5 C9D3 BRKG') {
+    return
+  }
   try {
     // TODO Build broken
     // Address.fromString(address)
@@ -52,12 +51,14 @@ export async function storeValidator(
   }
 
   const { upsert = false } = options
+  consola.info(1)
 
   // If the validator is cached and upsert is not true, return it
   if (!upsert && validators.has(address)) {
     return validators.get(address)
   }
 
+  consola.info(2)
   // Check if the validator already exists in the database
   let validatorId = await useDrizzle()
     .select({ id: tables.validators.id })
@@ -66,30 +67,23 @@ export async function storeValidator(
     .get()
     .then(r => r?.id)
 
+  consola.info(3)
   // If the validator exists and upsert is not true, return it
-  if (validatorId && !upsert) {
+  if (!upsert && validatorId) {
+    consola.info(`Validator ${address} already exists in the database`)
     validators.set(address, validatorId)
     return validatorId
   }
 
+  consola.info(4)
   consola.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`)
 
-  async function getBrandingParameters() {
-    if (rest.icon) {
-      // TODO Once the validators have accent colors, re-enable this check
-      // if (!rest.accentColor)
-      //   throw new Error(`The validator ${address} does have an icon but not an accent color`)
-      if (rest.icon.startsWith('data:image/svg+xml')) {
-        rest.icon = optimize(rest.icon, { plugins: [{ name: 'preset-default' }] }).data
-      }
-      return { icon: rest.icon, accentColor: rest.accentColor!, hasDefaultIcon: false }
-    }
-    const icon = await createIdenticon(address, { format: 'image/svg+xml' })
-    const { colors: { background: accentColor } } = await getIdenticonsParams(address)
-    return { icon, accentColor, hasDefaultIcon: true }
+  const brandingParameters = await getBrandingParameters(address, rest)
+  consola.info(5)
+  if (address === 'NQ37 6EL5 BP9K XL1A 3ED0 L3EC NPR5 C9D3 BRKG') {
+    consola.info(`Branding parameters for ${address}: ${JSON.stringify(brandingParameters)}`)
+    consola.info(rest)
   }
-
-  const brandingParameters = await getBrandingParameters()
   try {
     if (validatorId) {
       await useDrizzle()
@@ -263,5 +257,9 @@ export async function importValidatorsFromFiles(folderPath: string) {
 
     validators.push(validator)
   }
-  await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
+  const res = await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
+  const errors = res.filter(r => r.status === 'rejected')
+  if (errors.length > 0) {
+    throw new Error(`There were errors while importing the validators: ${errors.map(e => e.reason)}`)
+  }
 }
