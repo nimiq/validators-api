@@ -16,19 +16,11 @@ export default defineCachedEventHandler(async (event) => {
     addresses = activeValidators.map(v => v.address)
   }
 
-  let epochNumber = -1
-  if (params['with-scores']) {
-    const { data: currentEpoch, error: errorCurrentEpoch } = await getRpcClient().blockchain.getEpochNumber()
-    if (errorCurrentEpoch)
-      return createError(errorCurrentEpoch)
-    epochNumber = currentEpoch - 1
-  }
-
-  const { data: validators, error: errorValidators } = await fetchValidators({ ...params, addresses, epochNumber })
+  const { data: validators, error: errorValidators } = await fetchValidators({ ...params, addresses })
   if (errorValidators || !validators)
     throw createError(errorValidators)
 
   return validators
 }, {
-  maxAge: import.meta.dev ? 1 : 60 * 10, // 10 minutes
+  maxAge: import.meta.dev ? 0 : 60 * 10, // 10 minutes
 })

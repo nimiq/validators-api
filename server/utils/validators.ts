@@ -1,4 +1,3 @@
-import type { ScoreValues } from '~~/packages/nimiq-validators-score/src'
 import type { SQLWrapper } from 'drizzle-orm'
 import type { Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
@@ -123,13 +122,16 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
   return { data: validators, error: undefined }
 }
 
-export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[], epochNumber?: number }
+export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[] }
 
-type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & { icon?: string } & { score?: ScoreValues | null, sizeRatio?: number }
+type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & {
+  icon?: string
+  score?: { total: number, liveness: number, size: number, reliability: number }
+}
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  // This function is a mess. It should be refactored and create better API
-  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, 'with-scores': withScores = false, epochNumber = -1 } = params
+  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false } = params
+
   const filters: SQLWrapper[] = [isNotNull(tables.scores.validatorId)]
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
@@ -138,49 +140,39 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
   if (onlyKnown)
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
-  const baseColumns = {
-    id: tables.validators.id,
-    name: tables.validators.name,
-    address: tables.validators.address,
-    fee: tables.validators.fee,
-    payoutType: tables.validators.payoutType,
-    payoutSchedule: tables.validators.payoutSchedule,
-    description: tables.validators.description,
-    icon: tables.validators.icon,
-    accentColor: tables.validators.accentColor,
-    isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
-    hasDefaultIcon: tables.validators.hasDefaultIcon,
-    website: tables.validators.website,
-    balance: tables.activity.balance,
-  }
-
-  const columns = withScores
-    ? {
-        ...baseColumns,
-        sizeRatio: tables.activity.sizeRatio,
+  try {
+    const validators = await useDrizzle()
+      .select({
+        id: tables.validators.id,
+        name: tables.validators.name,
+        address: tables.validators.address,
+        description: tables.validators.description,
+        fee: tables.validators.fee,
+        payoutType: tables.validators.payoutType,
+        payoutSchedule: tables.validators.payoutSchedule,
+        isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
+        website: tables.validators.website,
+        icon: tables.validators.icon,
+        hasDefaultIcon: tables.validators.hasDefaultIcon,
+        accentColor: tables.validators.accentColor,
         score: {
-          liveness: tables.scores.liveness,
           total: tables.scores.total,
           size: tables.scores.size,
+          liveness: tables.scores.liveness,
           reliability: tables.scores.reliability,
         },
-      }
-    : baseColumns
-
-  try {
-    let query = useDrizzle().select(columns).from(tables.validators).where(and(...filters)).$dynamic()
-
-    if (withScores) {
-      consola.info(`Fetching validators with scores for epoch ${epochNumber}`)
-      query = query
-        .leftJoin(tables.scores, and(
-          isNotNull(tables.scores.total),
+      })
+      .from(tables.validators)
+      .where(and(...filters))
+      .leftJoin(
+        tables.scores,
+        and(
           eq(tables.validators.id, tables.scores.validatorId),
-        ))
-    }
-    query.leftJoin(tables.activity, and(eq(tables.validators.id, tables.activity.validatorId), eq(tables.activity.epochNumber, epochNumber)))
-
-    const validators = await query.orderBy(desc(tables.scores.total)).all() satisfies FetchedValidator[] as FetchedValidator[]
+          isNotNull(tables.scores.total),
+        ),
+      )
+      .orderBy(desc(tables.scores.total))
+      .all() as FetchedValidator[]
 
     if (!withIdenticons)
       validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)

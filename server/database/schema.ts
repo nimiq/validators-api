@@ -24,10 +24,10 @@ export const validators = sqliteTable('validators', {
   ),
 }))
 
+// The scores only for the default window size
 export const scores = sqliteTable('scores', {
   validatorId: integer('validator_id').notNull().references(() => validators.id, { onDelete: 'cascade' }),
-  fromEpoch: integer('from_epoch').notNull(),
-  toEpoch: integer('to_epoch').notNull(),
+  epochNumber: integer('epoch_number').notNull(),
   total: real('total').notNull(),
   liveness: real('liveness').notNull(),
   size: real('size').notNull(),
@@ -35,7 +35,7 @@ export const scores = sqliteTable('scores', {
   reason: text('reason', { mode: 'json' }).notNull(),
 }, table => ({
   idxValidatorId: index('idx_validator_id').on(table.validatorId),
-  compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.fromEpoch, table.toEpoch] }),
+  compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.epochNumber] }),
 }))
 
 export const activity = sqliteTable('activity', {

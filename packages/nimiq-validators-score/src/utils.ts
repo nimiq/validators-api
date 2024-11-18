@@ -15,6 +15,8 @@ interface GetRangeOptions {
 
 export const DEFAULT_WINDOW_IN_DAYS = 30 * 9
 export const DEFAULT_WINDOW_IN_MS = DEFAULT_WINDOW_IN_DAYS * 24 * 60 * 60 * 1000
+const EPOCHS_PER_DAY = 2
+export const DEFAULT_WINDOW_IN_EPOCHS = DEFAULT_WINDOW_IN_DAYS * EPOCHS_PER_DAY
 
 /**
  * Given the amount of milliseconds we want to consider, it returns an object with the epoch range we will consider.

@@ -56,5 +56,4 @@ export const mainQuerySchema = z.object({
   'only-active': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'only-known': z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
   'with-identicons': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
-  'with-scores': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
 })

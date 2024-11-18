@@ -3,7 +3,7 @@ import type { NewScore } from './drizzle'
 import type { Result, ValidatorScore } from './types'
 import { consola } from 'consola'
 import { gte, inArray, lte } from 'drizzle-orm'
-import { computeScore } from 'nimiq-validators-score'
+import { computeScore, DEFAULT_WINDOW_IN_DAYS } from 'nimiq-validators-score'
 import { findMissingEpochs } from './activities'
 import { fetchValidatorsScoreByIds } from './validators'
 
@@ -93,12 +93,15 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     }
 
     const score = computeScore({ liveness, size, reliability })
-    const newScore: NewScore = { validatorId: Number(validatorId), fromEpoch: range.fromEpoch, toEpoch: range.toEpoch, ...score, reason }
+    const newScore: NewScore = { validatorId: Number(validatorId), epochNumber: range.toEpoch, ...score, reason }
     return newScore
   })
 
-  // TODO only store the scores that uses default window size to save space
-  await persistScores(scores)
+  // If the range is the default window size or the range starts at the PoS fork block, we persist the scores
+  // TODO Once the chain is older than 9 months, we should remove range.fromBlockNumber === 1
+  if (range.toEpoch - range.fromEpoch + 1 === DEFAULT_WINDOW_IN_DAYS || range.fromBlockNumber === 1)
+    await persistScores(scores)
+
   const { data: validators, error: errorValidators } = await fetchValidatorsScoreByIds(scores.map(s => s.validatorId))
   if (errorValidators || !validators)
     return { error: errorValidators, data: undefined }
@@ -124,10 +127,7 @@ export async function checkIfScoreExistsInDb(range: Range) {
   const scoreAlreadyInDb = await useDrizzle()
     .select({ validatorId: tables.scores.validatorId })
     .from(tables.scores)
-    .where(and(
-      eq(tables.scores.toEpoch, range.toEpoch),
-      eq(tables.scores.fromEpoch, range.fromEpoch),
-    ))
+    .where(eq(tables.scores.epochNumber, range.toEpoch))
     .get()
     .then(r => Boolean(r?.validatorId))
   return scoreAlreadyInDb
