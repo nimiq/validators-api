@@ -1,4 +1,5 @@
-import { powi, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE, TOTAL_SUPPLY } from './utils'
+import { SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE, TOTAL_SUPPLY } from './constants'
+import { powi } from './utils'
 
 // Supply decay per millisecond
 const SUPPLY_DECAY = 0.9999999999960264
