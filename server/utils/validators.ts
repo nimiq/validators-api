@@ -173,7 +173,10 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     if (withScores) {
       consola.info(`Fetching validators with scores for epoch ${epochNumber}`)
       query = query
-        .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
+        .leftJoin(tables.scores, and(
+          isNotNull(tables.scores.total),
+          eq(tables.validators.id, tables.scores.validatorId),
+        ))
     }
     query.leftJoin(tables.activity, and(eq(tables.validators.id, tables.activity.validatorId), eq(tables.activity.epochNumber, epochNumber)))
 
