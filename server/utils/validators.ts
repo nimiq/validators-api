@@ -245,7 +245,13 @@ export async function importValidatorsFromFiles(folderPath: string) {
     const fileContent = await readFile(filePath, 'utf8')
 
     // Validate the file content
-    const jsonData = JSON.parse(fileContent)
+    let jsonData
+    try {
+      jsonData = JSON.parse(fileContent)
+    }
+    catch (error) {
+      throw new Error(`Invalid JSON in file: ${file}. Error: ${error}`)
+    }
     const { success, data: validator, error } = validatorSchema.safeParse(jsonData)
     if (!success || error)
       throw new Error(`Invalid file: ${file}. Error: ${JSON.stringify(error)}`)
