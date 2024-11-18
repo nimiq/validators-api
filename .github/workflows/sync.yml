@@ -9,9 +9,15 @@ on:
       api_url:
         required: true
         type: string
+  pull_request:
+    types: [closed]
+    branches:
+      - main
 
 jobs:
   import-validators:
+    # Only run if pull request is merged to main
+    if: github.event.pull_request.merged == true
     name: Import validators ${{ inputs.network }}
     strategy:
       fail-fast: false
@@ -30,6 +36,7 @@ jobs:
           fi
 
   sync-epoch-activity:
+    if: github.event_name != 'pull_request'
     name: Syncs the epoch activity
     strategy:
       fail-fast: false
@@ -68,6 +75,7 @@ jobs:
           done
 
   sync-validator-balances:
+    if: github.event_name != 'pull_request'
     name: Syncs the validator balances
     strategy:
       fail-fast: false
