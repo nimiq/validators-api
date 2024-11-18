@@ -1,4 +1,5 @@
 import process from 'node:process'
+import { consola } from 'consola'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
 

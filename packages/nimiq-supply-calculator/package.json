@@ -33,6 +33,11 @@
       "types": "./dist/pow.d.ts",
       "import": "./dist/pow.mjs",
       "require": "./dist/pow.cjs"
+    },
+    "./constants": {
+      "types": "./dist/constants.d.ts",
+      "import": "./dist/constants.mjs",
+      "require": "./dist/constants.cjs"
     }
   },
   "main": "./dist/index.mjs",

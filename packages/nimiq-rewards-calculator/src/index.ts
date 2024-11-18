@@ -1,5 +1,4 @@
-import { posSupplyAt } from 'nimiq-supply-calculator'
-import { SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE } from 'nimiq-supply-calculator/utils'
+import { posSupplyAt, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE } from 'nimiq-supply-calculator'
 
 // = 1 - POS_SUPPLY_DECAY ** (1000 * 60 * 60 * 24)
 const DECAY_PER_DAY = 0.0003432600460362
