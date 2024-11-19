@@ -9,9 +9,9 @@
   "payoutType": "direct",
   "contact": {
     "email": "ritvarsdev@gmail.com",
-    "bluesky": "https://bsky.app/profile/ritvarsb.bsky.social",
-    "github": "https://github.com/ritvarsbiksis",
-    "linkedin": "https://www.linkedin.com/in/ritvars-bikšis-283264113/",
-    "facebook": "https://www.facebook.com/ritvars.biksis"
+    "bluesky": "@ritvarsb.bsky.social",
+    "github": "ritvarsbiksis",
+    "linkedin": "ritvars-bikšis-283264113/",
+    "facebook": "ritvars.biksis"
   }
 }
