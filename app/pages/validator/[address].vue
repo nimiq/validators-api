@@ -9,7 +9,7 @@ const validator = computed(() => getValidatorByAddress(route.params.address as s
   <div v-if="validator">
     <div flex="~ gap-16 items-center">
       <Identicon
-        :validator dominance-64 shrink-0 object-contain
+        :validator size-64 shrink-0 object-contain
         :style="{ 'view-transition-name': `logo-${validator.id}` }"
       />
       <div flex="~ col gap-12" relative>
@@ -38,7 +38,7 @@ const validator = computed(() => getValidatorByAddress(route.params.address as s
         {{ validator.name }}'s score is
       </h3>
       <ScorePie
-        mx-auto mt-32 dominance-128 text-40 :score="validator.total"
+        mx-auto mt-32 size-128 text-40 :score="validator.total"
         :style="{ 'view-transition-name': `score-${validator.id}` }"
       />
 
