@@ -1,6 +1,6 @@
 import type { Activity, EpochsActivities, Range } from 'nimiq-validators-trustscore'
 import type { NewActivity } from './drizzle'
-import { eq, not } from 'drizzle-orm'
+import { eq, gte, lte, not } from 'drizzle-orm'
 import { storeValidator } from './validators'
 
 /**
@@ -11,11 +11,12 @@ export async function findMissingEpochs(range: Range) {
     .selectDistinct({ epochBlockNumber: tables.activity.epochNumber })
     .from(tables.activity)
     .where(and(
-      eq(tables.activity.epochNumber, range.toEpoch),
-      // If every entry of the same epoch contains a likelihood of -1, then we consider it as missing
+      gte(tables.activity.epochNumber, range.fromEpoch),
+      lte(tables.activity.epochNumber, range.toEpoch),
+      // If any entry of the same epoch contains a likelihood of -1, then we consider it as missing
       not(eq(tables.activity.likelihood, -1)),
     ))
-    .execute()
+    .all()
     .then(r => r.map(r => r.epochBlockNumber))
 
   const missingEpochs = []
@@ -52,7 +53,7 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
     return
   // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
   // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
-  const { likelihood, rewarded, missed, dominanceRatioViaBalance: _dominanceRatioViaBalance, dominanceRatioViaSlots: _dominanceRatioViaSlots, balance: _balance } = await useDrizzle()
+  const { dominanceRatioViaBalance: _dominanceRatioViaBalance, dominanceRatioViaSlots: _dominanceRatioViaSlots, balance: _balance } = await useDrizzle()
     .select({
       likelihood: tables.activity.likelihood,
       rewarded: tables.activity.rewarded,
@@ -76,6 +77,6 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
     eq(tables.activity.epochNumber, epochNumber),
     eq(tables.activity.validatorId, validatorId),
   ))
-  const activityDb: NewActivity = { likelihood, rewarded, missed, epochNumber, validatorId, dominanceRatioViaSlots, dominanceRatioViaBalance, balance }
+  const activityDb: NewActivity = { ...activity!, epochNumber, validatorId, dominanceRatioViaSlots, dominanceRatioViaBalance, balance }
   await useDrizzle().insert(tables.activity).values(activityDb)
 }
