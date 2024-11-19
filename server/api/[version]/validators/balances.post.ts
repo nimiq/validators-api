@@ -12,16 +12,12 @@ export default defineEventHandler(async (): Promise<BalanceResponse> => {
 
   const db = useDrizzle()
 
-  // Get all validators that have no balance for the current epoch
+  // Get all validators
+  // TODO We should somehow store that validators are retired and ignore them here
   const validators = await db
     .select({ id: tables.validators.id, address: tables.validators.address })
     .from(tables.validators)
-    .leftJoin(tables.activity, eq(tables.activity.validatorId, tables.validators.id))
-    .where(and(eq(tables.activity.epochNumber, epochNumber), eq(tables.activity.balance, -1)))
     .all()
-
-  if (!validators.length)
-    return { data: [], issues: [] }
 
   const issues: { address: string, error: any }[] = []
   const batchSize = 10 // Limit concurrent RPC calls
@@ -37,8 +33,7 @@ export default defineEventHandler(async (): Promise<BalanceResponse> => {
         return
       }
 
-      // Skip validators that are inactive, jailed, or retired
-      if (Boolean(data.inactivityFlag) || Boolean(data.jailedFrom) || data.retired)
+      if (data.retired)
         return
 
       await db
