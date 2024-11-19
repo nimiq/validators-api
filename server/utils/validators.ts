@@ -126,7 +126,7 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & {
   icon?: string
   score?: Score
-  sizeRatio?: number
+  dominanceRatio?: number
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
@@ -172,7 +172,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
           availability: tables.scores.availability,
           reliability: tables.scores.reliability,
         },
-        sizeRatio: sql<number>`
+        dominanceRatio: sql<number>`
           COALESCE(
             NULLIF(${tables.activity.dominanceRatioViaBalance}, -1),
             NULLIF(${tables.activity.dominanceRatioViaSlots}, -1)
