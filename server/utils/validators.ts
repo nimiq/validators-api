@@ -132,7 +132,7 @@ type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & {
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
   const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false } = params
 
-  const filters: SQLWrapper[] = [isNotNull(tables.scores.validatorId)]
+  const filters: SQLWrapper[] = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
   if (addresses?.length > 0)
@@ -172,16 +172,6 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
           availability: tables.scores.availability,
           reliability: tables.scores.reliability,
         },
-        // score: sql<Score>`
-        //   CASE
-        //     WHEN ${tables.scores.total} IS NOT NULL THEN json_object(
-        //       'total', ${tables.scores.total},
-        //       'dominance', ${tables.scores.dominance},
-        //       'availability', ${tables.scores.availability},
-        //       'reliability', ${tables.scores.reliability}
-        //     )
-        //     ELSE NULL
-        //   END`,
         sizeRatio: sql<number>`
           COALESCE(
             NULLIF(${tables.activity.dominanceRatioViaBalance}, -1),
@@ -194,7 +184,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         tables.scores,
         and(
           eq(tables.validators.id, tables.scores.validatorId),
-          eq(tables.scores.epochNumber, latestEpoch),
+          eq(tables.scores.epochNumber, latestEpoch - 1),
           isNotNull(tables.scores.total),
         ),
       )
@@ -202,7 +192,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         tables.activity,
         and(
           eq(tables.validators.id, tables.activity.validatorId),
-          eq(tables.activity.epochNumber, latestEpoch),
+          eq(tables.activity.epochNumber, latestEpoch - 1),
         ),
       )
       // .orderBy(desc(tables.scores.total))

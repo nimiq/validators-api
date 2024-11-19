@@ -12,6 +12,7 @@ interface GetScoresResult {
   range: Range
 }
 
+const emptyDominance = { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1 }
 /**
  * Given a range of epochs, it returns the scores for the validators in that range.
  */
@@ -20,7 +21,6 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length > 0)
     consola.warn(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
-  consola.warn(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
 
   // TODO Decide how we want to handle the case of missing activity
   // const { data: range, error: rangeError } = await adjustRangeForAvailableData(expectedRange)
@@ -63,15 +63,17 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     .orderBy(tables.activity.epochNumber)
     .execute()
 
-  type Activity = Map<number /* validatorId */, { inherentsPerEpoch: Map<number /* epoch */, { rewarded: number, missed: number }>, dominanceRatioViaBalance: number, dominanceRatioViaSlots: number }>
+  type Activity = Map<number /* validatorId */, { inherentsPerEpoch: Map<number /* epoch */, { rewarded: number, missed: number }>, dominanceRatioViaBalance: number | undefined, dominanceRatioViaSlots: number | undefined }>
 
   const validatorsParams: Activity = new Map()
 
   for (const { epoch, missed, rewarded, validatorId } of _activities) {
     if (!validatorsParams.has(validatorId)) {
-      const { dominanceRatioViaBalance, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1 }
-      if (dominanceRatioViaBalance === -1)
-        return { error: `Missing dominance ratio for validator ${validatorId}. Range: ${range.fromEpoch}-${range.toEpoch}`, data: undefined }
+      const { dominanceRatioViaBalance, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? emptyDominance
+      if (dominanceRatioViaBalance === -1 && dominanceRatioViaSlots === -1) {
+        return { error: `Missing dominance ratio for validator ${validatorId}. Range: ${range.fromEpoch}-${range.toEpoch}. ${{ dominanceRatioViaBalance, dominanceRatioViaSlots,
+        }}`, data: undefined }
+      }
       validatorsParams.set(validatorId, { dominanceRatioViaBalance, dominanceRatioViaSlots, inherentsPerEpoch: new Map() })
     }
     const validatorInherents = validatorsParams.get(validatorId)!.inherentsPerEpoch
@@ -83,7 +85,8 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
 
   const scores = Array.from(validatorsParams.entries()).map(([validatorId, { inherentsPerEpoch }]) => {
     const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => inherentsPerEpoch.has(range.fromEpoch + i) ? 1 : 0)
-    const dominance: ScoreParams['dominance'] = { dominanceRatio: dominanceLastEpochByValidator.get(validatorId)?.dominanceRatioViaBalance ?? -1 }
+    const { dominanceRatioViaBalance, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? emptyDominance
+    const dominance: ScoreParams['dominance'] = { dominanceRatio: dominanceRatioViaBalance === -1 ? dominanceRatioViaSlots : dominanceRatioViaBalance }
     const availability: ScoreParams['availability'] = { activeEpochStates }
     const reliability: ScoreParams['reliability'] = { inherentsPerEpoch }
 

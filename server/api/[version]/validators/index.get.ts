@@ -22,7 +22,7 @@ export default defineCachedEventHandler(async (event) => {
   if (!(await checkIfScoreExistsInDb(range))) {
     const { data, error } = await calculateScores(range)
     if (!data || error)
-      consola.warn(`Error calculating scores for range ${range}`, error)
+      consola.warn(`Error calculating scores for range ${JSON.stringify(range)}`, error)
   }
 
   const { data: validators, error: errorValidators } = await fetchValidators({ ...params, addresses })
