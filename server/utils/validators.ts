@@ -127,7 +127,8 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
   logo?: string
   score?: Score
-  dominanceRatio?: number
+  dominanceRatioViaBalance?: number
+  dominanceRatioViaSlots?: number
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
@@ -162,11 +163,8 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
           availability: tables.scores.availability,
           reliability: tables.scores.reliability,
         },
-        dominanceRatio: sql<number>`
-          COALESCE(
-            NULLIF(${tables.activity.dominanceRatioViaBalance}, -1),
-            NULLIF(${tables.activity.dominanceRatioViaSlots}, -1)
-          )`,
+        dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
+        dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       })
       .from(tables.validators)
       .where(and(...filters))
@@ -199,9 +197,9 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
       if (dominance)
         // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
         v.score.dominance = dominance
-      else if (v.dominanceRatio)
+      else if (v.dominanceRatioViaBalance || v.dominanceRatioViaSlots)
       // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
-        v.score = { ...nullScore, dominance: getDominance({ dominanceRatio: v.dominanceRatio }) }
+        v.score = { ...nullScore, dominance: getDominance({ dominanceRatio: v.dominanceRatioViaBalance || v.dominanceRatioViaSlots }) }
     })
 
     return { data: validators, error: undefined }
