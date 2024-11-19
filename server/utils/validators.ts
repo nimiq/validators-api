@@ -201,7 +201,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         v.score.dominance = dominance
       else if (v.dominanceRatio)
       // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
-        v.score = { ...nullScore, dominance: getDominance(v.dominanceRatio) }
+        v.score = { ...nullScore, dominance: getDominance({ dominanceRatio: v.dominanceRatio }) }
     })
 
     return { data: validators, error: undefined }
