@@ -11,7 +11,7 @@ export enum PayoutType {
 
 export type ValidatorScore =
   Omit<Validator, 'hasDefaultIcon' | 'accentColor' | 'contact'>
-  & Pick<Score, 'total' | 'availability' | 'dominance' | 'reliability' | 'reason'>
+  & Pick<Score, 'availability' | 'dominance' | 'reliability' | 'total'>
 
 export enum HealthFlag {
   MissingEpochs = 'missing-epochs',

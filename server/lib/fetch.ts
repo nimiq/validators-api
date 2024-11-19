@@ -59,11 +59,11 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
 
   // Only fetch the missing epochs that are not in the database
   const missingEpochs = await findMissingEpochs(range)
-  const fetchedEpochs = []
   consola.info(`Fetching missing epochs: ${JSON.stringify(missingEpochs)}`)
   if (missingEpochs.length === 0)
     return []
 
+  const fetchedEpochs = []
   const epochGenerator = fetchEpochs(client, missingEpochs)
 
   while (true) {

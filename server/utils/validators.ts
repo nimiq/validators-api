@@ -1,5 +1,5 @@
 import type { SQLWrapper } from 'drizzle-orm'
-import type { Validator } from './drizzle'
+import type { Score, Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
 import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
@@ -108,10 +108,9 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
       icon: tables.validators.icon,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
       website: tables.validators.website,
-      availability: tables.scores.availability,
       total: tables.scores.total,
+      availability: tables.scores.availability,
       dominance: tables.scores.dominance,
-      reliability: tables.scores.reliability,
     })
     .from(tables.validators)
     .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
@@ -126,7 +125,7 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 
 type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & {
   icon?: string
-  score?: { total: number, availability: number, dominance: number, reliability: number }
+  score?: Score
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {

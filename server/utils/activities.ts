@@ -1,6 +1,6 @@
 import type { Activity, EpochsActivities, Range } from 'nimiq-validators-trustscore'
 import type { NewActivity } from './drizzle'
-import { eq, gte, lte, not } from 'drizzle-orm'
+import { eq, not } from 'drizzle-orm'
 import { storeValidator } from './validators'
 
 /**
@@ -11,8 +11,7 @@ export async function findMissingEpochs(range: Range) {
     .selectDistinct({ epochBlockNumber: tables.activity.epochNumber })
     .from(tables.activity)
     .where(and(
-      gte(tables.activity.epochNumber, range.fromEpoch),
-      lte(tables.activity.epochNumber, range.toEpoch),
+      eq(tables.activity.epochNumber, range.toEpoch),
       // If every entry of the same epoch contains a likelihood of -1, then we consider it as missing
       not(eq(tables.activity.likelihood, -1)),
     ))
@@ -53,8 +52,11 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
     return
   // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
   // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
-  const existingActivity = await useDrizzle()
+  const { likelihood, rewarded, missed, dominanceRatioViaBalance: _dominanceRatioViaBalance, dominanceRatioViaSlots: _dominanceRatioViaSlots, balance: _balance } = await useDrizzle()
     .select({
+      likelihood: tables.activity.likelihood,
+      rewarded: tables.activity.rewarded,
+      missed: tables.activity.missed,
       dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
       balance: tables.activity.balance,
@@ -64,17 +66,11 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
       eq(tables.activity.epochNumber, epochNumber),
       eq(tables.activity.validatorId, validatorId),
     ))
+    .get() || defaultActivity
 
-  const { likelihood, rewarded, missed, dominanceRatioViaBalance: _dominanceRatioViaBalance, dominanceRatioViaSlots: _dominanceRatioViaSlots, balance: _balance } = activity || defaultActivity
-
-  // We always want to update db except the columns `dominanceRatioViaBalance` and `dominanceRatioViaSlots`.
-  const dominanceRatioViaSlotsDb = existingActivity.at(0)?.dominanceRatioViaSlots
-  const dominanceRatioViaSlots = dominanceRatioViaSlotsDb === -1 ? _dominanceRatioViaSlots : dominanceRatioViaSlotsDb || -1
-
-  const dominanceRatioViaBalanceDb = existingActivity.at(0)?.dominanceRatioViaBalance
-  const dominanceRatioViaBalance = dominanceRatioViaBalanceDb === -1 ? _dominanceRatioViaSlots : dominanceRatioViaBalanceDb || -1
-
-  const balance = existingActivity.at(0)?.balance === -1 ? _balance : existingActivity.at(0)?.balance
+  const dominanceRatioViaSlots = (_dominanceRatioViaSlots === -1 ? activity?.dominanceRatioViaSlots : _dominanceRatioViaSlots) || -1
+  const dominanceRatioViaBalance = (_dominanceRatioViaBalance === -1 ? activity?.dominanceRatioViaBalance : _dominanceRatioViaBalance) || -1
+  const balance = (_balance === -1 ? activity?.balance : _balance) || -1
 
   await useDrizzle().delete(tables.activity).where(and(
     eq(tables.activity.epochNumber, epochNumber),

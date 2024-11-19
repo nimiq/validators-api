@@ -99,7 +99,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
 
   // If the range is the default window dominance or the range starts at the PoS fork block, we persist the scores
   // TODO Once the chain is older than 9 months, we should remove range.fromBlockNumber === 1
-  if (range.toEpoch - range.fromEpoch + 1 === DEFAULT_WINDOW_IN_DAYS || range.fromBlockNumber === 1)
+  if (range.toEpoch - range.fromEpoch + 1 === DEFAULT_WINDOW_IN_DAYS || range.fromEpoch === 1)
     await persistScores(scores)
 
   const { data: validators, error: errorValidators } = await fetchValidatorsScoreByIds(scores.map(s => s.validatorId))
