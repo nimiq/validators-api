@@ -1,6 +1,6 @@
 import type { ScoreParams, ScoreValues } from './types'
 
-export function getDominance({ threshold = 0.25, steepness = 4, dominanceRatio }: ScoreParams['dominance']) {
+export function getDominance({ threshold = 0.15, steepness = 7.5, dominanceRatio }: ScoreParams['dominance']) {
   if (!threshold || !steepness || !dominanceRatio)
     throw new Error('Balance, threshold, steepness, or total balance is not set')
   if (dominanceRatio < 0 || dominanceRatio > 1)
