@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
       payoutType: tables.validators.payoutType,
       payoutSchedule: tables.validators.payoutSchedule,
       description: tables.validators.description,
-      icon: tables.validators.icon,
+      logo: tables.validators.logo,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
       website: tables.validators.website,
       availability: tables.scores.availability,

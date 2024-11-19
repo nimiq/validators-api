@@ -61,9 +61,9 @@ This information will be displayed in mainly the wallet to help stakers decide w
 
 > "Every 2 epochs"
 
-#### Icon
+#### Logo
 
-- **Shape**: It is preferred that the icon follows the Nimiq hexagon shape. For reference, please refer to the bottom of the 'Colours' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
+- **Shape**: It is preferred that the logo follows the Nimiq hexagon shape. For reference, please refer to the bottom of the 'Colours' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
 - **Background**: Do not add a background colour to the image.
 - **Format**: Prefer to use SVG. File dominance isn't an issue as we will optimise and serve the best performing version (e.g. PNG, JPG, SVG) for each validator.
 
@@ -83,8 +83,8 @@ When you add your validator information, you'll need to include certain keys in 
 - `name` (optional): The name of the validator. If not specified, the address of the validator is used by default.
 - `description` (optional): A short description of your validator.
 - `website` (optional): The URL of your validator's website.
-- `icon` (optional): An SVG icon representing your pool, encoded in base64 format.
-- `accentColor` (optional). Required if `icon` is set. An optional color to align with the validator's branding, defaulting to the identicon background color if left blank. Needs to be in hexadecimal. e.g. '#1f2348'.
+- `logo` (optional): An SVG logo representing your pool, encoded in base64 format.
+- `accentColor` (optional). Required if `logo` is set. An optional color to align with the validator's branding, defaulting to the identicon background color if left blank. Needs to be in hexadecimal. e.g. '#1f2348'.
 - `contact` (optional). An optional field allowing validators to share contact details so users can easily get in touch. The structure would look like this:
   - `email` (optional)
   - `telegram` (optional). e.g. `@nimiq`

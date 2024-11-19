@@ -6,25 +6,25 @@ import { optimize } from 'svgo'
 
 async function getDefaultBranding(address: string) {
   return {
-    icon: await createIdenticon(address, { format: 'image/svg+xml' }),
+    logo: await createIdenticon(address, { format: 'image/svg+xml' }),
     accentColor: await getIdenticonsParams(address).then(({ colors: { background: accentColor } }) => accentColor),
-    hasDefaultIcon: true,
+    hasDefaultLogo: true,
   }
 }
 
-export async function getBrandingParameters(address: string, { icon: _icon, accentColor }: ValidatorJSON) {
-  if (!_icon)
+export async function getBrandingParameters(address: string, { logo: _logo, accentColor }: ValidatorJSON) {
+  if (!_logo)
     return getDefaultBranding(address)
 
   if (!accentColor)
-    throw new Error(`The validator ${address} does have an icon but not an accent color`)
+    throw new Error(`The validator ${address} does have an logo but not an accent color`)
 
-  let icon: string = _icon
+  let logo: string = _logo
 
-  if (icon.startsWith('data:image/svg+xml')) {
+  if (logo.startsWith('data:image/svg+xml')) {
     // Handle both base64 and URL-encoded SVGs
-    const isBase64 = icon.includes(';base64,')
-    const encoded = icon
+    const isBase64 = logo.includes(';base64,')
+    const encoded = logo
       .replace(/^data:image\/svg\+xml;base64,/, '')
       .replace(/^data:image\/svg\+xml,/, '')
       .trim()
@@ -38,13 +38,13 @@ export async function getBrandingParameters(address: string, { icon: _icon, acce
     }
     catch (error) {
       consola.error(`Error decoding SVG content for ${address}: ${error}`)
-      return { icon: _icon, accentColor: accentColor!, hasDefaultIcon: false }
+      return { logo: _logo, accentColor: accentColor!, hasDefaultLogo: false }
     }
 
     // Validate SVG content
     if (!svgContent.startsWith('<svg') && !svgContent.startsWith('<?xml')) {
       consola.error(`Invalid SVG content for ${address}. Starting with: ${svgContent.slice(0, 50)}. Ending with: ${svgContent.slice(-50)}`)
-      return { icon: _icon, accentColor: accentColor!, hasDefaultIcon: false }
+      return { logo: _logo, accentColor: accentColor!, hasDefaultLogo: false }
     }
 
     // Optimize with error handling
@@ -58,15 +58,15 @@ export async function getBrandingParameters(address: string, { icon: _icon, acce
     }
     catch (error) {
       consola.error(`Error optimizing SVG for ${address}: ${error}`)
-      return { icon: _icon, accentColor: accentColor!, hasDefaultIcon: false }
+      return { logo: _logo, accentColor: accentColor!, hasDefaultLogo: false }
     }
 
     if (!optimizedSvg) {
       consola.warn(`SVGO optimization failed for ${address}`)
     }
 
-    icon = `data:image/svg+xml,${encodeURIComponent(optimizedSvg)}`
+    logo = `data:image/svg+xml,${encodeURIComponent(optimizedSvg)}`
   }
 
-  return { icon, accentColor: accentColor!, hasDefaultIcon: false }
+  return { logo, accentColor: accentColor!, hasDefaultLogo: false }
 }

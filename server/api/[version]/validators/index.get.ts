@@ -13,6 +13,8 @@ export default defineCachedEventHandler(async (event) => {
 
   let addresses: string[] = []
 
+  let epochNumber = 1
+
   // In case server is offline, at least we can show the database data
   if (isOnline) {
     let activeValidators: Validator[] = []
@@ -30,13 +32,18 @@ export default defineCachedEventHandler(async (event) => {
       if (!data || error)
         consola.warn(`Error calculating scores for range ${JSON.stringify(range)}`, error)
     }
+
+    const { data: _epochNumber, error: errorEpochNumber } = await getRpcClient().blockchain.getEpochNumber()
+    if (errorEpochNumber)
+      throw createError(errorEpochNumber)
+    epochNumber = _epochNumber - 1
   }
 
-  const { data: validators, error: errorValidators } = await fetchValidators({ ...params, addresses })
+  const { data: validators, error: errorValidators } = await fetchValidators({ ...params, addresses, epochNumber })
   if (errorValidators || !validators)
     throw createError(errorValidators)
 
   return validators
 }, {
-  maxAge: import.meta.dev ? 0 : 60 * 10, // 10 minutes
+  maxAge: import.meta.dev ? 1 : 60 * 10, // 10 minutes
 })

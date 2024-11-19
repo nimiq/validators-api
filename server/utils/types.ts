@@ -10,7 +10,7 @@ export enum PayoutType {
 }
 
 export type ValidatorScore =
-  Omit<Validator, 'hasDefaultIcon' | 'accentColor' | 'contact'>
+  Omit<Validator, 'hasDefaultLogo' | 'accentColor' | 'contact'>
   & Pick<Score, 'availability' | 'dominance' | 'reliability' | 'total'>
 
 export enum HealthFlag {

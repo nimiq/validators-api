@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "158380c0-eb42-4584-bfc2-e52bace8fe24",
+  "id": "dec040af-39af-4fec-bed6-8b25bdc2449b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -253,15 +253,15 @@
           "autoincrement": false,
           "default": false
         },
-        "icon": {
-          "name": "icon",
+        "logo": {
+          "name": "logo",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "has_default_icon": {
-          "name": "has_default_icon",
+        "has_default_logo": {
+          "name": "has_default_logo",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,

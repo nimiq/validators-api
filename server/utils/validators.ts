@@ -6,7 +6,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
 import { desc, inArray, isNotNull, max } from 'drizzle-orm'
-import { getBrandingParameters } from './icon'
+import { getBrandingParameters } from './logo'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
 /**
@@ -105,7 +105,7 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
       fee: tables.validators.fee,
       payoutType: tables.validators.payoutType,
       description: tables.validators.description,
-      icon: tables.validators.icon,
+      logo: tables.validators.logo,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
       website: tables.validators.website,
       total: tables.scores.total,
@@ -121,16 +121,16 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
   return { data: validators, error: undefined }
 }
 
-export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[] }
+export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[], epochNumber: number }
 
-type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & {
-  icon?: string
+type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
+  logo?: string
   score?: Score
   dominanceRatio?: number
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false } = params
+  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
 
   const filters: SQLWrapper[] = []
   if (payoutType)
@@ -163,8 +163,8 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         payoutSchedule: tables.validators.payoutSchedule,
         isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
         website: tables.validators.website,
-        icon: tables.validators.icon,
-        hasDefaultIcon: tables.validators.hasDefaultIcon,
+        logo: tables.validators.logo,
+        hasDefaultLogo: tables.validators.hasDefaultLogo,
         accentColor: tables.validators.accentColor,
         unstableScore: {
           total: tables.scores.total,
@@ -184,7 +184,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         tables.scores,
         and(
           eq(tables.validators.id, tables.scores.validatorId),
-          eq(tables.scores.epochNumber, latestEpoch - 1),
+          eq(tables.scores.epochNumber, epochNumber),
           isNotNull(tables.scores.total),
         ),
       )
@@ -192,14 +192,14 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         tables.activity,
         and(
           eq(tables.validators.id, tables.activity.validatorId),
-          eq(tables.activity.epochNumber, latestEpoch - 1),
+          eq(tables.activity.epochNumber, epochNumber),
         ),
       )
       // .orderBy(desc(tables.scores.total))
       .all() as FetchedValidator[]
 
     if (!withIdenticons)
-      validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)
+      validators.filter(v => v.hasDefaultLogo).forEach(v => delete v.logo)
 
     return { data: validators, error: undefined }
   }

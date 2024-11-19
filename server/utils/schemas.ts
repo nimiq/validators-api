@@ -21,8 +21,8 @@ export const validatorSchema = z.object({
   isMaintainedByNimiq: z.boolean().optional(),
   description: z.string().optional(),
   website: z.string().url().optional(),
-  icon: z.string().regex(/^data:image\/(png|svg\+xml|webp)/).optional(),
-  hasDefaultIcon: z.boolean().default(true),
+  logo: z.string().regex(/^data:image\/(png|svg\+xml|webp)/).optional(),
+  hasDefaultLogo: z.boolean().default(true),
   accentColor: z.string().optional(),
   contact: z.object({
     email: z.string().email().optional(),
