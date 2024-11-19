@@ -1,7 +1,6 @@
 import type { ScoreParams, ScoreValues } from './types'
-import { defu } from 'defu'
 
-export function getDominance({ threshold, steepness, dominanceRatio }: ScoreParams['dominance']) {
+export function getDominance({ threshold = 0.15, steepness = 7.5, dominanceRatio }: ScoreParams['dominance']) {
   if (!threshold || !steepness || !dominanceRatio)
     throw new Error('Balance, threshold, steepness, or total balance is not set')
   if (dominanceRatio < 0 || dominanceRatio > 1)
@@ -10,7 +9,7 @@ export function getDominance({ threshold, steepness, dominanceRatio }: ScorePara
   return s
 }
 
-export function getAvailability({ activeEpochStates, weightFactor }: ScoreParams['availability']) {
+export function getAvailability({ activeEpochStates, weightFactor = 0.5 }: ScoreParams['availability']) {
   if (!activeEpochStates || !weightFactor || activeEpochStates.length === 0)
     throw new Error(`Invalid availability params: ${JSON.stringify({ activeEpochStates, weightFactor })}`)
 
@@ -32,7 +31,7 @@ export function getAvailability({ activeEpochStates, weightFactor }: ScoreParams
   return availability
 }
 
-export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }: ScoreParams['reliability']) {
+export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCenter = 0.16 }: ScoreParams['reliability']) {
   if (!inherentsPerEpoch || !weightFactor || !curveCenter)
     throw new Error(`Invalid reliability params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}`)
 
@@ -68,20 +67,10 @@ export function getReliability({ inherentsPerEpoch, weightFactor, curveCenter }:
   return Math.max(-curveCenter + 1 - Math.sqrt(discriminant), 1)
 }
 
-// The default values for the computeScore function
-// Negative values and empty arrays are used to indicate that the user must provide the values or an error will be thrown
-const defaultScoreParams: ScoreParams = {
-  dominance: { threshold: 0.25, steepness: 4, dominanceRatio: -1 },
-  availability: { weightFactor: 0.5, activeEpochStates: [] },
-  reliability: { weightFactor: 0.5, curveCenter: -0.16, inherentsPerEpoch: new Map() },
-}
-
 export function computeScore(params: ScoreParams) {
-  const computeScoreParams = defu(params, defaultScoreParams)
-
-  const dominance = getDominance(computeScoreParams.dominance)
-  const availability = getAvailability(computeScoreParams.availability)
-  const reliability = getReliability(computeScoreParams.reliability)
+  const dominance = getDominance(params.dominance)
+  const availability = getAvailability(params.availability)
+  const reliability = getReliability(params.reliability)
 
   const total = dominance * availability * reliability
   const score: ScoreValues = { dominance, availability, reliability, total }

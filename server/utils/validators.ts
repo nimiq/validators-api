@@ -6,6 +6,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
 import { desc, inArray, isNotNull } from 'drizzle-orm'
+import { getDominance } from 'nimiq-validators-trustscore'
 import { getBrandingParameters } from './branding'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
@@ -126,7 +127,8 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
   logo?: string
   score?: Score
-  dominanceRatio?: number
+  dominanceRatioViaBalance?: number
+  dominanceRatioViaSlots?: number
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
@@ -161,11 +163,8 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
           availability: tables.scores.availability,
           reliability: tables.scores.reliability,
         },
-        dominanceRatio: sql<number>`
-          COALESCE(
-            NULLIF(${tables.activity.dominanceRatioViaBalance}, -1),
-            NULLIF(${tables.activity.dominanceRatioViaSlots}, -1)
-          )`,
+        dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
+        dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       })
       .from(tables.validators)
       .where(and(...filters))
@@ -192,10 +191,18 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
 
     const nullScore = { total: null, dominance: null, availability: null, reliability: null }
     validators.forEach((v) => {
+      const dominance = v.score?.dominance
       // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
       v.score = nullScore
+      if (dominance)
+        // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
+        v.score.dominance = dominance
+      else if (v.dominanceRatioViaBalance !== -1)
       // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
-      v.score.dominance = v.dominanceRatio
+        v.score = { ...nullScore, dominance: getDominance({ dominanceRatio: v.dominanceRatioViaBalance }) }
+      else if (v.dominanceRatioViaSlots !== -1)
+      // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
+        v.score = { ...nullScore, dominance: getDominance({ dominanceRatio: v.dominanceRatioViaSlots }) }
     })
 
     return { data: validators, error: undefined }
