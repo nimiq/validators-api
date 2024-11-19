@@ -166,12 +166,12 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         icon: tables.validators.icon,
         hasDefaultIcon: tables.validators.hasDefaultIcon,
         accentColor: tables.validators.accentColor,
-        // score: {
-        //   total: tables.scores.total,
-        //   dominance: tables.scores.dominance,
-        //   availability: tables.scores.availability,
-        //   reliability: tables.scores.reliability,
-        // },
+        score: {
+          total: tables.scores.total,
+          dominance: tables.scores.dominance,
+          availability: tables.scores.availability,
+          reliability: tables.scores.reliability,
+        },
         // score: sql<Score>`
         //   CASE
         //     WHEN ${tables.scores.total} IS NOT NULL THEN json_object(
@@ -189,14 +189,15 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
           )`,
       })
       .from(tables.validators)
-      // .where(and(...filters))
-      // .leftJoin(
-      //   tables.scores,
-      //   and(
-      //     eq(tables.validators.id, tables.scores.validatorId),
-      //     isNotNull(tables.scores.total),
-      //   ),
-      // )
+      .where(and(...filters))
+      .leftJoin(
+        tables.scores,
+        and(
+          eq(tables.validators.id, tables.scores.validatorId),
+          eq(tables.scores.epochNumber, latestEpoch),
+          isNotNull(tables.scores.total),
+        ),
+      )
       .leftJoin(
         tables.activity,
         and(

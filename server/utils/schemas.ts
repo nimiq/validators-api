@@ -15,7 +15,7 @@ export const rangeQuerySchema = z.object({
 export const validatorSchema = z.object({
   name: z.string().optional(),
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
-  fee: z.literal(-1).or(z.number().min(0).max(1)).default(-1),
+  fee: z.literal(null).or(z.number().min(0).max(1)).default(null),
   payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
   payoutSchedule: z.string().optional().default(''),
   isMaintainedByNimiq: z.boolean().optional(),

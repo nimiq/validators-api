@@ -49,7 +49,8 @@ export default defineEventHandler(async (event) => {
       availability: tables.scores.availability,
       total: tables.scores.total,
       dominance: tables.scores.dominance,
-      dominanceRatio: tables.activity.dominanceRatio,
+      dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
+      dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       reliability: tables.scores.reliability,
       reason: tables.scores.reason,
     })
