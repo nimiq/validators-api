@@ -3,5 +3,5 @@
   "name": "Techbits validator",
   "description": "top uptime, low fees, and strong security!",
   "payoutType": "restake",
-  "fee": "0.05",
-  }
+  "fee": 0.05
+}
