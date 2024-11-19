@@ -3,7 +3,7 @@ import type { NewScore } from './drizzle'
 import type { Result, ValidatorScore } from './types'
 import { consola } from 'consola'
 import { gte, inArray, lte } from 'drizzle-orm'
-import { computeScore, DEFAULT_WINDOW_IN_DAYS } from 'nimiq-validators-trustscore'
+import { computeScore, DEFAULT_WINDOW_IN_EPOCHS } from 'nimiq-validators-trustscore'
 import { findMissingEpochs } from './activities'
 import { fetchValidatorsScoreByIds } from './validators'
 
@@ -15,6 +15,7 @@ interface GetScoresResult {
 /**
  * Given a range of epochs, it returns the scores for the validators in that range.
  */
+// TODO THisis no longer relevant remove
 export async function calculateScores(range: Range): Result<GetScoresResult> {
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length > 0)
@@ -99,7 +100,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
 
   // If the range is the default window dominance or the range starts at the PoS fork block, we persist the scores
   // TODO Once the chain is older than 9 months, we should remove range.fromBlockNumber === 1
-  if (range.toEpoch - range.fromEpoch + 1 === DEFAULT_WINDOW_IN_DAYS || range.fromEpoch === 1)
+  if (range.toEpoch - range.fromEpoch + 1 === DEFAULT_WINDOW_IN_EPOCHS || range.fromEpoch === 1)
     await persistScores(scores)
 
   const { data: validators, error: errorValidators } = await fetchValidatorsScoreByIds(scores.map(s => s.validatorId))
