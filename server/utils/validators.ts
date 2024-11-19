@@ -5,7 +5,7 @@ import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray, isNotNull, max } from 'drizzle-orm'
+import { desc, inArray, isNotNull } from 'drizzle-orm'
 import { getBrandingParameters } from './branding'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
@@ -141,17 +141,6 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
-    const latestEpoch = await useDrizzle()
-      .select({ epochNumber: max(tables.activity.epochNumber) })
-      .from(tables.activity)
-      .get()
-      .then(r => r?.epochNumber)
-    if (!latestEpoch) {
-      consola.error('There was an error while fetching the latest epoch')
-      return { data: undefined, error: 'There was an error while fetching the latest epoch' }
-    }
-    consola.info(`Fetching validators for epoch ${latestEpoch}`)
-
     const validators = await useDrizzle()
       .select({
         id: tables.validators.id,
