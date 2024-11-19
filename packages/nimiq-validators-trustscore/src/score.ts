@@ -2,7 +2,7 @@ import type { ScoreParams, ScoreValues } from './types'
 
 export function getDominance({ threshold = 0.15, steepness = 7.5, dominanceRatio }: ScoreParams['dominance']) {
   if (!threshold || !steepness || !dominanceRatio)
-    throw new Error('Balance, threshold, steepness, or total balance is not set')
+    throw new Error(`Dominance Ratio, threshold or steepness is not set. ${JSON.stringify({ threshold, steepness, dominanceRatio })}`)
   if (dominanceRatio < 0 || dominanceRatio > 1)
     throw new Error(`Invalid dominance ratio: ${dominanceRatio}`)
   const s = Math.max(0, 1 - (dominanceRatio / threshold) ** steepness)
