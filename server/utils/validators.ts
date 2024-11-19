@@ -202,8 +202,12 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
       validators.filter(v => v.hasDefaultLogo).forEach(v => delete v.logo)
 
     const nullScore = { total: null, dominance: null, availability: null, reliability: null }
-    // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
-    validators.forEach(v => v.score = nullScore)
+    validators.forEach((v) => {
+      // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
+      v.score = nullScore
+      // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
+      v.score.dominance = v.dominanceRatio
+    })
 
     return { data: validators, error: undefined }
   }
