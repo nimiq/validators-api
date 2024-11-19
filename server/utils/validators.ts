@@ -166,7 +166,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         icon: tables.validators.icon,
         hasDefaultIcon: tables.validators.hasDefaultIcon,
         accentColor: tables.validators.accentColor,
-        score: {
+        unstableScore: {
           total: tables.scores.total,
           dominance: tables.scores.dominance,
           availability: tables.scores.availability,

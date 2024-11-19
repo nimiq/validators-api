@@ -8,21 +8,28 @@ import { getRange } from 'nimiq-validators-trustscore'
 export default defineCachedEventHandler(async (event) => {
   const params = await getValidatedQuery(event, mainQuerySchema.parse)
 
-  let addresses: string[] = []
-  let activeValidators: Validator[] = []
-  if (params['only-active']) {
-    const { data: _activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
-    if (errorActiveValidators)
-      return createError(errorActiveValidators)
-    activeValidators = _activeValidators
-    addresses = activeValidators.map(v => v.address)
-  }
+  const { data: _isOnline } = await getRpcClient().blockchain.getBlockNumber()
+  const isOnline = !!_isOnline
 
-  const range = await getRange(getRpcClient())
-  if (!(await checkIfScoreExistsInDb(range))) {
-    const { data, error } = await calculateScores(range)
-    if (!data || error)
-      consola.warn(`Error calculating scores for range ${JSON.stringify(range)}`, error)
+  let addresses: string[] = []
+
+  // In case server is offline, at least we can show the database data
+  if (isOnline) {
+    let activeValidators: Validator[] = []
+    if (params['only-active'] && isOnline) {
+      const { data: _activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
+      if (errorActiveValidators)
+        return createError(errorActiveValidators)
+      activeValidators = _activeValidators
+      addresses = activeValidators.map(v => v.address)
+    }
+
+    const range = await getRange(getRpcClient())
+    if (!(await checkIfScoreExistsInDb(range))) {
+      const { data, error } = await calculateScores(range)
+      if (!data || error)
+        consola.warn(`Error calculating scores for range ${JSON.stringify(range)}`, error)
+    }
   }
 
   const { data: validators, error: errorValidators } = await fetchValidators({ ...params, addresses })
