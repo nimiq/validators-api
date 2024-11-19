@@ -5,7 +5,7 @@ import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray, isNotNull } from 'drizzle-orm'
+import { desc, inArray, isNotNull, max } from 'drizzle-orm'
 import { getBrandingParameters } from './icon'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
@@ -126,6 +126,7 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & {
   icon?: string
   score?: Score
+  sizeRatio?: number
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
@@ -140,6 +141,17 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
+    const latestEpoch = await useDrizzle()
+      .select({ epochNumber: max(tables.activity.epochNumber) })
+      .from(tables.activity)
+      .get()
+      .then(r => r?.epochNumber)
+    if (!latestEpoch) {
+      consola.error('There was an error while fetching the latest epoch')
+      return { data: undefined, error: 'There was an error while fetching the latest epoch' }
+    }
+    consola.info(`Fetching validators for epoch ${latestEpoch}`)
+
     const validators = await useDrizzle()
       .select({
         id: tables.validators.id,
@@ -154,53 +166,56 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         icon: tables.validators.icon,
         hasDefaultIcon: tables.validators.hasDefaultIcon,
         accentColor: tables.validators.accentColor,
-        score: {
-          total: tables.scores.total,
-          dominance: tables.scores.dominance,
-          availability: tables.scores.availability,
-          reliability: tables.scores.reliability,
-        },
+        // score: {
+        //   total: tables.scores.total,
+        //   dominance: tables.scores.dominance,
+        //   availability: tables.scores.availability,
+        //   reliability: tables.scores.reliability,
+        // },
+        // score: sql<Score>`
+        //   CASE
+        //     WHEN ${tables.scores.total} IS NOT NULL THEN json_object(
+        //       'total', ${tables.scores.total},
+        //       'dominance', ${tables.scores.dominance},
+        //       'availability', ${tables.scores.availability},
+        //       'reliability', ${tables.scores.reliability}
+        //     )
+        //     ELSE NULL
+        //   END`,
+        sizeRatio: sql<number>`
+          COALESCE(
+            NULLIF(${tables.activity.dominanceRatioViaBalance}, -1),
+            NULLIF(${tables.activity.dominanceRatioViaSlots}, -1)
+          )`,
       })
       .from(tables.validators)
-      .where(and(...filters))
+      // .where(and(...filters))
+      // .leftJoin(
+      //   tables.scores,
+      //   and(
+      //     eq(tables.validators.id, tables.scores.validatorId),
+      //     isNotNull(tables.scores.total),
+      //   ),
+      // )
       .leftJoin(
-        tables.scores,
+        tables.activity,
         and(
-          eq(tables.validators.id, tables.scores.validatorId),
-          isNotNull(tables.scores.total),
+          eq(tables.validators.id, tables.activity.validatorId),
+          eq(tables.activity.epochNumber, latestEpoch),
         ),
       )
-      .orderBy(desc(tables.scores.total))
+      // .orderBy(desc(tables.scores.total))
       .all() as FetchedValidator[]
 
     if (!withIdenticons)
       validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)
 
-    return { data: transformNullToUndefined(validators), error: undefined }
+    return { data: validators, error: undefined }
   }
   catch (error) {
     consola.error(`Error fetching validators: ${error}`)
     return { data: undefined, error: JSON.stringify(error) }
   }
-}
-
-function transformNullToUndefined<T>(obj: T): T {
-  if (obj === null)
-    return undefined as T
-
-  if (Array.isArray(obj)) {
-    return obj.map(item => transformNullToUndefined(item)) as T
-  }
-
-  if (typeof obj === 'object') {
-    const result = {} as T
-    for (const [key, value] of Object.entries(obj)) {
-      (result as any)[key] = transformNullToUndefined(value)
-    }
-    return result
-  }
-
-  return obj
 }
 
 /**
