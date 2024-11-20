@@ -26,7 +26,7 @@ const validator = computed(() => getValidatorByAddress(route.params.address as s
         <div aria-hidden i-nimiq:icons-lg-verified-filled />
         <span>Maintained by Nimiq</span>
       </div>
-      <NuxtLink v-if="validator.website" :to="validator.website" nq-pill-sm ml-auto self-start nq-arrow nq-pill-tertiary>
+      <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill-sm ml-auto self-start nq-arrow nq-pill-tertiary>
         {{
           validator.website?.replace(/https?:\/\//, '') }}
       </NuxtLink>
