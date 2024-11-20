@@ -1,9 +1,7 @@
 name: Import Mainnet Validators
 
 on:
-  push:
-    paths:
-      - 'public/validators/testnet/**'
+  workflow_dispatch:
 
 jobs:
   trigger-mainnet:

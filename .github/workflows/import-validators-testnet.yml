@@ -1,12 +1,7 @@
 name: Import Testnet Validators
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-    paths:
-      - 'public/validators/testnet/**'
+  workflow_dispatch:
 
 jobs:
   trigger-testnet:
