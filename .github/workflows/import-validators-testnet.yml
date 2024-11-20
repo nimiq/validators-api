@@ -1,0 +1,17 @@
+name: Import Testnet Validators
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'public/validators/testnet/**'
+
+jobs:
+  trigger-testnet:
+    uses: ./.github/workflows/import-validators.yml
+    with:
+      network: testnet
+      api_url: https://validators-api-testnet.nuxt.dev
+      validators_path: public/validators/test-albatross

@@ -9,10 +9,6 @@ on:
       api_url:
         required: true
         type: string
-  pull_request:
-    types: [closed]
-    branches:
-      - main
 
 jobs:
   import-validators:
