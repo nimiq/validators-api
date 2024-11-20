@@ -1,0 +1,41 @@
+name: Import Workflow Validators
+
+on:
+  workflow_call:
+    inputs:
+      network:
+        required: true
+        type: string
+      api_url:
+        required: true
+        type: string
+      validators_path:
+        required: true
+        type: string
+
+jobs:
+  import:
+    name: Import ${{ inputs.network }} Validators
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Check for changes
+        id: changed-files
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep -q "${{ inputs.validators_path }}"; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Import validators
+        if: steps.changed-files.outputs.has_changes == 'true'
+        run: |
+          echo "Importing validators for ${{ inputs.network }}..."
+          RESPONSE=$(curl -s -X POST "${{ inputs.api_url }}/api/v1/validators/import")
+
+          if [ $? -eq 0 ]; then
+            echo "Successfully imported validators for ${{ inputs.network }}"
+          else
+            echo "Error importing validators for ${{ inputs.network }}"
+            exit 1
+          fi

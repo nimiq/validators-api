@@ -1,0 +1,12 @@
+name: Import Mainnet Validators
+
+on:
+  workflow_dispatch:
+
+jobs:
+  trigger-mainnet:
+    uses: ./.github/workflows/import-validators.yml
+    with:
+      network: mainnet
+      api_url: https://validators-api-mainnet.nuxt.dev
+      validators_path: public/validators/main-albatross
