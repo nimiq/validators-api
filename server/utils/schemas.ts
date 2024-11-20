@@ -12,7 +12,7 @@ export const rangeQuerySchema = z.object({
   return (!epochsCount || !durationWindowMs) || (defaultCounts && defaultWindow) || (!defaultCounts && !defaultWindow)
 })
 
-export const logoFormatRe = /^data:image\/(png|svg\+xml|webp)/
+export const logoFormatRe = /^data:image\/(png|svg\+xml|webp);base64,/
 export const validatorSchema = z.object({
   name: z.string(),
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
