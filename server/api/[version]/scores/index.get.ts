@@ -13,6 +13,8 @@ function err(error: any) {
 // but we should maybe add a flag to the return?
 
 export default defineEventHandler(async (event) => {
+  const params = await getValidatedQuery(event, mainQuerySchema.parse)
+
   const networkName = useRuntimeConfig().public.nimiqNetwork
 
   const rpcClient = getRpcClient()
@@ -31,7 +33,7 @@ export default defineEventHandler(async (event) => {
   }
   // End of workaround
 
-  if (!(await checkIfScoreExistsInDb(range)))
+  if (!(await checkIfScoreExistsInDb(range)) || params.force)
     await calculateScores(range)
 
   const validators = await useDrizzle()
