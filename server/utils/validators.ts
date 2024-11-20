@@ -155,6 +155,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
         website: tables.validators.website,
         logo: tables.validators.logo,
+        logoPath: tables.validators.logo,
         hasDefaultLogo: tables.validators.hasDefaultLogo,
         accentColor: tables.validators.accentColor,
         unstableScore: {
