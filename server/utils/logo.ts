@@ -15,8 +15,8 @@ async function getDefaultBranding(address: string) {
 export async function handleValidatorLogo(address: string, { logo: _logo, accentColor }: ValidatorJSON) {
   if (!_logo) {
     const params = await getDefaultBranding(address)
-    await uploadLogo(address, params.logo)
-    return params
+    const path = await uploadLogo(address, params.logo)
+    return { ...params, logo: path }
   }
 
   if (!accentColor)
@@ -71,18 +71,26 @@ export async function handleValidatorLogo(address: string, { logo: _logo, accent
     logo = `data:image/svg+xml,${encodeURIComponent(optimizedSvg)}`
   }
 
-  await uploadLogo(address, logo)
-  return { logo, accentColor: accentColor!, hasDefaultLogo: false }
+  const pathname = await uploadLogo(address, logo)
+  return { logo: pathname, accentColor: accentColor!, hasDefaultLogo: false }
 }
 
 async function uploadLogo(address: string, logo: string) {
-  const pathname = `validator/${address.replaceAll(' ', '-')}`
-
   const [header, base64Data] = logo.split(',')
   const mime = header.split(':')[1].split(';')[0]
   const binaryData = Buffer.from(base64Data, 'base64')
   const blob = new Blob([binaryData], { type: mime })
+  ensureBlob(blob, { maxSize: '1024KB', types: ['image'] })
 
-  ensureBlob(blob, { maxSize: '1MB', types: ['image'] })
-  await hubBlob().put(pathname, blob)
+  const fileExt = mime.split('/')[1].replace('svg+xml', 'svg')
+  const pathname = `validator/${address.replaceAll(' ', '-')}.${fileExt}`
+  const res = await hubBlob().put(pathname, blob)
+
+  const exists = await hubBlob().head(pathname)
+  if (!exists)
+    throw new Error(`Error uploading logo for ${address}`)
+
+  if (!res.size)
+    throw new Error(`Error uploading logo for ${address}`)
+  return `/images/${pathname}`
 }
