@@ -1,11 +1,11 @@
 {
   "name": "$NIM_pool",
-  "description": "Promo 2% fee for first 30 days!!! Community driven staking pool FROM the people FOR the people!",
+  "description": "Promo 0% fee for first 30 days!!! Community driven staking pool FROM the people FOR the people!",
   "website": "https://snimpool.com/",
   "address": "NQ29 FBVT B4GM S27H UBP4 1MTC GNKQ VPBT 099M",
   "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OTkiIGhlaWdodD0iNDQwIj48cGF0aCBmaWxsPSIjRkZDMTA3IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0zODkgMjFjLTYtMTItMjMtMjEtMzYtMjFIMTQ1Yy0xMyAwLTI5IDktMzYgMjFMNSAxOTljLTYgMTEtNiAzMCAwIDQxbDEwNCAxNzhjNyAxMiAyMyAyMSAzNiAyMWgyMDhjMTQgMCAzMC05IDM2LTIxbDEwNC0xNzhjNy0xMSA3LTMwIDAtNDFMMzg5IDIxek0yNzMgMzQ3djQyaC0zOXYtNDBjLTI0LTMtNTItMTMtNzAtMzBsMjUtMzljMjEgMTUgMzggMjMgNTcgMjMgMjMgMCAzMy05IDMzLTI4IDAtNDAtMTA2LTM5LTEwNi0xMTEgMC0zOCAyMy02NSA2MS03M1Y1MWgzOXY0MGMyNSAzIDQ0IDE2IDU5IDMybC0yOSAzM2MtMTUtMTMtMjctMjAtNDQtMjAtMTkgMC0yOSA4LTI5IDI2IDAgMzcgMTA1IDM0IDEwNSAxMTAgMCAzNy0yMSA2Ny02MiA3NXoiLz48L3N2Zz4=",
   "accentColor": "#FFC107",
-  "fee": 0.02,
+  "fee": 0.00,
   "payoutType": "restake",
   "payoutSchedule": "Every 4 hours",
   "contact": {
