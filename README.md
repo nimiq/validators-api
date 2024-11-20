@@ -6,7 +6,7 @@
   </a>
 
 <p align="center">
-Details of validators in the Nimiq Blockchain and their scores, calculated using Nimiq's VTS algorithm.
+  Details of validators in the Nimiq Blockchain and their scores, calculated using Nimiq's VTS algorithm.
 <p>
 
 [![Sync Mainnet](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml)

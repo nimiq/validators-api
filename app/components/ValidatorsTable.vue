@@ -23,7 +23,7 @@ defineProps<{ validators: ValidatorScore[] }>()
       bg="transparent even:neutral-50 hocus:neutral-200 hocus:even:neutral-300" transition-colors py-16
     >
       <Identicon
-        :validator :alt="validator.name!" dominance-32 mr--20 ml-20 object-contain
+        :validator :alt="validator.name!" size-32 mr--20 ml-20 object-contain
         :style="{ 'view-transition-name': `logo-${validator.id}` }"
       />
 
@@ -40,7 +40,7 @@ defineProps<{ validators: ValidatorScore[] }>()
       <Copyable :content="validator.address" :style="{ 'view-transition-name': `address-${validator.id}` }" />
 
       <ScorePie
-        dominance-32 text-12 mx-auto :score="validator.total"
+        size-32 text-12 mx-auto :score="validator.total"
         :style="{ 'view-transition-name': `score-${validator.id}` }"
       />
     </NuxtLink>

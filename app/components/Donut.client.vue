@@ -8,7 +8,7 @@ defineProps<{ data: ValidatorScore[] }>()
 
 const isMounted = useMounted()
 
-const value = (d: ValidatorScore) => d.dominanceRatio
+const value = (d: ValidatorScore) => (d.dominanceRatioViaBalance > 0 ? d.dominanceRatioViaBalance : d.dominanceRatioViaSlots) || 0
 const label = (d: ValidatorScore) => d.name || d.address
 
 const colors = ['red', 'orange', 'blue', 'green', 'gold']

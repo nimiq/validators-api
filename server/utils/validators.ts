@@ -5,7 +5,8 @@ import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray, isNotNull, max } from 'drizzle-orm'
+import { desc, inArray, isNotNull } from 'drizzle-orm'
+import { getDominance } from 'nimiq-validators-trustscore'
 import { getBrandingParameters } from './branding'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
@@ -126,7 +127,8 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
   logo?: string
   score?: Score
-  dominanceRatio?: number
+  dominanceRatioViaBalance?: number
+  dominanceRatioViaSlots?: number
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
@@ -141,17 +143,6 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
-    const latestEpoch = await useDrizzle()
-      .select({ epochNumber: max(tables.activity.epochNumber) })
-      .from(tables.activity)
-      .get()
-      .then(r => r?.epochNumber)
-    if (!latestEpoch) {
-      consola.error('There was an error while fetching the latest epoch')
-      return { data: undefined, error: 'There was an error while fetching the latest epoch' }
-    }
-    consola.info(`Fetching validators for epoch ${latestEpoch}`)
-
     const validators = await useDrizzle()
       .select({
         id: tables.validators.id,
@@ -172,11 +163,8 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
           availability: tables.scores.availability,
           reliability: tables.scores.reliability,
         },
-        dominanceRatio: sql<number>`
-          COALESCE(
-            NULLIF(${tables.activity.dominanceRatioViaBalance}, -1),
-            NULLIF(${tables.activity.dominanceRatioViaSlots}, -1)
-          )`,
+        dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
+        dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       })
       .from(tables.validators)
       .where(and(...filters))
@@ -202,8 +190,20 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
       validators.filter(v => v.hasDefaultLogo).forEach(v => delete v.logo)
 
     const nullScore = { total: null, dominance: null, availability: null, reliability: null }
-    // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
-    validators.forEach(v => v.score = nullScore)
+    validators.forEach((v) => {
+      const dominance = v.score?.dominance
+      // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
+      v.score = nullScore
+      if (dominance)
+        // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
+        v.score.dominance = dominance
+      else if (v.dominanceRatioViaBalance && v.dominanceRatioViaBalance !== -1)
+      // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
+        v.score = { ...nullScore, dominance: getDominance({ dominanceRatio: v.dominanceRatioViaBalance }) }
+      else if (v.dominanceRatioViaBalance && v.dominanceRatioViaSlots !== -1)
+      // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
+        v.score = { ...nullScore, dominance: getDominance({ dominanceRatio: v.dominanceRatioViaSlots }) }
+    })
 
     return { data: validators, error: undefined }
   }
