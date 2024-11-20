@@ -7,7 +7,7 @@ import path from 'node:path'
 import { consola } from 'consola'
 import { desc, inArray, isNotNull } from 'drizzle-orm'
 import { getDominance } from 'nimiq-validators-trustscore'
-import { getBrandingParameters } from './branding'
+import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
 /**
@@ -71,7 +71,7 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
 
   consola.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`)
 
-  const brandingParameters = await getBrandingParameters(address, rest)
+  const brandingParameters = await handleValidatorLogo(address, rest)
   try {
     if (validatorId) {
       await useDrizzle()

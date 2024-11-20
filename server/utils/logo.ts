@@ -12,9 +12,12 @@ async function getDefaultBranding(address: string) {
   }
 }
 
-export async function getBrandingParameters(address: string, { logo: _logo, accentColor }: ValidatorJSON) {
-  if (!_logo)
-    return getDefaultBranding(address)
+export async function handleValidatorLogo(address: string, { logo: _logo, accentColor }: ValidatorJSON) {
+  if (!_logo) {
+    const params = await getDefaultBranding(address)
+    await uploadLogo(address, params.logo)
+    return params
+  }
 
   if (!accentColor)
     throw new Error(`The validator ${address} does have an logo but not an accent color`)
@@ -68,5 +71,18 @@ export async function getBrandingParameters(address: string, { logo: _logo, acce
     logo = `data:image/svg+xml,${encodeURIComponent(optimizedSvg)}`
   }
 
+  await uploadLogo(address, logo)
   return { logo, accentColor: accentColor!, hasDefaultLogo: false }
+}
+
+async function uploadLogo(address: string, logo: string) {
+  const pathname = `validator/${address.replaceAll(' ', '-')}`
+
+  const [header, base64Data] = logo.split(',')
+  const mime = header.split(':')[1].split(';')[0]
+  const binaryData = Buffer.from(base64Data, 'base64')
+  const blob = new Blob([binaryData], { type: mime })
+
+  ensureBlob(blob, { maxSize: '1MB', types: ['image'] })
+  await hubBlob().put(pathname, blob)
 }
