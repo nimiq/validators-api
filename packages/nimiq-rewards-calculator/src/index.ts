@@ -1,4 +1,4 @@
-import { posSupplyAt, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE } from 'nimiq-supply-calculator'
+import { posSupplyAt, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET } from 'nimiq-supply-calculator'
 
 // = 1 - POS_SUPPLY_DECAY ** (1000 * 60 * 60 * 24)
 const DECAY_PER_DAY = 0.0003432600460362
@@ -23,6 +23,13 @@ export interface CalculateStakingRewardsParams {
    * Indicates whether the staking rewards are restaked (default is true). Restaked mean that each staking reward is added to the pool of staked cryptocurrency for compound interest.
    */
   autoRestake?: boolean
+
+  /**
+   * The network name
+   *
+   * @default 'main-albatross'
+   */
+  network?: 'main-albatross' | 'test-albatross'
 }
 
 export interface CalculateStakingRewardsResult {
@@ -53,8 +60,8 @@ export interface CalculateStakingRewardsResult {
  * @returns {CalculateStakingRewardsResult} The result of the calculation.
  */
 export function calculateStakingRewards(params: CalculateStakingRewardsParams): CalculateStakingRewardsResult {
-  const { amount, durationInDays, autoRestake = true, stakedSupplyRatio } = params
-  const genesisSupply = SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE
+  const { amount, durationInDays, autoRestake = true, stakedSupplyRatio, network = 'main-albatross' } = params
+  const genesisSupply = network === 'main-albatross' ? SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE : SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET
 
   const initialRewardsPerDay = posSupplyAt(24 * 60 * 60 * 1000) - genesisSupply
 
