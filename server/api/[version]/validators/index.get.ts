@@ -5,7 +5,8 @@ import { fetchValidators } from '~~/server/utils/validators'
 import { consola } from 'consola'
 import { getRange } from 'nimiq-validators-trustscore'
 
-export default defineCachedEventHandler(async (event) => {
+// export default defineCachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const params = await getValidatedQuery(event, mainQuerySchema.parse)
 
   const { data: _isOnline } = await getRpcClient().blockchain.getBlockNumber()
@@ -44,6 +45,6 @@ export default defineCachedEventHandler(async (event) => {
     throw createError(errorValidators)
 
   return validators
-}, {
-  maxAge: import.meta.dev ? 1 : 60 * 10, // 10 minutes
+// }, {
+//   // maxAge: import.meta.dev ? 1 : 10, // 10 minutes
 })
