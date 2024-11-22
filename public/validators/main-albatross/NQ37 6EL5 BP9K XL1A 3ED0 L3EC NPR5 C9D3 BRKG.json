@@ -3,7 +3,7 @@
   "description": "Secure.Reliable.Swiss.",
   "website": "https://helvetia-staking.ch",
   "address": "NQ37 6EL5 BP9K XL1A 3ED0 L3EC NPR5 C9D3 BRKG",
-  "fee": 0.069,
+  "fee": 0.049,
   "payoutSchedule": "Approx. every ~6hrs",
   "payoutType": "restake",
   "accentColor": "#ea3624",
