@@ -27,7 +27,7 @@
     "@vueuse/core": "^11.1.0",
     "defu": "^6.1.4",
     "drizzle-orm": "^0.35.3",
-    "identicons-esm": "^0.2.0",
+    "identicons-esm": "^0.2.1",
     "nimiq-rpc-client-ts": "^0.4.5",
     "nimiq-supply-calculator": "workspace:*",
     "nimiq-validators-trustscore": "workspace:*",
