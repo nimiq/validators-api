@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import { check, index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 import { PayoutType } from '../utils/types'
 
@@ -24,6 +24,11 @@ export const validators = sqliteTable('validators', {
   ),
 }))
 
+export const validatorRelations = relations(validators, ({ many }) => ({
+  scores: many(scores),
+  activity: many(activity),
+}))
+
 // The scores only for the default window dominance
 export const scores = sqliteTable('scores', {
   validatorId: integer('validator_id').notNull().references(() => validators.id, { onDelete: 'cascade' }),
@@ -38,6 +43,13 @@ export const scores = sqliteTable('scores', {
   compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.epochNumber] }),
 }))
 
+export const scoresRelations = relations(scores, ({ one }) => ({
+  validator: one(validators, {
+    fields: [scores.validatorId],
+    references: [validators.id],
+  }),
+}))
+
 export const activity = sqliteTable('activity', {
   validatorId: integer('validator_id').notNull().references(() => validators.id, { onDelete: 'cascade' }),
   epochNumber: integer('epoch_number').notNull(),
@@ -50,4 +62,11 @@ export const activity = sqliteTable('activity', {
 }, table => ({
   idxElectionBlock: index('idx_election_block').on(table.epochNumber),
   compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.epochNumber] }),
+}))
+
+export const activityRelations = relations(activity, ({ one }) => ({
+  validator: one(validators, {
+    fields: [activity.validatorId],
+    references: [validators.id],
+  }),
 }))
