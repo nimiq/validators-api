@@ -21,6 +21,7 @@ export interface CalculateStakingRewardsParams {
 
   /**
    * Indicates whether the staking rewards are restaked (default is true). Restaked mean that each staking reward is added to the pool of staked cryptocurrency for compound interest.
+   * @default true
    */
   autoRestake?: boolean
 
@@ -56,7 +57,7 @@ export interface CalculateStakingRewardsResult {
  * Calculates the potential wealth accumulation based on staking in a cryptocurrency network,
  * considering the effects of reward decay over time. It computes the final amount of cryptocurrency
  * after a specified number of days of staking, taking into account whether the rewards are restaked or not.
- * @param {CalculateStakingRewardsParams} params The parameters for the calculation.
+ * @param {CalculateStakingRewardsParams} params The parameters for the calculation. @see CalculateStakingRewardsParams
  * @returns {CalculateStakingRewardsResult} The result of the calculation.
  */
 export function calculateStakingRewards(params: CalculateStakingRewardsParams): CalculateStakingRewardsResult {
@@ -64,12 +65,11 @@ export function calculateStakingRewards(params: CalculateStakingRewardsParams): 
   const genesisSupply = network === 'main-albatross' ? SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE : SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET
 
   const initialRewardsPerDay = posSupplyAt(24 * 60 * 60 * 1000) - genesisSupply
-
   const decayFactor = Math.E ** (-DECAY_PER_DAY * durationInDays)
-  const rewardFactor = initialRewardsPerDay / (DECAY_PER_DAY * stakedSupplyRatio * genesisSupply)
 
   let gainRatio = 0
   if (autoRestake) {
+    const rewardFactor = initialRewardsPerDay / (DECAY_PER_DAY * stakedSupplyRatio * genesisSupply)
     gainRatio = rewardFactor * (1 - decayFactor)
   }
   else {
