@@ -1,5 +1,5 @@
 import type { SQLWrapper } from 'drizzle-orm'
-import type { Validator } from './drizzle'
+import type { Score, Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
 import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
@@ -147,6 +147,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
       with: {
         scores: {
           where: eq(tables.scores.epochNumber, epochNumber),
+          limit: 1,
           columns: {
             total: true,
             availability: true,
@@ -169,31 +170,28 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     const validators = dbValidators.map((validator) => {
       const { scores, logo, contact, activity, ...rest } = validator
 
+      const { availability, dominance, reliability, total } = scores[0]
+      const score = { total, availability, dominance, reliability } as Record<keyof Score, number | null>
+      if (reliability === -1 || reliability === null) {
+        score.reliability = null
+        score.total = null
+      }
+      if (availability === -1 || availability === null) {
+        score.availability = null
+        score.total = null
+      }
+      if (dominance === -1 || dominance === null) {
+        score.dominance = null
+        score.total = null
+      }
+
       return {
         ...rest,
         score: scores[0] || null,
-        logo,
+        logo: withIdenticons ? logo : undefined,
         dominanceRatioViaBalance: activity[0]?.dominanceRatioViaBalance,
         dominanceRatioViaSlots: activity[0]?.dominanceRatioViaSlots,
       } as FetchedValidator
-    })
-
-    if (!withIdenticons)
-      validators.filter(v => v.hasDefaultLogo).forEach(v => delete v.logo)
-
-    // Don't return score if any of the values not [0, 1]
-    validators.forEach((v) => {
-      if (!v.score)
-        return
-      if (v.score.reliability === -1)
-        v.score.reliability = null
-      if (
-        (v.score.dominance === null || v.score.dominance < 0)
-        || (v.score.reliability === null || v.score.reliability < 0)
-        || (v.score.availability === null || v.score.availability < 0)
-      ) {
-        v.score.total = null
-      }
     })
 
     return { data: validators, error: undefined }
