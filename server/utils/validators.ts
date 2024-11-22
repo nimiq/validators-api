@@ -126,8 +126,8 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
   logo?: string
   score?: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
-  dominanceRatioViaBalance?: number
-  dominanceRatioViaSlots?: number
+  dominanceRatio?: number
+  balance?: number
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
@@ -156,42 +156,48 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
           },
         },
         activity: {
-          where: eq(tables.scores.epochNumber, epochNumber),
+          where: eq(tables.scores.epochNumber, epochNumber + 1),
           columns: {
             dominanceRatioViaBalance: true,
             dominanceRatioViaSlots: true,
+            balance: true,
           },
-          orderBy: desc(tables.activity.likelihood),
           limit: 1,
         },
       },
     })
 
     const validators = dbValidators.map((validator) => {
-      const { scores, logo, contact, activity, ...rest } = validator
+      const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
 
-      const { availability, dominance, reliability, total } = scores[0]
-      const score = { total, availability, dominance, reliability } as Record<keyof Score, number | null>
-      if (reliability === -1 || reliability === null) {
-        score.reliability = null
-        score.total = null
+      const score = scores[0]
+      if (score) {
+        const { availability, dominance, reliability, total } = scores[0]
+        const score = { total, availability, dominance, reliability } as Record<keyof Score, number | null>
+        if (reliability === -1 || reliability === null) {
+          score.reliability = null
+          score.total = null
+        }
+        if (availability === -1 || availability === null) {
+          score.availability = null
+          score.total = null
+        }
+        if (dominance === -1 || dominance === null) {
+          score.dominance = null
+          score.total = null
+        }
       }
-      if (availability === -1 || availability === null) {
-        score.availability = null
-        score.total = null
-      }
-      if (dominance === -1 || dominance === null) {
-        score.dominance = null
-        score.total = null
-      }
+
+      const { dominanceRatioViaBalance, dominanceRatioViaSlots, balance } = activity?.[0] || {}
 
       return {
         ...rest,
-        score: scores[0] || null,
-        logo: withIdenticons ? logo : undefined,
-        dominanceRatioViaBalance: activity[0]?.dominanceRatioViaBalance,
-        dominanceRatioViaSlots: activity[0]?.dominanceRatioViaSlots,
-      } as FetchedValidator
+        score,
+        hasDefaultLogo,
+        logo: !withIdenticons && hasDefaultLogo ? undefined : logo,
+        dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
+        balance,
+      } satisfies FetchedValidator
     })
 
     return { data: validators, error: undefined }
