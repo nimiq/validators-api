@@ -1,12 +1,11 @@
 import type { SQLWrapper } from 'drizzle-orm'
-import type { Score, Validator } from './drizzle'
+import type { Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
 import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
 import { desc, inArray, isNotNull } from 'drizzle-orm'
-import { getDominance } from 'nimiq-validators-trustscore'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
@@ -126,7 +125,7 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 
 type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
   logo?: string
-  score?: Score
+  score?: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
   dominanceRatioViaBalance?: number
   dominanceRatioViaSlots?: number
 }
@@ -158,14 +157,14 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         logoPath: tables.validators.logo,
         hasDefaultLogo: tables.validators.hasDefaultLogo,
         accentColor: tables.validators.accentColor,
-        unstableScore: {
-          total: tables.scores.total,
-          dominance: tables.scores.dominance,
-          availability: tables.scores.availability,
-          reliability: tables.scores.reliability,
-        },
         dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
         dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
+        score: {
+          total: tables.scores.total,
+          availability: tables.scores.availability,
+          reliability: tables.scores.reliability,
+          dominance: tables.scores.dominance,
+        },
       })
       .from(tables.validators)
       .where(and(...filters))
@@ -190,20 +189,13 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     if (!withIdenticons)
       validators.filter(v => v.hasDefaultLogo).forEach(v => delete v.logo)
 
-    const nullScore = { total: null, dominance: null, availability: null, reliability: null }
+    // Don't return score if any of the values not [0, 1]
     validators.forEach((v) => {
-      const dominance = v.score?.dominance
-      // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
-      v.score = nullScore
-      if (dominance)
-        // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
-        v.score.dominance = dominance
-      else if (v.dominanceRatioViaBalance && v.dominanceRatioViaBalance !== -1)
-      // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
-        v.score = { ...nullScore, dominance: getDominance({ dominanceRatio: v.dominanceRatioViaBalance }) }
-      else if (v.dominanceRatioViaSlots && v.dominanceRatioViaSlots !== -1)
-      // @ts-expect-error The wallet expects a score object, but until these values are stable, we will use null
-        v.score = { ...nullScore, dominance: getDominance({ dominanceRatio: v.dominanceRatioViaSlots }) }
+      if (!v.score)
+        return
+      if ((v.score.dominance === null && v.score.dominance! < 0) || (v.score.reliability === null && v.score.reliability! < 0) || (v.score.availability === null && v.score.availability! < 0)) {
+        v.score.total = null
+      }
     })
 
     return { data: validators, error: undefined }
