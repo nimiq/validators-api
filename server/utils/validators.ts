@@ -142,49 +142,41 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
-    const validators = await useDrizzle()
-      .select({
-        id: tables.validators.id,
-        name: tables.validators.name,
-        address: tables.validators.address,
-        description: tables.validators.description,
-        fee: tables.validators.fee,
-        payoutType: tables.validators.payoutType,
-        payoutSchedule: tables.validators.payoutSchedule,
-        isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
-        website: tables.validators.website,
-        logo: tables.validators.logo,
-        logoPath: tables.validators.logo,
-        hasDefaultLogo: tables.validators.hasDefaultLogo,
-        accentColor: tables.validators.accentColor,
-        dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
-        dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
-        score: {
-          total: tables.scores.total,
-          availability: tables.scores.availability,
-          reliability: tables.scores.reliability,
-          dominance: tables.scores.dominance,
+    const dbValidators = await useDrizzle().query.validators.findMany({
+      where: and(...filters),
+      with: {
+        scores: {
+          where: eq(tables.scores.epochNumber, epochNumber),
+          columns: {
+            total: true,
+            availability: true,
+            dominance: true,
+            reliability: true,
+          },
         },
-      })
-      .from(tables.validators)
-      .where(and(...filters))
-      .leftJoin(
-        tables.scores,
-        and(
-          eq(tables.validators.id, tables.scores.validatorId),
-          eq(tables.scores.epochNumber, epochNumber),
-          isNotNull(tables.scores.total),
-        ),
-      )
-      .leftJoin(
-        tables.activity,
-        and(
-          eq(tables.validators.id, tables.activity.validatorId),
-          eq(tables.activity.epochNumber, epochNumber),
-        ),
-      )
-      // .orderBy(desc(tables.scores.total))
-      .all() as FetchedValidator[]
+        activity: {
+          where: eq(tables.scores.epochNumber, epochNumber),
+          columns: {
+            dominanceRatioViaBalance: true,
+            dominanceRatioViaSlots: true,
+          },
+          orderBy: desc(tables.activity.likelihood),
+          limit: 1,
+        },
+      },
+    })
+
+    const validators = dbValidators.map((validator) => {
+     const {scores, logo, contact, activity, ...rest}  = validator
+
+     return {
+      ...rest,
+      score: scores[0] || null,
+      logo,
+      dominanceRatioViaBalance: activity[0]?.dominanceRatioViaBalance,
+      dominanceRatioViaSlots: activity[0]?.dominanceRatioViaSlots,
+     } as FetchedValidator
+    })
 
     if (!withIdenticons)
       validators.filter(v => v.hasDefaultLogo).forEach(v => delete v.logo)
