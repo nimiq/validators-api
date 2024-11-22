@@ -24,11 +24,6 @@ export const validators = sqliteTable('validators', {
   ),
 }))
 
-export const validatorRelations = relations(validators, ({ many }) => ({
-  scores: many(scores),
-  activity: many(activity),
-}))
-
 // The scores only for the default window dominance
 export const scores = sqliteTable('scores', {
   validatorId: integer('validator_id').notNull().references(() => validators.id, { onDelete: 'cascade' }),
@@ -69,4 +64,9 @@ export const activityRelations = relations(activity, ({ one }) => ({
     fields: [activity.validatorId],
     references: [validators.id],
   }),
+}))
+
+export const validatorRelations = relations(validators, ({ many }) => ({
+  scores: many(scores),
+  activity: many(activity),
 }))

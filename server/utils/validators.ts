@@ -5,7 +5,7 @@ import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray, isNotNull } from 'drizzle-orm'
+import { desc, inArray } from 'drizzle-orm'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
@@ -167,15 +167,15 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     })
 
     const validators = dbValidators.map((validator) => {
-     const {scores, logo, contact, activity, ...rest}  = validator
+      const { scores, logo, contact, activity, ...rest } = validator
 
-     return {
-      ...rest,
-      score: scores[0] || null,
-      logo,
-      dominanceRatioViaBalance: activity[0]?.dominanceRatioViaBalance,
-      dominanceRatioViaSlots: activity[0]?.dominanceRatioViaSlots,
-     } as FetchedValidator
+      return {
+        ...rest,
+        score: scores[0] || null,
+        logo,
+        dominanceRatioViaBalance: activity[0]?.dominanceRatioViaBalance,
+        dominanceRatioViaSlots: activity[0]?.dominanceRatioViaSlots,
+      } as FetchedValidator
     })
 
     if (!withIdenticons)
