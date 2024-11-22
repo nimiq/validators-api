@@ -193,6 +193,8 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     validators.forEach((v) => {
       if (!v.score)
         return
+      if (v.score.reliability === -1)
+        v.score.reliability = null
       if (
         (v.score.dominance === null || v.score.dominance < 0)
         || (v.score.reliability === null || v.score.reliability < 0)
