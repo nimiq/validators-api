@@ -1,5 +1,5 @@
 import type { SQLWrapper } from 'drizzle-orm'
-import type { Score, Validator } from './drizzle'
+import type { Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
 import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
@@ -170,10 +170,9 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     const validators = dbValidators.map((validator) => {
       const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
 
-      const score = scores[0]
+      const score: FetchedValidator['score'] = scores[0]
       if (score) {
-        const { availability, dominance, reliability, total } = scores[0]
-        const score = { total, availability, dominance, reliability } as Record<keyof Score, number | null>
+        const { availability, dominance, reliability } = scores[0]
         if (reliability === -1 || reliability === null) {
           score.reliability = null
           score.total = null
