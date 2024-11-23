@@ -12,7 +12,7 @@ export interface CalculateStakingRewardsParams {
   /**
    * The number of days the cryptocurrency is staked.
    */
-  durationInDays: number
+  days: number
 
   /**
    * The ratio of the total staked cryptocurrency to the total supply.
@@ -31,6 +31,12 @@ export interface CalculateStakingRewardsParams {
    * @default 'main-albatross'
    */
   network?: 'main-albatross' | 'test-albatross'
+
+  /**
+   * The fee percentage that the pool charges for staking.
+   * @default 0
+   */
+  fee?: number
 }
 
 export interface CalculateStakingRewardsResult {
@@ -61,11 +67,11 @@ export interface CalculateStakingRewardsResult {
  * @returns {CalculateStakingRewardsResult} The result of the calculation.
  */
 export function calculateStakingRewards(params: CalculateStakingRewardsParams): CalculateStakingRewardsResult {
-  const { amount, durationInDays, autoRestake = true, stakedSupplyRatio, network = 'main-albatross' } = params
+  const { amount, days, autoRestake = true, stakedSupplyRatio, network = 'main-albatross', fee = 0 } = params
   const genesisSupply = network === 'main-albatross' ? SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE : SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET
 
   const initialRewardsPerDay = posSupplyAt(24 * 60 * 60 * 1000) - genesisSupply
-  const decayFactor = Math.E ** (-DECAY_PER_DAY * durationInDays)
+  const decayFactor = Math.E ** (-DECAY_PER_DAY * days)
 
   let gainRatio = 0
   if (autoRestake) {
@@ -78,10 +84,11 @@ export function calculateStakingRewards(params: CalculateStakingRewardsParams): 
         (DECAY_PER_DAY * genesisSupply * (1 / decayFactor))
         + initialRewardsPerDay * (1 / decayFactor) - initialRewardsPerDay,
       )
-      - DECAY_PER_DAY * durationInDays
+      - DECAY_PER_DAY * days
       - Math.log(DECAY_PER_DAY * genesisSupply)
     )
   }
+  gainRatio = gainRatio * (1 - fee) / 1e5
   const totalAmount = amount * (1 + gainRatio)
   return { totalAmount, gain: totalAmount - amount, gainRatio }
 }
