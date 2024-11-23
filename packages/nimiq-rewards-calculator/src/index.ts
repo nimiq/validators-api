@@ -1,23 +1,25 @@
-import { posSupplyAt, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET } from 'nimiq-supply-calculator'
+import { posSupplyAt, PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET } from 'nimiq-supply-calculator'
 
 // = 1 - POS_SUPPLY_DECAY ** (1000 * 60 * 60 * 24)
 const DECAY_PER_DAY = 0.0003432600460362
 
 export interface CalculateStakingRewardsParams {
   /**
-   * The initial amount of cryptocurrency staked, in NIM.
-   */
-  amount: number
-
-  /**
-   * The number of days the cryptocurrency is staked.
-   */
-  days: number
-
-  /**
    * The ratio of the total staked cryptocurrency to the total supply.
    */
   stakedSupplyRatio: number
+
+  /**
+   * The initial amount of cryptocurrency staked, in NIM.
+   * @default 1
+   */
+  amount?: number
+
+  /**
+   * The number of days the cryptocurrency is staked.
+   * @default 365
+   */
+  days?: number
 
   /**
    * Indicates whether the staking rewards are restaked (default is true). Restaked mean that each staking reward is added to the pool of staked cryptocurrency for compound interest.
@@ -67,10 +69,10 @@ export interface CalculateStakingRewardsResult {
  * @returns {CalculateStakingRewardsResult} The result of the calculation.
  */
 export function calculateStakingRewards(params: CalculateStakingRewardsParams): CalculateStakingRewardsResult {
-  const { amount, days, autoRestake = true, stakedSupplyRatio, network = 'main-albatross', fee = 0 } = params
+  const { amount = 1e5, days = 365, autoRestake = true, stakedSupplyRatio, network = 'main-albatross', fee = 0 } = params
   const genesisSupply = network === 'main-albatross' ? SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE : SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET
 
-  const initialRewardsPerDay = posSupplyAt(24 * 60 * 60 * 1000) - genesisSupply
+  const initialRewardsPerDay = posSupplyAt(PROOF_OF_STAKE_FORK_DATE.getTime() + 24 * 60 * 60 * 1000) - genesisSupply
   const decayFactor = Math.E ** (-DECAY_PER_DAY * days)
 
   let gainRatio = 0
