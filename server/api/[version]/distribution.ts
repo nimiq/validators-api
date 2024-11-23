@@ -21,12 +21,12 @@ export default defineCachedEventHandler(async () => {
     )
     .get()
 
-  const staked = result?.totalStaked ?? 0
+  const staked = (result?.totalStaked ?? 0) * 100
 
-  const { data: currentEpoch, error: errorCurrentEpoch } = await getRpcClient().blockchain.getEpochNumber()
+  const { data: latestBlock, error: errorCurrentEpoch } = await getRpcClient().blockchain.getLatestBlock()
   if (errorCurrentEpoch)
     return createError(errorCurrentEpoch)
-  const circulating = posSupplyAt(currentEpoch) * 1e5
+  const circulating = posSupplyAt(latestBlock.timestamp) * 1e5
 
   const ratio = staked / circulating
   return { staked, circulating, ratio }
