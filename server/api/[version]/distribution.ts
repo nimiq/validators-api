@@ -28,8 +28,8 @@ export default defineCachedEventHandler(async () => {
     return createError(errorCurrentEpoch)
   const circulating = posSupplyAt(latestBlock.timestamp)
 
-  const ratio = staked / circulating
-  return { staked, circulating, ratio }
+  const stakedRatio = staked / circulating
+  return { staked, circulating, stakedRatio }
 }, {
   maxAge: import.meta.dev ? 0 : 60 * 60, // 60 minutes
 })
