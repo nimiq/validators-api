@@ -1,11 +1,11 @@
 import type { SQLWrapper } from 'drizzle-orm'
-import type { Validator } from './drizzle'
+import type { Score, Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
 import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray, isNotNull } from 'drizzle-orm'
+import { desc, inArray } from 'drizzle-orm'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
@@ -126,8 +126,8 @@ export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addre
 type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
   logo?: string
   score?: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
-  dominanceRatioViaBalance?: number
-  dominanceRatioViaSlots?: number
+  dominanceRatio?: number
+  balance?: number
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
@@ -142,64 +142,62 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
-    const validators = await useDrizzle()
-      .select({
-        id: tables.validators.id,
-        name: tables.validators.name,
-        address: tables.validators.address,
-        description: tables.validators.description,
-        fee: tables.validators.fee,
-        payoutType: tables.validators.payoutType,
-        payoutSchedule: tables.validators.payoutSchedule,
-        isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
-        website: tables.validators.website,
-        logo: tables.validators.logo,
-        logoPath: tables.validators.logo,
-        hasDefaultLogo: tables.validators.hasDefaultLogo,
-        accentColor: tables.validators.accentColor,
-        dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
-        dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
-        score: {
-          total: tables.scores.total,
-          availability: tables.scores.availability,
-          reliability: tables.scores.reliability,
-          dominance: tables.scores.dominance,
+    const dbValidators = await useDrizzle().query.validators.findMany({
+      where: and(...filters),
+      with: {
+        scores: {
+          where: eq(tables.scores.epochNumber, epochNumber),
+          limit: 1,
+          columns: {
+            total: true,
+            availability: true,
+            dominance: true,
+            reliability: true,
+          },
         },
-      })
-      .from(tables.validators)
-      .where(and(...filters))
-      .leftJoin(
-        tables.scores,
-        and(
-          eq(tables.validators.id, tables.scores.validatorId),
-          eq(tables.scores.epochNumber, epochNumber),
-          isNotNull(tables.scores.total),
-        ),
-      )
-      .leftJoin(
-        tables.activity,
-        and(
-          eq(tables.validators.id, tables.activity.validatorId),
-          eq(tables.activity.epochNumber, epochNumber),
-        ),
-      )
-      // .orderBy(desc(tables.scores.total))
-      .all() as FetchedValidator[]
+        activity: {
+          where: eq(tables.scores.epochNumber, epochNumber + 1),
+          columns: {
+            dominanceRatioViaBalance: true,
+            dominanceRatioViaSlots: true,
+            balance: true,
+          },
+          limit: 1,
+        },
+      },
+    })
 
-    if (!withIdenticons)
-      validators.filter(v => v.hasDefaultLogo).forEach(v => delete v.logo)
+    const validators = dbValidators.map((validator) => {
+      const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
 
-    // Don't return score if any of the values not [0, 1]
-    validators.forEach((v) => {
-      if (!v.score)
-        return
-      if (
-        (v.score.dominance === null || v.score.dominance < 0)
-        || (v.score.reliability === null || v.score.reliability < 0)
-        || (v.score.availability === null || v.score.availability < 0)
-      ) {
-        v.score.total = null
+      const score = scores[0]
+      if (score) {
+        const { availability, dominance, reliability, total } = scores[0]
+        const score = { total, availability, dominance, reliability } as Record<keyof Score, number | null>
+        if (reliability === -1 || reliability === null) {
+          score.reliability = null
+          score.total = null
+        }
+        if (availability === -1 || availability === null) {
+          score.availability = null
+          score.total = null
+        }
+        if (dominance === -1 || dominance === null) {
+          score.dominance = null
+          score.total = null
+        }
       }
+
+      const { dominanceRatioViaBalance, dominanceRatioViaSlots, balance } = activity?.[0] || {}
+
+      return {
+        ...rest,
+        score,
+        hasDefaultLogo,
+        logo: !withIdenticons && hasDefaultLogo ? undefined : logo,
+        dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
+        balance,
+      } satisfies FetchedValidator
     })
 
     return { data: validators, error: undefined }

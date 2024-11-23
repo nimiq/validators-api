@@ -56,12 +56,12 @@ export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCen
 
   // Could be the case that the division is NaN, so we return 0 in that case. That means there's no inherents, so no blocks, so not reliable because there's no data
   if (Number.isNaN(reliability))
-    return 0
+    return -1
 
   // Ensure the expression under the square root is non-negative
   const discriminant = -(reliability ** 2) + 2 * curveCenter * reliability + (curveCenter - 1) ** 2
   if (discriminant < 0)
-    return 0
+    return -1
 
   // Plot into the curve
   return Math.max(-curveCenter + 1 - Math.sqrt(discriminant), 1)
