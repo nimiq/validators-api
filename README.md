@@ -69,7 +69,7 @@ This information will be displayed in mainly the wallet to help stakers decide w
 
 ### Validator JSON schema
 
-You can use the [example JSON](./public/validators/main-albatross/.example.json) as a template.
+You can use the [example JSON](./public/validators/.example.json) as a template.
 
 When you add your validator information, you'll need to include certain keys in your JSON file. Below is an explanation of each key and its possible values:
 
