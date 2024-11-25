@@ -33,10 +33,15 @@ export default defineEventHandler(async (event) => {
   }
   // End of workaround
 
-  const validatorsList = await useDrizzle().select({ id: tables.validators.id }).from(tables.validators).all() as { id: number }[]
-  const existingScores = await Promise.all(validatorsList.map(({ id }) => checkIfScoreExistsInDb(range, id)))
-  if (!(existingScores.every(x => x === true)) || params.force)
+  const { data: activeValidators, error: errorValidators } = await rpcClient.blockchain.getActiveValidators()
+  if (errorValidators || !activeValidators)
+    throw new Error(JSON.stringify({ errorValidators, activeValidators }))
+
+  const existingScores = await Promise.all(activeValidators.map(({ address }) => checkIfScoreExistsInDb(range, address)))
+  if (!(existingScores.every(x => x === true)) || params.force) {
+    consola.info('Calculating scores...')
     await calculateScores(range)
+  }
 
   const validators = await useDrizzle()
     .select({

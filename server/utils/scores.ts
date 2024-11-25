@@ -134,17 +134,17 @@ export async function persistScores(scores: NewScore[]) {
   // })
 }
 
-export async function checkIfScoreExistsInDb(range: Range, validatorId: number): Promise<boolean> {
-  const scoreAlreadyInDb = await useDrizzle()
-    .select({ validatorId: tables.scores.validatorId })
-    .from(tables.scores)
-    .where(
-      and(
-        eq(tables.scores.epochNumber, range.toEpoch),
-        eq(tables.scores.validatorId, validatorId),
-      ),
-    )
-    .get()
-    .then(r => Boolean(r?.validatorId))
-  return scoreAlreadyInDb
+export async function checkIfScoreExistsInDb(range: Range, address: string): Promise<boolean> {
+  const result = await useDrizzle().query.validators.findFirst({
+    with: {
+      scores: {
+        where: eq(tables.scores.epochNumber, range.toEpoch),
+        limit: 1,
+        columns: { validatorId: true },
+      },
+    },
+    where: (validators, { eq }) => eq(validators.address, address),
+  })
+
+  return !!result?.scores?.length || false
 }
