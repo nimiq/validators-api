@@ -33,7 +33,9 @@ export default defineEventHandler(async (event) => {
   }
   // End of workaround
 
-  if (!(await checkIfScoreExistsInDb(range)) || params.force)
+  const validatorsList = await useDrizzle().select({ id: tables.validators.id }).from(tables.validators).all() as { id: number }[]
+  const existingScores = await Promise.all(validatorsList.map(({ id }) => checkIfScoreExistsInDb(range, id)))
+  if (!(existingScores.every(x => x === true)) || params.force)
     await calculateScores(range)
 
   const validators = await useDrizzle()
