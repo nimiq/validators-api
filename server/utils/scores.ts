@@ -80,11 +80,18 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     if (!validatorInherents.has(epoch))
       validatorInherents.set(epoch, { rewarded: 0, missed: 0 })
     const { missed: accMissed, rewarded: accRewarded } = validatorInherents.get(epoch)!
-    validatorInherents.set(epoch, { rewarded: accRewarded + rewarded, missed: accMissed + missed })
+    validatorInherents.set(epoch, { rewarded: accRewarded + Math.max(rewarded, 0), missed: accMissed + Math.max(missed, 0) })
   }
 
   const scores = Array.from(validatorsParams.entries()).map(([validatorId, { inherentsPerEpoch }]) => {
-    const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => inherentsPerEpoch.has(range.fromEpoch + i) ? 1 : 0)
+    const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => {
+      if (!inherentsPerEpoch.has(range.fromEpoch + i))
+        return 0
+      const { rewarded, missed } = inherentsPerEpoch.get(range.fromEpoch + i)!
+      if (rewarded === 0 && missed === 0)
+        return 0
+      return 1
+    })
     const { dominanceRatioViaBalance, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? emptyDominance
     const dominance: ScoreParams['dominance'] = { dominanceRatio: dominanceRatioViaBalance === -1 ? dominanceRatioViaSlots : dominanceRatioViaBalance }
     const availability: ScoreParams['availability'] = { activeEpochStates }
