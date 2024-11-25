@@ -31,7 +31,7 @@ export function getAvailability({ activeEpochStates, weightFactor = 0.5 }: Score
   return availability
 }
 
-export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCenter = 0.16 }: ScoreParams['reliability']) {
+export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCenter = -0.16 }: ScoreParams['reliability']) {
   if (!inherentsPerEpoch || !weightFactor || !curveCenter)
     throw new Error(`Invalid reliability params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}`)
 
@@ -40,7 +40,6 @@ export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCen
   const length = inherentsPerEpoch.size
 
   for (const [epochIndex, { missed, rewarded }] of Array.from(inherentsPerEpoch.entries())) {
-    // console.log(epochIndex, { missed, rewarded }) // TODO Something missed and rewarded are -1, is that correct?
     const totalBlocks = rewarded + missed
 
     if (totalBlocks <= 0)
@@ -64,7 +63,7 @@ export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCen
     return -1
 
   // Plot into the curve
-  return Math.max(-curveCenter + 1 - Math.sqrt(discriminant), 1)
+  return -curveCenter + 1 - Math.sqrt(discriminant)
 }
 
 export function computeScore(params: ScoreParams) {
