@@ -27,7 +27,8 @@ export default defineCachedEventHandler(async (event) => {
     }
 
     const range = await getRange(getRpcClient())
-    if (!(await checkIfScoreExistsInDb(range))) {
+    const existingScores = await Promise.all(activeValidators.map(({ address }) => checkIfScoreExistsInDb(range, address)))
+    if (!(existingScores.every(x => x === true))) {
       const { data, error } = await calculateScores(range)
       if (!data || error)
         consola.warn(`Error calculating scores for range ${JSON.stringify(range)}`, error)
