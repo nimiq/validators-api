@@ -90,7 +90,7 @@ export function calculateStakingRewards(params: CalculateStakingRewardsParams): 
       - Math.log(DECAY_PER_DAY * genesisSupply)
     )
   }
-  gainRatio = gainRatio * (1 - fee) / 1e5
+  gainRatio = gainRatio * (1 - fee)
   const totalAmount = amount * (1 + gainRatio)
   return { totalAmount, gain: totalAmount - amount, gainRatio }
 }
