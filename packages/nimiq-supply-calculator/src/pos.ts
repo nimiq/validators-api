@@ -12,6 +12,7 @@ const SUPPLY_DECAY = 0.9999999999960264
 export function posSupplyAt(timestampMs: number): number {
   const ts = timestampMs - PROOF_OF_STAKE_FORK_DATE.getTime()
   if (ts < 0)
-    throw new Error('currentTime must be greater or equal to genesisTime')
-  return (TOTAL_SUPPLY - ((TOTAL_SUPPLY - SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE * 1e5) * powi(SUPPLY_DECAY, ts)))
+    throw new Error(`Invalid timestamp: ${timestampMs}. It must be greater than ${PROOF_OF_STAKE_FORK_DATE.getTime()}.`)
+
+  return (TOTAL_SUPPLY - ((TOTAL_SUPPLY - SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE * 1e5) * powi(SUPPLY_DECAY, ts))) * 1e5
 }

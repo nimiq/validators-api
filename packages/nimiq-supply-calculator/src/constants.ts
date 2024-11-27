@@ -16,7 +16,7 @@ export const PROOF_OF_STAKE_FORK_DATE = new Date('2024-11-19T16:45:20.000Z')
  * Same as:
  * powSupplyAfter(powBlockHeightAt(PROOF_OF_STAKE_FORK_DATE))
  */
-export const SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE = 12_893_109_654_06244
+export const SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE = 12_893_109_654.06244
 
 /**
  * The total supply of the cryptocurrency in **Testnet** at the proof-of-stake fork date, in NIM.
@@ -24,7 +24,7 @@ export const SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE = 12_893_109_654_06244
  * Same as:
  * powSupplyAfter(powBlockHeightAt(PROOF_OF_STAKE_FORK_DATE))
  */
-export const SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET = 12_030_755_339_52899
+export const SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET = 12_030_755_339.52899
 
 /**
  * The block height of the proof-of-stake fork.
