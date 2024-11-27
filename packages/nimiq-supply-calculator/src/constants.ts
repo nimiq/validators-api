@@ -8,7 +8,8 @@ export const TOTAL_SUPPLY = 21e14
 /**
  * The date of the proof-of-stake fork.
  */
-export const PROOF_OF_STAKE_FORK_DATE = new Date('2024-11-19T16:45:20.000Z')
+// export const PROOF_OF_STAKE_FORK_DATE = new Date('2024-11-19T16:45:20.000Z')
+export const PROOF_OF_STAKE_FORK_DATE = new Date('2024-11-19')
 
 /**
  * The total supply of the cryptocurrency at the proof-of-stake fork date, in NIM.

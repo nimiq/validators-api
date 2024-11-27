@@ -72,7 +72,7 @@ export function calculateStakingRewards(params: CalculateStakingRewardsParams): 
   const { amount = 1e5, days = 365, autoRestake = true, stakedSupplyRatio, network = 'main-albatross', fee = 0 } = params
   const genesisSupply = network === 'main-albatross' ? SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE : SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET
 
-  const initialRewardsPerDay = posSupplyAt(PROOF_OF_STAKE_FORK_DATE.getTime() + 24 * 60 * 60 * 1000) - genesisSupply
+  const initialRewardsPerDay = posSupplyAt(PROOF_OF_STAKE_FORK_DATE.getTime() + 24 * 60 * 60 * 1000, { network }) - genesisSupply
   const decayFactor = Math.E ** (-DECAY_PER_DAY * days)
 
   let gainRatio = 0
