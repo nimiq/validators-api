@@ -47,4 +47,5 @@ export default defineCachedEventHandler(async (event) => {
   return validators
 }, {
   maxAge: import.meta.dev ? 1 : 60 * 10, // 10 minutes
+  name: 'validators',
 })
