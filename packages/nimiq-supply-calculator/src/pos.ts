@@ -1,8 +1,5 @@
-import { PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET, TOTAL_SUPPLY } from './constants'
+import { PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET, SUPPLY_DECAY, TOTAL_SUPPLY } from 'nimiq-albatross-policy'
 import { powi } from './utils'
-
-// Supply decay per millisecond
-const SUPPLY_DECAY = 0.9999999999960264
 
 export interface PosSupplyAtParams {
   /**

@@ -1,9 +1,9 @@
 {
-  "name": "nimiq-rewards-calculator",
+  "name": "nimiq-albatross-policy",
   "type": "module",
   "version": "0.0.1",
   "packageManager": "pnpm@9.9.0",
-  "description": "Calculates the rewards for Nimiq's validators",
+  "description": "The Nimiq Albatross Policy",
   "license": "MIT",
   "homepage": "https://github.com/nimiq/validators-api#readme",
   "repository": {
@@ -45,10 +45,6 @@
     "test": "vitest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
-  },
-  "dependencies": {
-    "nimiq-albatross-policy": "workspace:*",
-    "nimiq-supply-calculator": "workspace:*"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",

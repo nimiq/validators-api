@@ -1,7 +1,5 @@
-import { posSupplyAt, PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET } from 'nimiq-supply-calculator'
-
-// = 1 - POS_SUPPLY_DECAY ** (1000 * 60 * 60 * 24)
-const DECAY_PER_DAY = 0.0003432600460362
+import { POS_DECAY_PER_DAY, PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE, SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET } from 'nimiq-albatross-policy'
+import { posSupplyAt } from 'nimiq-supply-calculator'
 
 export interface CalculateStakingRewardsParams {
   /**
@@ -73,21 +71,21 @@ export function calculateStakingRewards(params: CalculateStakingRewardsParams): 
   const genesisSupply = network === 'main-albatross' ? SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE : SUPPLY_AT_PROOF_OF_STAKE_FORK_DATE_TESTNET
 
   const initialRewardsPerDay = posSupplyAt(PROOF_OF_STAKE_FORK_DATE.getTime() + 24 * 60 * 60 * 1000, { network }) - genesisSupply
-  const decayFactor = Math.E ** (-DECAY_PER_DAY * days)
+  const decayFactor = Math.E ** (-POS_DECAY_PER_DAY * days)
 
   let gainRatio = 0
   if (autoRestake) {
-    const rewardFactor = initialRewardsPerDay / (DECAY_PER_DAY * stakedSupplyRatio * genesisSupply)
+    const rewardFactor = initialRewardsPerDay / (POS_DECAY_PER_DAY * stakedSupplyRatio * genesisSupply)
     gainRatio = rewardFactor * (1 - decayFactor)
   }
   else {
     gainRatio = (1 / stakedSupplyRatio) * (
       Math.log(
-        (DECAY_PER_DAY * genesisSupply * (1 / decayFactor))
+        (POS_DECAY_PER_DAY * genesisSupply * (1 / decayFactor))
         + initialRewardsPerDay * (1 / decayFactor) - initialRewardsPerDay,
       )
-      - DECAY_PER_DAY * days
-      - Math.log(DECAY_PER_DAY * genesisSupply)
+      - POS_DECAY_PER_DAY * days
+      - Math.log(POS_DECAY_PER_DAY * genesisSupply)
     )
   }
   gainRatio = gainRatio * (1 - fee)
