@@ -67,6 +67,14 @@ This information will be displayed in mainly the wallet to help stakers decide w
 - **Background**: Do not add a background colour to the image.
 - **Format**: Prefer to use SVG. File size isn't an issue as we will optimise and serve the best performing version (e.g. PNG, JPG, SVG) for each validator.
 
+#### Fee
+
+- **Range**: The fee should be between 0 and 1. E.g. `0.05` represents a 5% fee, `0.1` represents a 10% fee.
+
+##### Limitations on dynamic fees
+
+Some pools may allow dynamic fees. This was not considered in the design of the API, so currently we do not support it. For this case, you need to specify the maximum fee.
+
 ### Validator JSON schema
 
 You can use the [example JSON](./public/validators/main-albatross/.example.json) as a template.
