@@ -10,3 +10,9 @@ jobs:
       network: mainnet
       api_url: https://validators-api-mainnet.nuxt.dev
       validators_path: public/validators/main-albatross
+  trigger-mainnet-dev:
+    uses: ./.github/workflows/import-validators.yml
+    with:
+      network: mainnet
+      api_url: https://dev.validators-api-mainnet.pages.dev/
+      validators_path: public/validators/main-albatross

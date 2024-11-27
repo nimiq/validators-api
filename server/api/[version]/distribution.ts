@@ -32,4 +32,5 @@ export default defineCachedEventHandler(async () => {
   return { staked, circulating, stakedRatio }
 }, {
   maxAge: import.meta.dev ? 0 : 60 * 60, // 60 minutes
+  name: 'distribution',
 })
