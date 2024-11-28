@@ -7,7 +7,7 @@
   "accentColor": "#754b47",
   "fee": 0,
   "payoutType": "restake",
-  "payoutSchedule": "Every 1 miniute",
+  "payoutSchedule": "Every 1 minute",
   "contact": {
     "email": "miaoyu319@gmail.com",
     "github": "miao-yu"
