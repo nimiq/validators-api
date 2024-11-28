@@ -1,7 +1,7 @@
 {
   "address": "NQ12 M1PJ QH7K DNAC JREU 0LD0 M4YS TQKA 751B",
-  "name": "Techbits validator",
-  "description": "top uptime, low fees, and strong security!",
-  "payoutType": "restake",
-  "fee": 0.05
+  "name": "Techbits Validator",
+  "description": "SOLO staking",
+  "payoutType": "none",
+  "fee": 1.0
 }
