@@ -57,8 +57,8 @@ importers:
         specifier: ^0.35.3
         version: 0.35.3(@cloudflare/workers-types@4.20241022.0)(@libsql/client-wasm@0.14.0)
       identicons-esm:
-        specifier: ^0.0.6
-        version: 0.0.6
+        specifier: ^0.2.1
+        version: 0.2.1
       nimiq-rpc-client-ts:
         specifier: ^0.4.5
         version: 0.4.5(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -4410,8 +4410,8 @@ packages:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
     engines: {node: '>=0.10.0'}
 
-  identicons-esm@0.0.6:
-    resolution: {integrity: sha512-dENh3JdQKm9wrKc1Ui4zBy4VHQY06MTBiqT+88H2+IRct149o6UKA43x58EU2obVhJZ70mTYkGrhtkprOmLEtg==}
+  identicons-esm@0.2.1:
+    resolution: {integrity: sha512-xSpT1ouowxoJGlYCQZREbCmUHFWBLG519oFGrsG/CdSx42y9fwCHRuiSu6EkVY9gDSnEaLtQ4LDZQXdyKa07WA==}
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -11398,7 +11398,7 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
-  identicons-esm@0.0.6: {}
+  identicons-esm@0.2.1: {}
 
   ieee754@1.2.1: {}
 

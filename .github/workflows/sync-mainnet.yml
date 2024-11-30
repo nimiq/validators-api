@@ -3,7 +3,7 @@ name: Sync Mainnet
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 * * * *' # Runs every hour
+    - cron: '35 * * * *' # Election block are produced every 12 hours at 00:38 and 12:38
 
 jobs:
   mainnet:

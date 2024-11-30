@@ -3,7 +3,7 @@
   "description": "Ace your staking journey with our secure and efficient pool. Maximize your NIM rewards today!",
   "website": "https://acestaking.com",
   "address": "NQ97 H1NR S3X0 CVFQ VJ9Y 9A0Y FRQN Q6EU D0PL",
-  "fee": 0.08,
+  "fee": 0.06,
   "payoutType": "restake",
   "payoutSchedule": "Every 4 hours",
   "contact": {

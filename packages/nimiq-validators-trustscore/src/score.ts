@@ -2,7 +2,7 @@ import type { ScoreParams, ScoreValues } from './types'
 
 export function getDominance({ threshold = 0.15, steepness = 7.5, dominanceRatio }: ScoreParams['dominance']) {
   if (!threshold || !steepness || !dominanceRatio)
-    throw new Error('Balance, threshold, steepness, or total balance is not set')
+    throw new Error(`Dominance Ratio, threshold or steepness is not set. ${JSON.stringify({ threshold, steepness, dominanceRatio })}`)
   if (dominanceRatio < 0 || dominanceRatio > 1)
     throw new Error(`Invalid dominance ratio: ${dominanceRatio}`)
   const s = Math.max(0, 1 - (dominanceRatio / threshold) ** steepness)
@@ -31,7 +31,7 @@ export function getAvailability({ activeEpochStates, weightFactor = 0.5 }: Score
   return availability
 }
 
-export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCenter = 0.16 }: ScoreParams['reliability']) {
+export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCenter = -0.16 }: ScoreParams['reliability']) {
   if (!inherentsPerEpoch || !weightFactor || !curveCenter)
     throw new Error(`Invalid reliability params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}`)
 
@@ -40,7 +40,6 @@ export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCen
   const length = inherentsPerEpoch.size
 
   for (const [epochIndex, { missed, rewarded }] of Array.from(inherentsPerEpoch.entries())) {
-    // console.log(epochIndex, { missed, rewarded }) // TODO Something missed and rewarded are -1, is that correct?
     const totalBlocks = rewarded + missed
 
     if (totalBlocks <= 0)
@@ -56,15 +55,15 @@ export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCen
 
   // Could be the case that the division is NaN, so we return 0 in that case. That means there's no inherents, so no blocks, so not reliable because there's no data
   if (Number.isNaN(reliability))
-    return 0
+    return -1
 
   // Ensure the expression under the square root is non-negative
   const discriminant = -(reliability ** 2) + 2 * curveCenter * reliability + (curveCenter - 1) ** 2
   if (discriminant < 0)
-    return 0
+    return -1
 
   // Plot into the curve
-  return Math.max(-curveCenter + 1 - Math.sqrt(discriminant), 1)
+  return -curveCenter + 1 - Math.sqrt(discriminant)
 }
 
 export function computeScore(params: ScoreParams) {

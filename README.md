@@ -65,11 +65,11 @@ This information will be displayed in mainly the wallet to help stakers decide w
 
 - **Shape**: It is preferred that the logo follows the Nimiq hexagon shape. For reference, please refer to the bottom of the 'Colours' section of our [Nimiq Style Guide on Figma](<https://www.figma.com/design/GU6cdS85S2v13QcdzW9v8Tav/NIMIQ-Style-Guide-(Oct-18)?node-id=0-1&node-type=canvas&t=mNoervj6Kgw0KhKL-0>).
 - **Background**: Do not add a background colour to the image.
-- **Format**: Prefer to use SVG. File dominance isn't an issue as we will optimise and serve the best performing version (e.g. PNG, JPG, SVG) for each validator.
+- **Format**: Prefer to use SVG. File size isn't an issue as we will optimise and serve the best performing version (e.g. PNG, JPG, SVG) for each validator.
 
 ### Validator JSON schema
 
-You can use the [example JSON](./public/validators/main-albatross/.example.json) as a template.
+You can use the [example JSON](./public/validators/.example.json) as a template.
 
 When you add your validator information, you'll need to include certain keys in your JSON file. Below is an explanation of each key and its possible values:
 

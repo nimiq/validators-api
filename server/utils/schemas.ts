@@ -12,8 +12,9 @@ export const rangeQuerySchema = z.object({
   return (!epochsCount || !durationWindowMs) || (defaultCounts && defaultWindow) || (!defaultCounts && !defaultWindow)
 })
 
+export const logoFormatRe = /^data:image\/(png|svg\+xml|webp)(?:;base64)?,/
 export const validatorSchema = z.object({
-  name: z.string().optional(),
+  name: z.string(),
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
   fee: z.literal(null).or(z.number().min(0).max(1)).default(null),
   payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
@@ -21,7 +22,7 @@ export const validatorSchema = z.object({
   isMaintainedByNimiq: z.boolean().optional(),
   description: z.string().optional(),
   website: z.string().url().optional(),
-  logo: z.string().regex(/^data:image\/(png|svg\+xml|webp)/).optional(),
+  logo: z.string().regex(logoFormatRe).optional(),
   hasDefaultLogo: z.boolean().default(true),
   accentColor: z.string().optional(),
   contact: z.object({
@@ -56,4 +57,5 @@ export const mainQuerySchema = z.object({
   'only-active': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'only-known': z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
   'with-identicons': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'force': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
 })

@@ -6,6 +6,7 @@
   "packageManager": "pnpm@9.12.3",
   "scripts": {
     "dev:mainnet": "pnpm run dev:packages && nuxi dev --remote --dotenv .env.mainnet",
+    "dev:mainnet:prod": "pnpm run dev:packages && nuxi dev --remote=production --dotenv .env.mainnet",
     "dev": "pnpm run dev:packages && nuxi dev --remote --dotenv .env.testnet",
     "dev:local": "pnpm run dev:packages && nuxi dev --dotenv .env.local",
     "dev:packages": "pnpm --filter=./packages/* --parallel run dev",
@@ -27,7 +28,7 @@
     "@vueuse/core": "^11.1.0",
     "defu": "^6.1.4",
     "drizzle-orm": "^0.35.3",
-    "identicons-esm": "^0.0.6",
+    "identicons-esm": "^0.2.1",
     "nimiq-rpc-client-ts": "^0.4.5",
     "nimiq-supply-calculator": "workspace:*",
     "nimiq-validators-trustscore": "workspace:*",
