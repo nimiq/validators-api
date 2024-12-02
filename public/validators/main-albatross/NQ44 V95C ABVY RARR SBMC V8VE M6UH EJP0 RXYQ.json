@@ -1,10 +1,10 @@
 {
   "name": "nim.re Staking Pool",
-  "description": "Staking. Straight to the point. No distractions. Configurable payout settings. No fees until 12 AM UTC, December 01, 2024.",
+  "description": "Staking. Straight to the point. No distractions. Configurable payout settings.",
   "website": "https://nim.re/pool",
   "address": "NQ44 V95C ABVY RARR SBMC V8VE M6UH EJP0 RXYQ",
   "accentColor": "#F6E44D",
-  "fee": 0.0,
+  "fee": 0.0333,
   "payoutType": "restake",
   "payoutSchedule": "Every 12 hours",
   "contact": {
