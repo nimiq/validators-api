@@ -13,6 +13,8 @@ function err(error: any) {
 // but we should maybe add a flag to the return?
 
 export default defineEventHandler(async (event) => {
+  const params = await getValidatedQuery(event, mainQuerySchema.parse)
+
   const networkName = useRuntimeConfig().public.nimiqNetwork
 
   const rpcClient = getRpcClient()
@@ -31,8 +33,15 @@ export default defineEventHandler(async (event) => {
   }
   // End of workaround
 
-  if (!(await checkIfScoreExistsInDb(range)))
+  const { data: activeValidators, error: errorValidators } = await rpcClient.blockchain.getActiveValidators()
+  if (errorValidators || !activeValidators)
+    throw new Error(JSON.stringify({ errorValidators, activeValidators }))
+
+  const existingScores = await Promise.all(activeValidators.map(({ address }) => checkIfScoreExistsInDb(range, address)))
+  if (!(existingScores.every(x => x === true)) || params.force) {
+    consola.info('Calculating scores...')
     await calculateScores(range)
+  }
 
   const validators = await useDrizzle()
     .select({
@@ -43,13 +52,14 @@ export default defineEventHandler(async (event) => {
       payoutType: tables.validators.payoutType,
       payoutSchedule: tables.validators.payoutSchedule,
       description: tables.validators.description,
-      icon: tables.validators.icon,
+      logo: tables.validators.logo,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
       website: tables.validators.website,
-      liveness: tables.scores.liveness,
+      availability: tables.scores.availability,
       total: tables.scores.total,
-      size: tables.scores.size,
-      sizeRatio: tables.activity.sizeRatio,
+      dominance: tables.scores.dominance,
+      dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
+      dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       reliability: tables.scores.reliability,
       reason: tables.scores.reason,
     })

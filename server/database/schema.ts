@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import { check, index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 import { PayoutType } from '../utils/types'
 
@@ -11,8 +11,8 @@ export const validators = sqliteTable('validators', {
   payoutType: text('payout_type').default(PayoutType.None),
   payoutSchedule: text('payout_schedule'),
   isMaintainedByNimiq: integer('is_maintained_by_nimiq', { mode: 'boolean' }).default(false),
-  icon: text('icon').notNull(),
-  hasDefaultIcon: integer('has_default_icon', { mode: 'boolean' }).notNull().default(true),
+  logo: text('logo').notNull(),
+  hasDefaultLogo: integer('has_default_logo', { mode: 'boolean' }).notNull().default(true),
   accentColor: text('accent_color').notNull(),
   website: text('website'),
   contact: text('contact', { mode: 'json' }),
@@ -24,18 +24,25 @@ export const validators = sqliteTable('validators', {
   ),
 }))
 
+// The scores only for the default window dominance
 export const scores = sqliteTable('scores', {
   validatorId: integer('validator_id').notNull().references(() => validators.id, { onDelete: 'cascade' }),
-  fromEpoch: integer('from_epoch').notNull(),
-  toEpoch: integer('to_epoch').notNull(),
+  epochNumber: integer('epoch_number').notNull(),
   total: real('total').notNull(),
-  liveness: real('liveness').notNull(),
-  size: real('size').notNull(),
+  availability: real('availability').notNull(),
+  dominance: real('dominance').notNull(),
   reliability: real('reliability').notNull(),
   reason: text('reason', { mode: 'json' }).notNull(),
 }, table => ({
   idxValidatorId: index('idx_validator_id').on(table.validatorId),
-  compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.fromEpoch, table.toEpoch] }),
+  compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.epochNumber] }),
+}))
+
+export const scoresRelations = relations(scores, ({ one }) => ({
+  validator: one(validators, {
+    fields: [scores.validatorId],
+    references: [validators.id],
+  }),
 }))
 
 export const activity = sqliteTable('activity', {
@@ -44,11 +51,22 @@ export const activity = sqliteTable('activity', {
   likelihood: integer('likelihood').notNull(),
   rewarded: integer('rewarded').notNull(),
   missed: integer('missed').notNull(),
-  sizeRatio: integer('size_ratio').notNull(),
-  // TODO Remove sizeRatioViaSlots bool and instead store also the sizeRatioPrecise
-  // sizeRatioViaSlots: integer('size_ratio_via_slots').notNull(),
-  sizeRatioViaSlots: integer('size_ratio_via_slots', { mode: 'boolean' }).notNull(),
+  dominanceRatioViaBalance: integer('dominance_ratio_via_balance').notNull(),
+  dominanceRatioViaSlots: integer('dominance_ratio_via_slots').notNull(),
+  balance: real('balance').notNull().default(-1),
 }, table => ({
   idxElectionBlock: index('idx_election_block').on(table.epochNumber),
   compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.epochNumber] }),
+}))
+
+export const activityRelations = relations(activity, ({ one }) => ({
+  validator: one(validators, {
+    fields: [activity.validatorId],
+    references: [validators.id],
+  }),
+}))
+
+export const validatorRelations = relations(validators, ({ many }) => ({
+  scores: many(scores),
+  activity: many(activity),
 }))

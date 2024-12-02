@@ -1,7 +1,7 @@
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { EpochsActivities } from 'nimiq-validators-score'
+import type { EpochsActivities } from 'nimiq-validators-trustscore'
 import { consola } from 'consola'
-import { fetchCurrentEpoch, fetchEpochs, getRange } from 'nimiq-validators-score'
+import { fetchCurrentEpoch, fetchEpochs, getRange } from 'nimiq-validators-trustscore'
 import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
 import { findMissingValidators, storeValidator } from '../utils/validators'
 
@@ -19,7 +19,7 @@ export async function getActiveValidators(client: NimiqRPCClient) {
 // TODO rename to retrieveActivities or something with activity
 /**
  * Fetches the required data for computing the score.
- * The size ratio parameter can be obtained via two different methods:
+ * The dominance ratio parameter can be obtained via two different methods:
  * 1. Knowing the slots assignation of the validator relative to the total amount of slots in the epoch
  *    We can retrieve this data from the election blocks
  * 2. From the balance of the validators relative to the other validators in the epoch
@@ -59,11 +59,11 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
 
   // Only fetch the missing epochs that are not in the database
   const missingEpochs = await findMissingEpochs(range)
-  const fetchedEpochs = []
   consola.info(`Fetching missing epochs: ${JSON.stringify(missingEpochs)}`)
   if (missingEpochs.length === 0)
     return []
 
+  const fetchedEpochs = []
   const epochGenerator = fetchEpochs(client, missingEpochs)
 
   while (true) {

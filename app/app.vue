@@ -37,7 +37,7 @@ const networkName = useRuntimeConfig().public.nimiqNetwork
           <span font-semibold>Error</span>
         </NuxtLink>
       </div>
-      <NuxtLink to="https://github.com/onmax/nimiq-validators" i-nimiq:logos-github-mono target="_blank" />
+      <NuxtLink to="https://github.com/nimiq/validators-api" i-nimiq:logos-github-mono target="_blank" />
       <button i-nimiq:moon @click="() => toggleDark()" />
     </header>
     <main flex-1>

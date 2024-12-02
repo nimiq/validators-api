@@ -1,9 +1,9 @@
 /**
- * Import validators from the public/validators folder and sets the icon in case it is missing
+ * Import validators from the public/validators folder and sets the logo in case it is missing
  */
 export default defineEventHandler(async () => {
   try {
-    // First update database with default data, this will populate the icon of unknown validators that didn't have an icon
+    // First update database with default data, this will populate the logo of unknown validators that didn't have an logo
     const validators = await useDrizzle().select().from(tables.validators).all()
     await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
 

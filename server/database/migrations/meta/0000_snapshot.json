@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "50f27077-e094-4dbf-83d3-fe2c4c9f788d",
+  "id": "dec040af-39af-4fec-bed6-8b25bdc2449b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity": {
@@ -42,19 +42,27 @@
           "notNull": true,
           "autoincrement": false
         },
-        "size_ratio": {
-          "name": "size_ratio",
+        "dominance_ratio_via_balance": {
+          "name": "dominance_ratio_via_balance",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "size_ratio_via_slots": {
-          "name": "size_ratio_via_slots",
+        "dominance_ratio_via_slots": {
+          "name": "dominance_ratio_via_slots",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "balance": {
+          "name": "balance",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": -1
         }
       },
       "indexes": {
@@ -103,15 +111,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "from_epoch": {
-          "name": "from_epoch",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "to_epoch": {
-          "name": "to_epoch",
+        "epoch_number": {
+          "name": "epoch_number",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -124,15 +125,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "liveness": {
-          "name": "liveness",
+        "availability": {
+          "name": "availability",
           "type": "real",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "size": {
-          "name": "size",
+        "dominance": {
+          "name": "dominance",
           "type": "real",
           "primaryKey": false,
           "notNull": true,
@@ -178,13 +179,12 @@
         }
       },
       "compositePrimaryKeys": {
-        "scores_validator_id_from_epoch_to_epoch_pk": {
+        "scores_validator_id_epoch_number_pk": {
           "columns": [
             "validator_id",
-            "from_epoch",
-            "to_epoch"
+            "epoch_number"
           ],
-          "name": "scores_validator_id_from_epoch_to_epoch_pk"
+          "name": "scores_validator_id_epoch_number_pk"
         }
       },
       "uniqueConstraints": {},
@@ -243,8 +243,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false,
-          "default": "''"
+          "autoincrement": false
         },
         "is_maintained_by_nimiq": {
           "name": "is_maintained_by_nimiq",
@@ -254,15 +253,15 @@
           "autoincrement": false,
           "default": false
         },
-        "icon": {
-          "name": "icon",
+        "logo": {
+          "name": "logo",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "has_default_icon": {
-          "name": "has_default_icon",
+        "has_default_logo": {
+          "name": "has_default_logo",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,

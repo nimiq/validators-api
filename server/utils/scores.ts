@@ -1,9 +1,9 @@
-import type { Range, ScoreParams } from 'nimiq-validators-score'
+import type { Range, ScoreParams } from 'nimiq-validators-trustscore'
 import type { NewScore } from './drizzle'
 import type { Result, ValidatorScore } from './types'
 import { consola } from 'consola'
 import { gte, inArray, lte } from 'drizzle-orm'
-import { computeScore } from 'nimiq-validators-score'
+import { computeScore, DEFAULT_WINDOW_IN_EPOCHS } from 'nimiq-validators-trustscore'
 import { findMissingEpochs } from './activities'
 import { fetchValidatorsScoreByIds } from './validators'
 
@@ -12,14 +12,15 @@ interface GetScoresResult {
   range: Range
 }
 
+const emptyDominance = { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1 }
 /**
  * Given a range of epochs, it returns the scores for the validators in that range.
  */
+// TODO THisis no longer relevant remove
 export async function calculateScores(range: Range): Result<GetScoresResult> {
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length > 0)
     consola.warn(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
-  consola.warn(`Missing epochs in database: ${missingEpochs.join(', ')}. Run the fetch task first.`)
 
   // TODO Decide how we want to handle the case of missing activity
   // const { data: range, error: rangeError } = await adjustRangeForAvailableData(expectedRange)
@@ -29,10 +30,10 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
 
   // TODO Check if we already have scores for the given range and return from the database
 
-  const sizeLastEpoch = await useDrizzle()
+  const dominanceLastEpoch = await useDrizzle()
     .select({
-      sizeRatio: tables.activity.sizeRatio,
-      sizeRatioViaSlots: tables.activity.sizeRatioViaSlots,
+      dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
+      dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       validatorId: tables.activity.validatorId,
     })
     .from(tables.activity)
@@ -40,10 +41,10 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
       eq(tables.activity.epochNumber, range.toEpoch),
     ))
 
-  const sizeLastEpochByValidator = new Map<number, { sizeRatio: number, sizeRatioViaSlots: boolean }>()
-  sizeLastEpoch.forEach(({ validatorId, sizeRatio, sizeRatioViaSlots }) =>
-    sizeLastEpochByValidator.set(validatorId, { sizeRatio, sizeRatioViaSlots: Boolean(sizeRatioViaSlots) }))
-  const validatorsIds = Array.from(sizeLastEpochByValidator.keys())
+  const dominanceLastEpochByValidator = new Map<number, { dominanceRatioViaBalance: number, dominanceRatioViaSlots: number }>()
+  dominanceLastEpoch.forEach(({ validatorId, dominanceRatioViaBalance, dominanceRatioViaSlots }) =>
+    dominanceLastEpochByValidator.set(validatorId, { dominanceRatioViaBalance, dominanceRatioViaSlots }))
+  const validatorsIds = Array.from(dominanceLastEpochByValidator.keys())
 
   const _activities = await useDrizzle()
     .select({
@@ -62,28 +63,38 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     .orderBy(tables.activity.epochNumber)
     .execute()
 
-  type Activity = Map<number /* validatorId */, { inherentsPerEpoch: Map<number /* epoch */, { rewarded: number, missed: number }>, sizeRatio: number, sizeRatioViaSlots: boolean }>
+  type Activity = Map<number /* validatorId */, { inherentsPerEpoch: Map<number /* epoch */, { rewarded: number, missed: number }>, dominanceRatioViaBalance: number | undefined, dominanceRatioViaSlots: number | undefined }>
 
   const validatorsParams: Activity = new Map()
 
   for (const { epoch, missed, rewarded, validatorId } of _activities) {
     if (!validatorsParams.has(validatorId)) {
-      const { sizeRatio, sizeRatioViaSlots } = sizeLastEpochByValidator.get(validatorId) ?? { sizeRatio: -1, sizeRatioViaSlots: false }
-      if (sizeRatio === -1)
-        return { error: `Missing size ratio for validator ${validatorId}. Range: ${range.fromEpoch}-${range.toEpoch}`, data: undefined }
-      validatorsParams.set(validatorId, { sizeRatio, sizeRatioViaSlots, inherentsPerEpoch: new Map() })
+      const { dominanceRatioViaBalance, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? emptyDominance
+      if (dominanceRatioViaBalance === -1 && dominanceRatioViaSlots === -1) {
+        return { error: `Missing dominance ratio for validator ${validatorId}. Range: ${range.fromEpoch}-${range.toEpoch}. ${{ dominanceRatioViaBalance, dominanceRatioViaSlots,
+        }}`, data: undefined }
+      }
+      validatorsParams.set(validatorId, { dominanceRatioViaBalance, dominanceRatioViaSlots, inherentsPerEpoch: new Map() })
     }
     const validatorInherents = validatorsParams.get(validatorId)!.inherentsPerEpoch
     if (!validatorInherents.has(epoch))
       validatorInherents.set(epoch, { rewarded: 0, missed: 0 })
     const { missed: accMissed, rewarded: accRewarded } = validatorInherents.get(epoch)!
-    validatorInherents.set(epoch, { rewarded: accRewarded + rewarded, missed: accMissed + missed })
+    validatorInherents.set(epoch, { rewarded: accRewarded + Math.max(rewarded, 0), missed: accMissed + Math.max(missed, 0) })
   }
 
   const scores = Array.from(validatorsParams.entries()).map(([validatorId, { inherentsPerEpoch }]) => {
-    const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => inherentsPerEpoch.has(range.fromEpoch + i) ? 1 : 0)
-    const size: ScoreParams['size'] = { sizeRatio: sizeLastEpochByValidator.get(validatorId)?.sizeRatio ?? -1 }
-    const liveness: ScoreParams['liveness'] = { activeEpochStates }
+    const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => {
+      if (!inherentsPerEpoch.has(range.fromEpoch + i))
+        return 0
+      const { rewarded, missed } = inherentsPerEpoch.get(range.fromEpoch + i)!
+      if (rewarded === 0 && missed === 0)
+        return 0
+      return 1
+    })
+    const { dominanceRatioViaBalance, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? emptyDominance
+    const dominance: ScoreParams['dominance'] = { dominanceRatio: dominanceRatioViaBalance === -1 ? dominanceRatioViaSlots : dominanceRatioViaBalance }
+    const availability: ScoreParams['availability'] = { activeEpochStates }
     const reliability: ScoreParams['reliability'] = { inherentsPerEpoch }
 
     const reason = {
@@ -92,13 +103,16 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
       badSlots: Array.from(inherentsPerEpoch.values()).reduce((acc, { missed }) => acc + missed, 0),
     }
 
-    const score = computeScore({ liveness, size, reliability })
-    const newScore: NewScore = { validatorId: Number(validatorId), fromEpoch: range.fromEpoch, toEpoch: range.toEpoch, ...score, reason }
+    const score = computeScore({ availability, dominance, reliability })
+    const newScore: NewScore = { validatorId: Number(validatorId), epochNumber: range.toEpoch, ...score, reason }
     return newScore
   })
 
-  // TODO only store the scores that uses default window size to save space
-  await persistScores(scores)
+  // If the range is the default window dominance or the range starts at the PoS fork block, we persist the scores
+  // TODO Once the chain is older than 9 months, we should remove range.fromBlockNumber === 1
+  if (range.toEpoch - range.fromEpoch + 1 === DEFAULT_WINDOW_IN_EPOCHS || range.fromEpoch === 1)
+    await persistScores(scores)
+
   const { data: validators, error: errorValidators } = await fetchValidatorsScoreByIds(scores.map(s => s.validatorId))
   if (errorValidators || !validators)
     return { error: errorValidators, data: undefined }
@@ -120,15 +134,17 @@ export async function persistScores(scores: NewScore[]) {
   // })
 }
 
-export async function checkIfScoreExistsInDb(range: Range) {
-  const scoreAlreadyInDb = await useDrizzle()
-    .select({ validatorId: tables.scores.validatorId })
-    .from(tables.scores)
-    .where(and(
-      eq(tables.scores.toEpoch, range.toEpoch),
-      eq(tables.scores.fromEpoch, range.fromEpoch),
-    ))
-    .get()
-    .then(r => Boolean(r?.validatorId))
-  return scoreAlreadyInDb
+export async function checkIfScoreExistsInDb(range: Range, address: string): Promise<boolean> {
+  const result = await useDrizzle().query.validators.findFirst({
+    with: {
+      scores: {
+        where: eq(tables.scores.epochNumber, range.toEpoch),
+        limit: 1,
+        columns: { validatorId: true },
+      },
+    },
+    where: (validators, { eq }) => eq(validators.address, address),
+  })
+
+  return !!result?.scores?.length || false
 }

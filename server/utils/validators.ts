@@ -1,13 +1,13 @@
-import type { ScoreValues } from '~~/packages/nimiq-validators-score/src'
-import type { NewValidator, Validator } from './drizzle'
-import type { PayoutType, Result, ValidatorScore } from './types'
+import type { SQLWrapper } from 'drizzle-orm'
+import type { Validator } from './drizzle'
+import type { ValidatorJSON } from './schemas'
+import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray, isNotNull, not } from 'drizzle-orm'
-import { createIdenticon, getIdenticonsParams } from 'identicons-esm'
-import { optimize } from 'svgo'
-import { validatorSchema } from './schemas'
+import { desc, inArray } from 'drizzle-orm'
+import { handleValidatorLogo } from './logo'
+import { defaultValidatorJSON, validatorSchema } from './schemas'
 
 /**
  * Given a list of validator addresses, it returns the addresses that are missing in the database.
@@ -36,11 +36,7 @@ interface StoreValidatorOptions {
   upsert?: boolean
 }
 
-export async function storeValidator(
-  address: string,
-  rest: Omit<NewValidator, 'address' | 'icon' | 'accentColor' | 'hasDefaultIcon'> & { icon?: string, accentColor?: string } = {},
-  options: StoreValidatorOptions = {},
-): Promise<number | undefined> {
+export async function storeValidator(address: string, rest: ValidatorJSON = defaultValidatorJSON, options: StoreValidatorOptions = {}): Promise<number | undefined> {
   try {
     // TODO Build broken
     // Address.fromString(address)
@@ -66,43 +62,34 @@ export async function storeValidator(
     .then(r => r?.id)
 
   // If the validator exists and upsert is not true, return it
-  if (validatorId && !upsert) {
+  if (!upsert && validatorId) {
+    consola.info(`Validator ${address} already exists in the database`)
     validators.set(address, validatorId)
     return validatorId
   }
 
   consola.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`)
 
-  async function getBrandingParameters() {
-    if (rest.icon) {
-      // TODO Once the validators have accent colors, re-enable this check
-      // if (!rest.accentColor)
-      //   throw new Error(`The validator ${address} does have an icon but not an accent color`)
-      const { data: icon } = optimize(rest.icon, { plugins: [{ name: 'preset-default' }] })
-      consola.info(`Optimized icon for validator ${address}`)
-      return { icon, accentColor: rest.accentColor!, hasDefaultIcon: false }
+  const brandingParameters = await handleValidatorLogo(address, rest)
+  try {
+    if (validatorId) {
+      await useDrizzle()
+        .update(tables.validators)
+        .set({ ...rest, ...brandingParameters })
+        .where(eq(tables.validators.id, validatorId))
+        .execute()
     }
-    const icon = await createIdenticon(address, { format: 'image/svg+xml' })
-    const { colors: { background: accentColor } } = await getIdenticonsParams(address)
-    return { icon, accentColor, hasDefaultIcon: true }
+    else {
+      validatorId = await useDrizzle()
+        .insert(tables.validators)
+        .values({ ...rest, address, ...brandingParameters })
+        .returning()
+        .get()
+        .then(r => r.id)
+    }
   }
-
-  const brandingParameters = await getBrandingParameters()
-  consola.info(`Generated branding parameters for validator ${address}`)
-  if (validatorId) {
-    await useDrizzle()
-      .update(tables.validators)
-      .set({ ...rest, ...brandingParameters })
-      .where(eq(tables.validators.id, validatorId))
-      .execute()
-  }
-  else {
-    validatorId = await useDrizzle()
-      .insert(tables.validators)
-      .values({ ...rest, address, ...brandingParameters })
-      .returning()
-      .get()
-      .then(r => r.id)
+  catch (e) {
+    consola.error(`There was an error while writing ${address} into the database`, e)
   }
 
   validators.set(address, validatorId!)
@@ -118,13 +105,12 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
       fee: tables.validators.fee,
       payoutType: tables.validators.payoutType,
       description: tables.validators.description,
-      icon: tables.validators.icon,
+      logo: tables.validators.logo,
       isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
       website: tables.validators.website,
-      liveness: tables.scores.liveness,
       total: tables.scores.total,
-      size: tables.scores.size,
-      reliability: tables.scores.reliability,
+      availability: tables.scores.availability,
+      dominance: tables.scores.dominance,
     })
     .from(tables.validators)
     .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
@@ -135,62 +121,90 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
   return { data: validators, error: undefined }
 }
 
-export interface FetchValidatorsOptions {
-  payoutType?: PayoutType
-  addresses?: string[]
-  onlyKnown?: boolean
-  withIdenticon?: boolean
-  withScores?: boolean
+export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[], epochNumber: number }
+
+type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
+  logo?: string
+  score?: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
+  dominanceRatio?: number
+  balance?: number
 }
 
-type FetchedValidator = Omit<Validator, 'icon' | 'contact'> & { icon?: string } & { score?: ScoreValues | null }
-
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { payoutType, addresses = [], onlyKnown = false, withIdenticon = false, withScores = false } = params
-  consola.info(`Fetching validators with params: ${JSON.stringify(params)}`)
-  const filters = []
+  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
+
+  const filters: SQLWrapper[] = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
   if (addresses?.length > 0)
     filters.push(inArray(tables.validators.address, addresses))
   if (onlyKnown)
-    filters.push(not(eq(tables.validators.name, 'Unknown validator')))
+    filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
-  const validators = await useDrizzle()
-    .select({
-      id: tables.validators.id,
-      name: tables.validators.name,
-      address: tables.validators.address,
-      fee: tables.validators.fee,
-      payoutType: tables.validators.payoutType,
-      payoutSchedule: tables.validators.payoutSchedule,
-      description: tables.validators.description,
-      icon: tables.validators.icon,
-      accentColor: tables.validators.accentColor,
-      isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
-      hasDefaultIcon: tables.validators.hasDefaultIcon,
-      website: tables.validators.website,
-      score: {
-        liveness: tables.scores.liveness,
-        total: tables.scores.total,
-        size: tables.scores.size,
-        reliability: tables.scores.reliability,
+  try {
+    const dbValidators = await useDrizzle().query.validators.findMany({
+      where: and(...filters),
+      with: {
+        scores: {
+          where: eq(tables.scores.epochNumber, epochNumber),
+          limit: 1,
+          columns: {
+            total: true,
+            availability: true,
+            dominance: true,
+            reliability: true,
+          },
+        },
+        activity: {
+          where: eq(tables.scores.epochNumber, epochNumber + 1),
+          columns: {
+            dominanceRatioViaBalance: true,
+            dominanceRatioViaSlots: true,
+            balance: true,
+          },
+          limit: 1,
+        },
       },
     })
-    .from(tables.validators)
-    .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
-    .where(isNotNull(tables.scores.validatorId))
-    // .groupBy(tables.validators.id)
-    .orderBy(desc(tables.scores.total))
-    .all() satisfies FetchedValidator[] as FetchedValidator[]
-  consola.info(`Fetched ${validators.length} validators`)
 
-  if (!withIdenticon)
-    validators.filter(v => v.hasDefaultIcon).forEach(v => delete v.icon)
-  if (!withScores)
-    validators.forEach(v => delete v.score)
+    const validators = dbValidators.map((validator) => {
+      const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
 
-  return { data: validators, error: undefined }
+      const score: FetchedValidator['score'] = scores[0]
+      if (score) {
+        const { availability, dominance, reliability } = scores[0]
+        if (reliability === -1 || reliability === null) {
+          score.reliability = null
+          score.total = null
+        }
+        if (availability === -1 || availability === null) {
+          score.availability = null
+          score.total = null
+        }
+        if (dominance === -1 || dominance === null) {
+          score.dominance = null
+          score.total = null
+        }
+      }
+
+      const { dominanceRatioViaBalance, dominanceRatioViaSlots, balance } = activity?.[0] || {}
+
+      return {
+        ...rest,
+        score,
+        hasDefaultLogo,
+        logo: !withIdenticons && hasDefaultLogo ? undefined : logo,
+        dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
+        balance,
+      } satisfies FetchedValidator
+    })
+
+    return { data: validators, error: undefined }
+  }
+  catch (error) {
+    consola.error(`Error fetching validators: ${error}`)
+    return { data: undefined, error: JSON.stringify(error) }
+  }
 }
 
 /**
@@ -211,7 +225,13 @@ export async function importValidatorsFromFiles(folderPath: string) {
     const fileContent = await readFile(filePath, 'utf8')
 
     // Validate the file content
-    const jsonData = JSON.parse(fileContent)
+    let jsonData
+    try {
+      jsonData = JSON.parse(fileContent)
+    }
+    catch (error) {
+      throw new Error(`Invalid JSON in file: ${file}. Error: ${error}`)
+    }
     const { success, data: validator, error } = validatorSchema.safeParse(jsonData)
     if (!success || error)
       throw new Error(`Invalid file: ${file}. Error: ${JSON.stringify(error)}`)
@@ -223,5 +243,9 @@ export async function importValidatorsFromFiles(folderPath: string) {
 
     validators.push(validator)
   }
-  await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
+  const res = await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
+  const errors = res.filter(r => r.status === 'rejected')
+  if (errors.length > 0) {
+    throw new Error(`There were errors while importing the validators: ${errors.map(e => e.reason)}`)
+  }
 }

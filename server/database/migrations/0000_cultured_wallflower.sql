@@ -4,8 +4,9 @@ CREATE TABLE `activity` (
 	`likelihood` integer NOT NULL,
 	`rewarded` integer NOT NULL,
 	`missed` integer NOT NULL,
-	`size_ratio` integer NOT NULL,
-	`size_ratio_via_slots` integer NOT NULL,
+	`dominance_ratio_via_balance` integer NOT NULL,
+	`dominance_ratio_via_slots` integer NOT NULL,
+	`balance` real DEFAULT -1 NOT NULL,
 	PRIMARY KEY(`validator_id`, `epoch_number`),
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
@@ -13,14 +14,13 @@ CREATE TABLE `activity` (
 CREATE INDEX `idx_election_block` ON `activity` (`epoch_number`);--> statement-breakpoint
 CREATE TABLE `scores` (
 	`validator_id` integer NOT NULL,
-	`from_epoch` integer NOT NULL,
-	`to_epoch` integer NOT NULL,
+	`epoch_number` integer NOT NULL,
 	`total` real NOT NULL,
-	`liveness` real NOT NULL,
-	`size` real NOT NULL,
+	`availability` real NOT NULL,
+	`dominance` real NOT NULL,
 	`reliability` real NOT NULL,
 	`reason` text NOT NULL,
-	PRIMARY KEY(`validator_id`, `from_epoch`, `to_epoch`),
+	PRIMARY KEY(`validator_id`, `epoch_number`),
 	FOREIGN KEY (`validator_id`) REFERENCES `validators`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
@@ -32,10 +32,10 @@ CREATE TABLE `validators` (
 	`description` text,
 	`fee` real DEFAULT -1,
 	`payout_type` text DEFAULT 'none',
-	`payout_schedule` text DEFAULT '',
+	`payout_schedule` text,
 	`is_maintained_by_nimiq` integer DEFAULT false,
-	`icon` text NOT NULL,
-	`has_default_icon` integer DEFAULT true NOT NULL,
+	`logo` text NOT NULL,
+	`has_default_logo` integer DEFAULT true NOT NULL,
 	`accent_color` text NOT NULL,
 	`website` text,
 	`contact` text,

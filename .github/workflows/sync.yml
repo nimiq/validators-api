@@ -1,0 +1,104 @@
+name: Sync Workflow
+
+on:
+  workflow_call:
+    inputs:
+      network:
+        required: true
+        type: string
+      api_url:
+        required: true
+        type: string
+
+jobs:
+  import-validators:
+    name: Import validators ${{ inputs.network }}
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Import validators
+        run: |
+          echo "Importing validators for ${{ inputs.network }}..."
+          RESPONSE=$(curl -s -X POST "${{ inputs.api_url }}/api/v1/validators/import")
+
+          if [ $? -eq 0 ]; then
+            echo "Successfully imported validators for ${{ inputs.network }}"
+          else
+            echo "Error importing validators for ${{ inputs.network }}"
+            exit 1
+          fi
+
+  sync-epoch-activity:
+    name: Syncs the epoch activity
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch missing epochs
+        id: fetch-missing
+        run: |
+          MISSING_EPOCHS=$(curl -s "${{ inputs.api_url }}/api/v1/epochs/missing")
+          EPOCHS=$(echo $MISSING_EPOCHS | jq -r 'join(" ")')
+          echo "epochs=$EPOCHS" >> $GITHUB_OUTPUT
+          echo "Found missing epochs for ${{ inputs.network }}: $EPOCHS"
+
+      - name: Process each epoch
+        run: |
+          EPOCHS="${{ steps.fetch-missing.outputs.epochs }}"
+
+          for epoch in $EPOCHS; do
+            echo "Processing epoch $epoch for ${{ inputs.network }}"
+
+            HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" "${{ inputs.api_url }}/api/v1/epochs/$epoch")
+            HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
+            RESPONSE_BODY=$(echo "$HTTP_RESPONSE" | sed '$ d')
+
+            if [ "$HTTP_STATUS" -eq 500 ]; then
+              echo "Error 500 received for epoch $epoch"
+              echo "Response body: $RESPONSE_BODY"
+              continue
+            elif [ "$HTTP_STATUS" -ne 200 ]; then
+              echo "Error: HTTP status $HTTP_STATUS for epoch $epoch"
+              echo "Response body: $RESPONSE_BODY"
+              continue
+            else
+              echo "Successfully processed epoch $epoch"
+            fi
+          done
+
+  sync-validator-balances:
+    name: Syncs the validator balances
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync validator balances
+        run: |
+          echo "Sync validators balances for ${{ inputs.network }}..."
+          RESPONSE=$(curl -s -X POST "${{ inputs.api_url }}/api/v1/validators/balances")
+
+          ISSUES=$(echo $RESPONSE | jq -r '.issues')
+          if [ "$ISSUES" != "[]" ]; then
+            echo "Issues found: $ISSUES"
+          fi
+
+          echo $RESPONSE
+
+  sync-validator-scores:
+    name: Recalculates the validators score
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync validator scores
+        run: |
+          echo "Sync validators scores for ${{ inputs.network }}..."
+          RESPONSE=$(curl -s -X POST "${{ inputs.api_url }}/api/v1/scores?force=true")
+
+          ISSUES=$(echo $RESPONSE | jq -r '.issues')
+          if [ "$ISSUES" != "[]" ]; then
+            echo "Issues found: $ISSUES"
+          fi
+
+          echo $RESPONSE

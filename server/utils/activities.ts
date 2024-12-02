@@ -1,4 +1,4 @@
-import type { Activity, EpochsActivities, Range } from 'nimiq-validators-score'
+import type { Activity, EpochsActivities, Range } from 'nimiq-validators-trustscore'
 import type { NewActivity } from './drizzle'
 import { eq, gte, lte, not } from 'drizzle-orm'
 import { storeValidator } from './validators'
@@ -13,10 +13,10 @@ export async function findMissingEpochs(range: Range) {
     .where(and(
       gte(tables.activity.epochNumber, range.fromEpoch),
       lte(tables.activity.epochNumber, range.toEpoch),
-      // If every entry of the same epoch contains a likelihood of -1, then we consider it as missing
+      // If any entry of the same epoch contains a likelihood of -1, then we consider it as missing
       not(eq(tables.activity.likelihood, -1)),
     ))
-    .execute()
+    .all()
     .then(r => r.map(r => r.epochBlockNumber))
 
   const missingEpochs = []
@@ -45,7 +45,7 @@ interface StoreActivityParams {
   epochNumber: number
 }
 
-const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, sizeRatio: 0, sizeRatioViaSlots: false }
+const defaultActivity: Activity = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1 }
 
 export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
@@ -53,29 +53,30 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
     return
   // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
   // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
-  const existingActivity = await useDrizzle()
-    .select({ sizeRatioViaSlots: tables.activity.sizeRatioViaSlots, sizeRatio: tables.activity.sizeRatio })
+  const { dominanceRatioViaBalance: _dominanceRatioViaBalance, dominanceRatioViaSlots: _dominanceRatioViaSlots, balance: _balance } = await useDrizzle()
+    .select({
+      likelihood: tables.activity.likelihood,
+      rewarded: tables.activity.rewarded,
+      missed: tables.activity.missed,
+      dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
+      dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
+      balance: tables.activity.balance,
+    })
     .from(tables.activity)
     .where(and(
       eq(tables.activity.epochNumber, epochNumber),
       eq(tables.activity.validatorId, validatorId),
     ))
+    .get() || defaultActivity
 
-  const { likelihood, rewarded, missed, sizeRatio: _sizeRatio, sizeRatioViaSlots: _sizeRatioViaSlots } = activity || defaultActivity
-
-  // We always want to update db except the columns `sizeRatio` and `sizeRatioViaSlots`.
-  // If we have `sizeRatioViaSlots` as false and `sizeRatio` > 0, then we won't update only those columns
-  // As we want to keep the values from the first time we inserted the activity as they are more accurate
-  const viaSlotsDb = Boolean(existingActivity.at(0)?.sizeRatioViaSlots)
-  const sizeRatioDb = existingActivity.at(0)?.sizeRatio || 0
-  const updateSizeColumns = viaSlotsDb !== false || sizeRatioDb <= 0
-  const sizeRatio = updateSizeColumns ? _sizeRatio : sizeRatioDb
-  const sizeRatioViaSlots = updateSizeColumns ? _sizeRatioViaSlots : viaSlotsDb
+  const dominanceRatioViaSlots = (_dominanceRatioViaSlots === -1 ? activity?.dominanceRatioViaSlots : _dominanceRatioViaSlots) || -1
+  const dominanceRatioViaBalance = (_dominanceRatioViaBalance === -1 ? activity?.dominanceRatioViaBalance : _dominanceRatioViaBalance) || -1
+  const balance = (_balance === -1 ? activity?.balance : _balance) || -1
 
   await useDrizzle().delete(tables.activity).where(and(
     eq(tables.activity.epochNumber, epochNumber),
     eq(tables.activity.validatorId, validatorId),
   ))
-  const activityDb: NewActivity = { likelihood, rewarded, missed, epochNumber, validatorId, sizeRatio, sizeRatioViaSlots }
+  const activityDb: NewActivity = { ...activity!, epochNumber, validatorId, dominanceRatioViaSlots, dominanceRatioViaBalance, balance }
   await useDrizzle().insert(tables.activity).values(activityDb)
 }
