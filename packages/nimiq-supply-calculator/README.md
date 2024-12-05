@@ -27,9 +27,9 @@ Here’s an example of how to use the library to compute the supply:
 ```ts
 import { posSupplyAt } from 'nimiq-supply-calculator'
 
-const duration = 31556952000 // One year in milliseconds
+const timestamp = Date.now() // In milliseconds
 
-const posSupply = posSupplyAt(duration)
+const posSupply = posSupplyAt(timestamp)
 console.log('PoS Supply:', posSupply)
 ```
 
