@@ -11,20 +11,20 @@ The Nimiq Validators API enables staking pools, based on single validators, to i
 **Validators and Staking Pools**:
 A validator can operate as a staking pool, allowing multiple users to stake. Pools must provide detailed information such as fees, payout schedules, and contact details to ensure trust and transparency.
 
-Stakers can evaluate a validator’s reliability using the Validator Trust Score (VTS) and review staking pool details like payout schedules to select the best option.
+Stakers can evaluate a validator’s reliability using the Validator Trustscore (VTS) and review staking pool details like payout schedules to select the best option.
 
 ## Add your Validator Information
 
-If you operate a staking pool and want to be displayed in the Nimiq Wallet, follow these steps:
+If you operate a staking pool and want your information to be publicly available, such as in the Nimiq Wallet, follow these steps:
 
 1. [Fork this repository](https://github.com/nimiq/validators-api/fork).
 2. Add your Validator File:
    - Create a new JSON file in the `public/validators/main-albatross` directory.
-   - Use the provided example template in the directory to structure your data.
-3. Review the [Description Guidelines](#recommendations-for-your-validator-information).
+   - Use the provided [example template](./public/validators/.example.json) in the directory to structure your data.
+3. Review the [Description Guidelines](#recommendations-for-your-validator-description).
 4. Learn about the [JSON Schema](#validator-json-schema).
 5. Submit a PR to this repository. A Nimiq team member will review your submission.
-6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.nuxt.dev/api/v1) returns your information. This process may take a few minutes.
+6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.nuxt.dev/api/v1) returns your information. This process may take a few days.
 
 > [!WARNING]
 > Nimiq reserves the right to make minor adjustments to the content submitted by validator owners if necessary.
@@ -45,7 +45,7 @@ This information will be displayed in the wallet to help stakers decide which po
 
 ### Validator JSON schema
 
-Use the following schema to create your validator information file. You can start by copying this [example JSON template](./public/validators/main-albatross/.example.json). When you add your validator information, you'll need to include specific keys in your JSON file. Below is an explanation of each key and its possible values.
+Use the following schema to create your validator information file. You can start by copying this [example JSON template](./public/validators/.example.json). When you add your validator information, you'll need to include specific keys in your JSON file. Below is an explanation of each key and its possible values.
 
 **Required Keys**:
 
