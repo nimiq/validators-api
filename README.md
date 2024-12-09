@@ -107,12 +107,6 @@ pnpm install
 pnpm dev
 ```
 
-**Notes on Development**
-
-- The project uses Nuxt Hub, which runs on Cloudflare Pages with a Cloudflare D1 database.
-- The database is a SQLite instance, shared remotely in both development and production environments. To change this behavior, modify the configuration in nuxt.config.ts.
-- We use Drizzle as the database access layer.
-
 ### Score Calculation with Nitro Tasks
 
 To calculate the score, we need to run two processes: the fetcher and the score calculator. We do this using a Nitro Task, which is currently an experimental feature of Nitro. Nitro Task is a feature that allows you to trigger an action in the server programmatically or manually from the Nuxt Dev Center (go to tasks page). Read more about the process of computing the score in the [nimiq-validators-trustscore](./packages/nimiq-validators-trustscore/README.md) package.
