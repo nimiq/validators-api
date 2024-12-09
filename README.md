@@ -6,7 +6,7 @@
 
 [![Sync Mainnet](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml) [![Sync Testnet](https://github.com/nimiq/validators-api/actions/workflows/sync-testnet.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/sync-testnet.yml)
 
-The Nimiq Validators API enables staking pools, based on single validators, to integrate with the Nimiq Wallet. This helps stakers make informed decisions when choosing where to stake their funds.
+The Nimiq Validators API enables staking pools, based on single validators, to integrate with the Nimiq Wallet and other applications. This helps stakers make informed decisions when choosing where to stake their funds.
 
 **Validators and Staking Pools**:
 A validator can operate as a staking pool, allowing multiple users to stake. Pools must provide detailed information such as fees, payout schedules, and contact details to ensure trust and transparency.
@@ -23,7 +23,7 @@ If you operate a staking pool and want to be displayed in the Nimiq Wallet, foll
    - Use the provided example template in the directory to structure your data.
 3. Review the [Description Guidelines](#recommendations-for-your-validator-information).
 4. Learn about the [JSON Schema](#validator-json-schema).
-5. Submit a PR to this repository. A Nimiq team member will review your submission.
+5. Submit a PR to this repository. A Nimiq team member will review your submission within 3 days.
 6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.nuxt.dev/api/v1) returns your information. This process may take a few minutes.
 
 > [!WARNING]
@@ -52,8 +52,9 @@ Use the following schema to create your validator information file. You can star
 - `name`: The name of your validator. If you don’t provide a name, your validator address will be used by default.
 - `description`: A short description of your validator. Use this to highlight what makes your validator unique or appealing to stakers.
 - `address`: The address of the validator in this format `NQXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX`.
-- `fee`: A percentage fee between 0 and 1 (0.05 represents a 5% fee).
-  - If using dynamic fees:
+- `fee`: Use either static or dynamic fees:
+  - For static fees, use `fee` with a percentage between 0 and 1 (0.05 represents a 5% fee).
+  - For dynamic fees, use the following 3 values:
     - `feeLowest`: The minimum possible fee.
     - `feeHighest`: The maximum possible fee.
     - `feeDescription`: Outline the conditions for various fees.
@@ -61,12 +62,12 @@ Use the following schema to create your validator information file. You can star
   - `restake`: Rewards are automatically restaked.
   - `direct`: Rewards are paid directly into the staker's wallet and are not automatically restaked. Requires:
     - `payoutAddress`: Provide address you will payout from.
-    - `payoutSchedule`: Specifiy the frequency of payouts using the [cron job format](https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules). Example: `0 */6 * * *` for payouts every 6 hours.
+    - `payoutSchedule`: Specifiy the frequency of payouts using the [cron job format](https://crontab.guru/). Example: `0 */6 * * *` for payouts every 6 hours.
   - `none`: No rewards will be paid out.
   - `custom`: Custom payout scheme. Requires:
     - `payoutScheme`: A description of the custom payout method (e.g., "Pays 50% of rewards every 1st of the month").
 - `website`: The URL of your validator's website or any similar source of information (Telegram pinned message, Discord...)
-- `logo`: A logo in SVG or PNG format (min size: 224x224px) with a transparent background, encoded in Base64 to represent your validator.
+- `logo`: A logo in SVG or PNG format (min size: 224x224px) with a transparent background, encoded in Base64 to represent your validator. Background colors should be avoided unless they ensure clear contrast.
 - `contact`: At least one contact allowing validators to share contact details so users can easily get in touch.
   - `email`
   - `telegram` (optional). e.g. `@nimiq`
