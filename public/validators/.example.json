@@ -9,7 +9,7 @@
   "payoutAddress": "NQXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX",
   "payoutSchedule": "0 */12 * * *",
   "website": "https://validator.example.com",
-  "logo": "png-base64 logo",
+  "logo": "svg-base64 logo",
   "contact": {
     "email": "support@validator.com",
     "telegram": "@validator",
