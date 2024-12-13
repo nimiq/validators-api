@@ -84,3 +84,21 @@ jobs:
           fi
 
           echo $RESPONSE
+
+  sync-validator-scores:
+    name: Recalculates the validators score
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync validator scores
+        run: |
+          echo "Sync validators scores for ${{ inputs.network }}..."
+          RESPONSE=$(curl -s -X POST "${{ inputs.api_url }}/api/v1/scores?force=true")
+
+          ISSUES=$(echo $RESPONSE | jq -r '.issues')
+          if [ "$ISSUES" != "[]" ]; then
+            echo "Issues found: $ISSUES"
+          fi
+
+          echo $RESPONSE
