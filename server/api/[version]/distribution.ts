@@ -21,7 +21,7 @@ export default defineCachedEventHandler(async () => {
     )
     .get()
 
-  const staked = (result?.totalStaked ?? 0) * 1e5
+  const staked = (result?.totalStaked ?? 0) / 1e5
 
   const { data: latestBlock, error: errorCurrentEpoch } = await getRpcClient().blockchain.getLatestBlock()
   if (errorCurrentEpoch)
