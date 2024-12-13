@@ -1,5 +1,3 @@
-import { powi } from '../../nimiq-supply-calculator/src/utils'
-
 /**
  * The total supply of the cryptocurrency, in LUNA.
  */
@@ -40,7 +38,7 @@ export const PROOF_OF_WORK_INITIAL_SUPPLY = 2520000000e5
 /**
  * The speed of the emission curve, in Lunas.
  */
-export const PROOF_OF_WORK_EMISSION_SPEED = powi(2, 22)
+export const PROOF_OF_WORK_EMISSION_SPEED = 4_194_304 // same as powi(2, 22)
 
 /**
  * The block number at which the emission tail starts.
