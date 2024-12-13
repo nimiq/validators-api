@@ -33,11 +33,6 @@
       "types": "./dist/pow.d.ts",
       "import": "./dist/pow.mjs",
       "require": "./dist/pow.cjs"
-    },
-    "./constants": {
-      "types": "./dist/constants.d.ts",
-      "import": "./dist/constants.mjs",
-      "require": "./dist/constants.cjs"
     }
   },
   "main": "./dist/index.mjs",
@@ -65,6 +60,9 @@
     "test": "vitest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "nimiq-albatross-policy": "workspace:*"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",

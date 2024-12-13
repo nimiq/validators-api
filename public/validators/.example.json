@@ -1,23 +1,18 @@
 {
-  "name": "Optional. The name of the validator, by default it is the address",
-  "description": "Optional. A description of the validator",
-  "website": "Optional. The website of the validator.",
+  "name": "Validator",
+  "description": "A reliable validator with dynamic fees based on staking volume.",
   "address": "NQXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX",
-  "logo": "Optional. A base64 encoded SVG logo. By default identicon is used.",
-  "accentColor": "Required if logo is set. The brand color of the validator. Hex color code. e.g. '#1f2348'. Default to identicon background color.",
-  "fee": -1,
-  "payoutType": "none",
-  "payoutSchedule": "Optional. The payout frecuency of the validator. Any string is valid. e.g: 'Daily', 'Twice a day'",
+  "feeLowest": 0.03,
+  "feeHighest": 0.07,
+  "feeDescription": "Fees range from 3% for smaller stakes to 7% for larger stakes.",
+  "payoutType": "direct",
+  "payoutAddress": "NQXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX",
+  "payoutSchedule": "0 */12 * * *",
+  "website": "https://validator.example.com",
+  "logo": "svg-base64 logo",
   "contact": {
-    "email": "Optional. The email of the validator",
-    "telegram": "Optional. The telegram handle of the validator",
-    "twitter": "Optional. The twitter handle of the validator",
-    "discordInvitationUrl": "Optional. The discord invitation url of the validator",
-    "bluesky": "Optional. The bluesky handle of the validator",
-    "github": "Optional. The github handle of the validator",
-    "linkedin": "Optional. The linkedin handle of the validator",
-    "facebook": "Optional. The facebook handle of the validator",
-    "instagram": "Optional. The instagram handle of the validator",
-    "youtube": "Optional. The youtube handle of the validator"
+    "email": "support@validator.com",
+    "telegram": "@validator",
+    "twitter": "@validator"
   }
 }
