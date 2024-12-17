@@ -1,6 +1,11 @@
 <script setup lang="ts">
 // todo change to use validator prop
-const props = defineProps<{ score: number | null }>()
+const props = withDefaults(defineProps<{
+  score: number | null
+  decimals?: number
+}>(), {
+  decimals: 1,
+})
 
 const viewBoxSize = 100
 const center = viewBoxSize / 2
@@ -36,7 +41,7 @@ const strokeColor = computed(() => {
   <div grid="~ cols-1 rows-1 place-content-center *:row-span-full *:col-span-full">
     <template v-if="score !== null">
       <div font-bold size-full grid="~ place-content-center">
-        {{ (score * 100).toFixed(0) }}
+        {{ Math.round(score * 100 * Math.max(decimals * 10, 1)) / Math.max(decimals * 10, 1) }}
       </div>
       <svg
         bg-transparent :viewBox="`0 0 ${viewBoxSize} ${viewBoxSize}`" height="100%" width="100%"
