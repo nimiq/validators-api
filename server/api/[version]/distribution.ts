@@ -15,7 +15,7 @@ export default defineCachedEventHandler(async () => {
         sql`${tables.activity.epochNumber} = (
           SELECT MAX(epoch_number)
           FROM activity a2
-          WHERE a2.validator_id = ${tables.activity.validatorId}
+          WHERE a2.validator_id = ${tables.activity.validatorId} AND balance != 1
         )`,
       ),
     )
