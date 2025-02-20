@@ -21,7 +21,8 @@ jobs:
       - name: Set node
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 22
+          cache: pnpm
 
       - name: Set .env file
         run: echo "NUXT_PUBLIC_NIMIQ_NETWORK=test-albatross" > .env
