@@ -71,5 +71,12 @@ export default defineEventHandler(async (event) => {
     .orderBy(desc(tables.scores.total))
     .all() as ValidatorScore[]
 
+  validators.forEach((validator) => {
+    const activeValidator = activeValidators.find(av => av.address === validator.address)
+    if (activeValidator) {
+      validator.reason.stakedBalance = activeValidator.balance
+    }
+  })
+
   return { validators, range, network: networkName } as const
 })
