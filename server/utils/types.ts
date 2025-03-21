@@ -13,6 +13,7 @@ export type ValidatorScore =
   Omit<Validator, 'hasDefaultLogo' | 'accentColor' | 'contact'>
   & Pick<Score, 'availability' | 'dominance' | 'reliability' | 'total'>
   & Pick<Activity, 'dominanceRatioViaBalance' | 'dominanceRatioViaSlots'>
+  & { reason: { missedEpochs: number[], goodSlots: number, badSlots: number, stakedBalance: number } }
 
 export enum HealthFlag {
   MissingEpochs = 'missing-epochs',
