@@ -1,4 +1,5 @@
 import type { Validator } from 'nimiq-rpc-client-ts'
+import type { Range } from 'nimiq-validators-trustscore'
 import { getRpcClient } from '~~/server/lib/client'
 import { mainQuerySchema } from '~~/server/utils/schemas'
 import { fetchValidators } from '~~/server/utils/validators'
@@ -8,31 +9,33 @@ import { getRange } from 'nimiq-validators-trustscore'
 export default defineCachedEventHandler(async (event) => {
   const params = await getValidatedQuery(event, mainQuerySchema.parse)
 
-  const { data: _isOnline } = await getRpcClient().blockchain.getBlockNumber()
-  const isOnline = !!_isOnline
+  // If there is no connection to the server, we will return an error
+  let range: Range
+  try {
+    range = await getRange(getRpcClient())
+  }
+  catch (e) {
+    return createError(JSON.stringify(e))
+  }
 
   let addresses: string[] = []
 
   let epochNumber = 1
 
-  // In case server is offline, at least we can show the database data
-  if (isOnline) {
-    let activeValidators: Validator[] = []
-    if (params['only-active'] && isOnline) {
-      const { data: _activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
-      if (errorActiveValidators)
-        return createError(errorActiveValidators)
-      activeValidators = _activeValidators
-      addresses = activeValidators.map(v => v.address)
-    }
+  let activeValidators: Validator[] = []
+  if (params['only-active']) {
+    const { data: _activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
+    if (errorActiveValidators)
+      return createError(errorActiveValidators)
+    activeValidators = _activeValidators
+    addresses = activeValidators.map(v => v.address)
+  }
 
-    const range = await getRange(getRpcClient())
-    const existingScores = await Promise.all(activeValidators.map(({ address }) => checkIfScoreExistsInDb(range, address)))
-    if (!(existingScores.every(x => x === true))) {
-      const { data, error } = await calculateScores(range)
-      if (!data || error)
-        consola.warn(`Error calculating scores for range ${JSON.stringify(range)}`, error)
-    }
+  const existingScores = await Promise.all(activeValidators.map(({ address }) => checkIfScoreExistsInDb(range, address)))
+  if (!(existingScores.every(x => x === true))) {
+    const { data, error } = await calculateScores(range)
+    if (!data || error)
+      consola.warn(`Error calculating scores for range ${JSON.stringify(range)}`, error)
   }
 
   const { data, error: errorEpochNumber } = await getRpcClient().blockchain.getEpochNumber()
