@@ -29,7 +29,7 @@
     "defu": "^6.1.4",
     "drizzle-orm": "^0.35.3",
     "identicons-esm": "^0.2.1",
-    "nimiq-rpc-client-ts": "^0.4.5",
+    "nimiq-rpc-client-ts": "^1.0.0-beta.9",
     "nimiq-supply-calculator": "workspace:*",
     "nimiq-validators-trustscore": "workspace:*",
     "nuxt": "^3.13.2",
