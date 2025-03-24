@@ -33,34 +33,8 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
-  package:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Set node
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
-      - name: Set .env file
-        run: echo "NUXT_PUBLIC_NIMIQ_NETWORK=test-albatross" > .env
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-        working-directory: packages/nimiq-validator-trustscore
-
-      - name: Lint
-        run: pnpm run lint
-        working-directory: packages/nimiq-validator-trustscore
-
       - name: Typecheck
         run: pnpm run typecheck
-        working-directory: packages/nimiq-validator-trustscore
 
       - name: Test
         run: pnpm run test
-        working-directory: packages/nimiq-validator-trustscore
