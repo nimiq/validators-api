@@ -87,7 +87,7 @@ The VTS is a metric designed to help stakers evaluate the performance and reliab
 The VTS is displayed in the Nimiq Wallet, allowing stakers to compare validators and select the one that best meets their needs.
 
 - [Read the docs](https://nimiq.com/developers/learn/validator-trustscore)
-- [See implementation](./packages/nimiq-validators-trustscore/)
+- [See implementation](./packages/nimiq-validator-trustscore/)
 
 ## Validators API
 
@@ -109,7 +109,7 @@ pnpm dev
 
 ### Score Calculation with Nitro Tasks
 
-To calculate the score, we need to run two processes: the fetcher and the score calculator. We do this using a Nitro Task, which is currently an experimental feature of Nitro. Nitro Task is a feature that allows you to trigger an action in the server programmatically or manually from the Nuxt Dev Center (go to tasks page). Read more about the process of computing the score in the [nimiq-validators-trustscore](./packages/nimiq-validators-trustscore/README.md) package.
+To calculate the score, we need to run two processes: the fetcher and the score calculator. We do this using a Nitro Task, which is currently an experimental feature of Nitro. Nitro Task is a feature that allows you to trigger an action in the server programmatically or manually from the Nuxt Dev Center (go to tasks page). Read more about the process of computing the score in the [nimiq-validator-trustscore](./packages/nimiq-validator-trustscore/README.md) package.
 
 ### Database
 

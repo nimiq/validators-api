@@ -5,17 +5,15 @@ import { createIdenticon } from 'identicons-esm'
 import { getIdenticonsParams } from 'identicons-esm/core'
 import { optimize } from 'svgo'
 
-async function getDefaultBranding(address: string) {
-  return {
-    logo: await createIdenticon(address, { format: 'image/svg+xml' }),
-    accentColor: await getIdenticonsParams(address).then(({ colors: { background: accentColor } }) => accentColor),
-    hasDefaultLogo: true,
-  }
+function getDefaultBranding(address: string) {
+  const { colors: { background: accentColor } } = getIdenticonsParams(address)
+  const logo = createIdenticon(address)
+  return { logo, accentColor, hasDefaultLogo: true }
 }
 
 export async function handleValidatorLogo(address: string, { logo: _logo, accentColor }: ValidatorJSON) {
   if (!_logo) {
-    const params = await getDefaultBranding(address)
+    const params = getDefaultBranding(address)
     // const path = await uploadLogo(address, params.logo)
     return { ...params }
   }

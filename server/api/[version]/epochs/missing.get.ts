@@ -1,4 +1,4 @@
-import { getRange } from 'nimiq-validators-trustscore'
+import { getRange } from 'nimiq-validator-trustscore/utils'
 import { getRpcClient } from '~~/server/lib/client'
 
 export default defineEventHandler(async () => {

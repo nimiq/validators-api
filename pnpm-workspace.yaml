@@ -2,7 +2,9 @@ packages:
   - packages/**
 catalog:
   '@antfu/eslint-config': 4.11.0
+  '@antfu/ni': ^23.3.1
   '@nimiq/core': ^2.0.8
+  '@nimiq/utils': ^0.12.2
   '@nuxt/eslint': ^1.2.0
   '@nuxt/image': ^1.10.0
   '@nuxthub/core': ^0.8.18
@@ -16,6 +18,7 @@ catalog:
   '@unovis/vue': ^1.5.1
   '@vueuse/core': ^13.0.0
   '@vueuse/nuxt': ^13.0.0
+  bumpp: ^10.0.3
   consola: ^3.4.2
   defu: ^6.1.4
   drizzle-kit: ^0.30.5
@@ -23,7 +26,6 @@ catalog:
   drizzle-zod: ^0.7.0
   eslint: ^9.23.0
   eslint-plugin-format: ^1.0.1
-  esno: ^4.8.0
   identicons-esm: ^0.2.6
   lint-staged: ^15.5.0
   nimiq-css: ^0.3.6

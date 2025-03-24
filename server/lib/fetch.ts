@@ -1,7 +1,8 @@
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { EpochsActivities } from 'nimiq-validators-trustscore'
+import type { EpochsActivities } from 'nimiq-validator-trustscore/types'
 import { consola } from 'consola'
-import { fetchCurrentEpoch, fetchEpochs, getRange } from 'nimiq-validators-trustscore'
+import { fetchCurrentEpoch, fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
+import { getRange } from 'nimiq-validator-trustscore/utils'
 import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
 import { categorizeValidators, fetchValidatorBalances, storeValidator } from '../utils/validators'
 

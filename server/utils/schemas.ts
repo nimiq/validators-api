@@ -1,5 +1,5 @@
+import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from 'nimiq-validator-trustscore/utils'
 import { z } from 'zod'
-import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from '~~/packages/nimiq-validators-trustscore/src'
 import { PayoutType } from './types'
 
 export const rangeQuerySchema = z.object({

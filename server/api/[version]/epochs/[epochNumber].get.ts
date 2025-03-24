@@ -1,7 +1,7 @@
-import type { EpochsActivities } from 'nimiq-validators-trustscore'
+import type { EpochsActivities } from 'nimiq-validator-trustscore/types'
 import { consola } from 'consola'
 import { not } from 'drizzle-orm'
-import { fetchEpochs } from 'nimiq-validators-trustscore'
+import { fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
 import { getRpcClient } from '~~/server/lib/client'
 
 function err(error: any) {

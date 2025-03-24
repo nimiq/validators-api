@@ -51,16 +51,16 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
-        working-directory: packages/nimiq-validators-trustscore
+        working-directory: packages/nimiq-validator-trustscore
 
       - name: Lint
         run: pnpm run lint
-        working-directory: packages/nimiq-validators-trustscore
+        working-directory: packages/nimiq-validator-trustscore
 
       - name: Typecheck
         run: pnpm run typecheck
-        working-directory: packages/nimiq-validators-trustscore
+        working-directory: packages/nimiq-validator-trustscore
 
       - name: Test
         run: pnpm run test
-        working-directory: packages/nimiq-validators-trustscore
+        working-directory: packages/nimiq-validator-trustscore

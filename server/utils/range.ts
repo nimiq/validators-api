@@ -1,9 +1,9 @@
 import type { EventHandlerRequest, H3Event } from 'h3'
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { Range } from 'nimiq-validators-trustscore'
+import type { Range } from 'nimiq-validator-trustscore/types'
 import type { Result } from './types'
 import { consola } from 'consola'
-import { getRange } from 'nimiq-validators-trustscore'
+import { getRange } from 'nimiq-validator-trustscore/utils'
 import { rangeQuerySchema } from './schemas'
 
 /**

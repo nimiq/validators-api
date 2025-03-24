@@ -11,9 +11,9 @@ export default defineTask({
     if (payload.latest && payload.latest === 'true') {
       const latest = await useDrizzle().selectDistinct({ electionBlockNumber: tables.activity.epochNumber }).from(tables.activity).orderBy(desc(tables.activity.epochNumber)).limit(1)
       if (latest.length > 0) {
-        consola.info('Deleting data from latest epoch block number:', latest[0].electionBlockNumber)
+        consola.info('Deleting data from latest epoch block number:', latest[0]?.electionBlockNumber)
         await useDrizzle().delete(tables.activity).where(eq(tables.activity.epochNumber, latest[0].electionBlockNumber)).get()
-        return { result: `Deleted epoch_block_number: ${latest[0].electionBlockNumber}` }
+        return { result: `Deleted epoch_block_number: ${latest[0]?.electionBlockNumber}` }
       }
     }
 

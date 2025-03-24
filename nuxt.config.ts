@@ -1,4 +1,5 @@
 import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
@@ -56,6 +57,11 @@ export default defineNuxtConfig({
     optimizeDeps: {
       exclude: ['@nimiq/core'],
     },
+    resolve: {
+      alias: {
+        'nimiq-validator-trustscore': './packages/nimiq-validator-trustscore/src/index.ts',
+      },
+    },
   },
 
   hooks: {
@@ -74,10 +80,15 @@ export default defineNuxtConfig({
         target: 'esnext',
       },
     },
+
     experimental: {
       tasks: true,
       openAPI: true,
     },
+  },
+
+  alias: {
+    'nimiq-validator-trustscore/*': `${fileURLToPath(new URL('./packages/nimiq-validator-trustscore/src/', import.meta.url))}/*`,
   },
 
   app: {
@@ -100,7 +111,7 @@ export default defineNuxtConfig({
   },
 
   watch: [
-    '~~/packages/nimiq-validators-trustscore',
+    '~~/packages/nimiq-validator-trustscore',
   ],
 
   features: {

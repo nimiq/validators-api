@@ -1,4 +1,4 @@
-import type { ActiveValidator, EpochsActivities, Range } from 'nimiq-validators-trustscore'
+import type { ActiveValidator, EpochsActivities, Range } from 'nimiq-validator-trustscore/types'
 import type { NewActivity } from './drizzle'
 import { eq, gte, lte, not } from 'drizzle-orm'
 import { storeValidator } from './validators'

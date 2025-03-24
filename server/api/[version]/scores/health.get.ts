@@ -1,6 +1,6 @@
 import { consola } from 'consola'
 import { count, max } from 'drizzle-orm'
-import { getRange } from 'nimiq-validators-trustscore'
+import { getRange } from 'nimiq-validator-trustscore/utils'
 import { getRpcClient } from '~~/server/lib/client'
 
 function err(error: any) {

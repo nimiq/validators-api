@@ -1,9 +1,10 @@
-import type { Range, ScoreParams } from 'nimiq-validators-trustscore'
+import type { Range, ScoreParams } from 'nimiq-validator-trustscore/types'
 import type { NewScore } from './drizzle'
 import type { Result, ValidatorScore } from './types'
 import { consola } from 'consola'
 import { gte, inArray, lte } from 'drizzle-orm'
-import { computeScore, DEFAULT_WINDOW_IN_EPOCHS } from 'nimiq-validators-trustscore'
+import { computeScore } from 'nimiq-validator-trustscore/score'
+import { DEFAULT_WINDOW_IN_EPOCHS } from 'nimiq-validator-trustscore/utils'
 import { findMissingEpochs } from './activities'
 import { fetchValidatorsScoreByIds } from './validators'
 

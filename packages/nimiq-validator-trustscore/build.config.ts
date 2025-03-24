@@ -2,11 +2,11 @@ import { defineBuildConfig } from 'unbuild'
 
 export default defineBuildConfig({
   entries: [
-    './src/index',
+    'src/fetcher',
+    'src/score',
+    'src/types',
+    'src/utils',
   ],
-  declaration: true,
+  declaration: 'node16',
   clean: true,
-  rollup: {
-    emitCJS: true,
-  },
 })
