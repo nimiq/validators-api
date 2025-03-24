@@ -1,4 +1,4 @@
-import type { EpochActivity, EpochsActivities } from './types'
+import type { ActiveValidator, EpochActivity, EpochsActivities } from './types'
 import { type ElectionMacroBlock, InherentType, type NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import { getPolicyConstants } from './utils'
 
@@ -51,7 +51,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
       if (errorBatch || !inherents || inherents.length === 0)
         throw new Error(inherents?.length === 0 ? `No inherents found in batch ${firstBatchIndex + index}` : `Batch fetch failed: ${errorBatch}`)
 
-      for (const { type, validatorAddress } of inherents) {
+      for (const { type, validatorAddress } of inherents.filter(({ kind }) => kind === 'active') as ActiveValidator) {
         if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000' || !epochActivity[validatorAddress])
           continue
 
@@ -136,9 +136,9 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient) {
   const totalBalance = Object.values(activeValidators).reduce((acc, { balance }) => acc + balance, 0)
   const activity: EpochsActivities = {
     [currentEpoch]: Object.entries(activeValidators).reduce((acc, [, { address, balance }]) => {
-      acc[address] = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatioViaBalance: balance / totalBalance, dominanceRatioViaSlots: -1, balance }
+      acc[address] = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatioViaBalance: balance / totalBalance, dominanceRatioViaSlots: -1, balance, kind: 'active' }
       return acc
     }, {} as EpochActivity),
   }
-  return { activity, addresses: activeValidators.map(({ address }) => address) }
+  return { currentEpoch, activity, addresses: activeValidators.map(({ address }) => address) }
 }

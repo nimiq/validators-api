@@ -3,7 +3,7 @@ import type { EpochsActivities } from 'nimiq-validators-trustscore'
 import { consola } from 'consola'
 import { fetchCurrentEpoch, fetchEpochs, getRange } from 'nimiq-validators-trustscore'
 import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
-import { findMissingValidators, storeValidator } from '../utils/validators'
+import { categorizeValidators, fetchValidatorBalances, storeValidator } from '../utils/validators'
 
 const EPOCHS_IN_PARALLEL = 3
 
@@ -105,8 +105,23 @@ async function fetchActiveEpoch(client: NimiqRPCClient) {
   // We need to fetch the data of the active validators that are active in the current epoch
   // but we don't have the data yet.
   const epoch = await fetchCurrentEpoch(client)
-  const missingValidators = await findMissingValidators(epoch.addresses)
+  const { missingValidators, inactiveValidators } = await categorizeValidators(epoch.addresses)
+
+  // Store new validators
   await Promise.all(missingValidators.map(missingValidator => storeValidator(missingValidator)))
+
+  // Handle inactive validators - fetch their balances and store them
+  if (inactiveValidators.length > 0) {
+    const inactiveBalances = await fetchValidatorBalances(client, inactiveValidators)
+
+    // Add inactive validator balances to the epoch activity
+    for (const { address, balance } of inactiveBalances) {
+      if (!epoch.activity[epoch.currentEpoch])
+
+        epoch.activity[epoch.currentEpoch][address] = { balance, kind: 'inactive' }
+    }
+  }
+
   await storeActivities(epoch.activity)
-  return { missingValidators, ...epoch }
+  return { missingValidators, inactiveValidators, ...epoch }
 }

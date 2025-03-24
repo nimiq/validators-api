@@ -1,29 +1,50 @@
 import type { SQLWrapper } from 'drizzle-orm'
+import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
 import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { desc, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
+import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
 
+interface ValidatorCategorization {
+  inactiveValidators: string[]
+  missingValidators: string[]
+}
+
 /**
- * Given a list of validator addresses, it returns the addresses that are missing in the database.
- * This is useful when we are fetching the activity for a range of epochs and we need to check if the validators are already in the database.
- * They should be present in the database because the fetch function needs to be run in order to compute the score.
+ * Given a list of active validator addresses, it returns:
+ *   - Addresses missing in the database:
+ *   - Addresses inactive in the current epoch
+ *
+ *          Active validators       "x" represents a validator
+ *          ┌─────────────────┐
+ *          │   ┌─────────────────┐
+ *          │   │       x    x│   │
+ *          │   │ x   x       │   │
+ *     ┌────┼─x │        x  x │   │
+ *     │    │   │   x         │ x─┼─►Validator inactive
+ *     ▼    └───│─────────────┘   │
+ * Not in DB    └─────────────────┘
+ *                 Database validators
+ *
+ * Note: Albatross Validator have 4 states:
+ * Active, Inactive, Deleted and not yet created (validators that will be created).
+ * The validators API only handles Active and Inactive validators. Anything that is not active is considered inactive.
  */
-export async function findMissingValidators(addresses: string[]) {
-  const existingAddresses = await useDrizzle()
+export async function categorizeValidators(activeAddresses: string[]): Promise<ValidatorCategorization> {
+  const dbAddresses = await useDrizzle()
     .select({ address: tables.validators.address })
     .from(tables.validators)
-    .where(inArray(tables.validators.address, addresses))
     .execute()
     .then(r => r.map(r => r.address))
-
-  const missingAddresses = addresses.filter(a => !existingAddresses.includes(a))
-  return missingAddresses
+  const missingValidators = activeAddresses.filter(activeAddress => !dbAddresses.includes(activeAddress))
+  const inactiveValidators = dbAddresses.filter(dbAddress => !activeAddresses.includes(dbAddress))
+  return { inactiveValidators, missingValidators }
 }
 
 const validators = new Map<string, number>()
@@ -205,6 +226,37 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     consola.error(`Error fetching validators: ${error}`)
     return { data: undefined, error: JSON.stringify(error) }
   }
+}
+
+/**
+ * Fetches balances for a list of validator addresses
+ * @param client The Nimiq RPC client
+ * @param addresses Array of validator addresses to fetch balances for
+ * @returns Array of objects containing address and balance
+ */
+export async function fetchValidatorBalances(client: NimiqRPCClient, addresses: string[]) {
+  consola.info(`Fetching balances for ${addresses.length} validators`)
+
+  const balancesPromises = addresses.map(async (address) => {
+    try {
+      const { data, error } = await client.blockchain.getAccountByAddress(address)
+      if (error || !data) {
+        consola.warn(`Failed to fetch balance for validator ${address}: ${error?.message || 'Unknown error'}`)
+        return null
+      }
+      return { address, balance: data.balance || 0 }
+    }
+    catch (error) {
+      consola.error(`Error fetching balance for validator ${address}:`, error)
+      return null
+    }
+  })
+
+  const results = await Promise.all(balancesPromises)
+  const balances = results.filter(Boolean) as Array<{ address: string, balance: number }>
+
+  consola.info(`Successfully fetched balances for ${balances.length} validators`)
+  return balances
 }
 
 /**
