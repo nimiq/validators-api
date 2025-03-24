@@ -6,7 +6,7 @@ import type { Result, ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { and, desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, max, sql } from 'drizzle-orm'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorSchema } from './schemas'
@@ -142,7 +142,7 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
   return { data: validators, error: undefined }
 }
 
-export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber: number }
+export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber?: number }
 
 type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
   logo?: string
@@ -152,13 +152,17 @@ type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
+  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false } = params
 
   const filters: SQLWrapper[] = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
   if (onlyKnown)
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
+
+  const epochNumber = params.epochNumber || await useDrizzle().select({ epochNumber: max(tables.scores.epochNumber) }).from(tables.scores).then(r => r.at(0)?.epochNumber)
+  if (!epochNumber)
+    return { data: undefined, error: 'No epoch number found' }
 
   try {
     const dbValidators = await useDrizzle().query.validators.findMany({
