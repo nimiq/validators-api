@@ -15,7 +15,6 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxthub/core',
     '@nuxt/image',
-    'radix-vue/nuxt',
   ],
 
   hub: {
