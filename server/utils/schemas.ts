@@ -58,3 +58,5 @@ export const mainQuerySchema = z.object({
   'with-identicons': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'force': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
 })
+
+export type MainQuerySchema = z.infer<typeof mainQuerySchema>
