@@ -1,5 +1,6 @@
+import type { ElectionMacroBlock, NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { ActiveValidator, EpochActivity, EpochsActivities } from './types'
-import { type ElectionMacroBlock, InherentType, type NimiqRPCClient } from 'nimiq-rpc-client-ts'
+import { InherentType } from 'nimiq-rpc-client-ts'
 import { getPolicyConstants } from './utils'
 
 /**

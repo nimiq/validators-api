@@ -1,5 +1,5 @@
-import { getRpcClient } from '~~/server/lib/client'
 import { getRange } from 'nimiq-validators-trustscore'
+import { getRpcClient } from '~~/server/lib/client'
 
 export default defineEventHandler(async () => {
   const rpcClient = getRpcClient()

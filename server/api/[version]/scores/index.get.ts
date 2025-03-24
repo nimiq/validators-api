@@ -1,7 +1,7 @@
-import { getRpcClient } from '~~/server/lib/client'
-import { retrieveActivity } from '~~/server/lib/fetch'
 import { consola } from 'consola'
 import { desc, isNotNull } from 'drizzle-orm'
+import { getRpcClient } from '~~/server/lib/client'
+import { retrieveActivity } from '~~/server/lib/fetch'
 
 function err(error: any) {
   consola.error(error)

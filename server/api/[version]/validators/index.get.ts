@@ -1,7 +1,7 @@
 import type { MainQuerySchema } from '~~/server/utils/schemas'
+import { consola } from 'consola'
 import { mainQuerySchema } from '~~/server/utils/schemas'
 import { fetchValidators } from '~~/server/utils/validators'
-import { consola } from 'consola'
 
 export default defineCachedEventHandler(async (event) => {
   const params = await getValidatedQuery(event, mainQuerySchema.parse)

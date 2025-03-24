@@ -45,9 +45,9 @@
     "test": "vitest"
   },
   "dependencies": {
-    "defu": "^6.1.4",
-    "nimiq-rpc-client-ts": "^1.0.0-beta.9",
-    "vitest": "^2.0.5"
+    "defu": "catalog:",
+    "nimiq-rpc-client-ts": "catalog:",
+    "vitest": "catalog:"
   },
   "devDependencies": {
     "esno": "catalog:",
