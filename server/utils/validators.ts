@@ -195,7 +195,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
 
       const score: FetchedValidator['score'] = scores[0]
       if (score) {
-        const { availability, dominance, reliability } = scores[0]
+        const { availability, dominance, reliability } = scores[0]!
         if (reliability === -1 || reliability === null) {
           score.reliability = null
           score.total = null

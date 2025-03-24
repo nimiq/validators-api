@@ -27,6 +27,7 @@
     "@unovis/ts": "catalog:",
     "@unovis/vue": "catalog:",
     "@vueuse/core": "catalog:",
+    "consola": "catalog:",
     "defu": "catalog:",
     "drizzle-orm": "0.41.0",
     "identicons-esm": "catalog:",
@@ -48,7 +49,6 @@
     "@types/node": "catalog:",
     "@unocss/eslint-config": "catalog:",
     "@unocss/nuxt": "catalog:",
-    "@unocss/preset-rem-to-px": "catalog:",
     "@unocss/reset": "catalog:",
     "@vueuse/nuxt": "catalog:",
     "drizzle-kit": "catalog:",
@@ -60,6 +60,7 @@
     "simple-git-hooks": "catalog:",
     "typescript": "catalog:",
     "unocss": "catalog:",
+    "unocss-preset-scale-px": "catalog:",
     "vite-plugin-top-level-await": "catalog:",
     "vite-plugin-wasm": "catalog:",
     "wrangler": "catalog:"

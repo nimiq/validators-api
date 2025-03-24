@@ -39,7 +39,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
     const dominanceRatioViaSlots = likelihood / slotsCount
     const balance = -1
     const dominanceRatioViaBalance = -1
-    epochActivity[validator] = { likelihood, missed: 0, rewarded: 0, dominanceRatioViaBalance, dominanceRatioViaSlots, balance }
+    epochActivity[validator] = { likelihood, missed: 0, rewarded: 0, dominanceRatioViaBalance, dominanceRatioViaSlots, balance, kind: 'active' }
   }
 
   const maxBatchSize = 120
@@ -52,14 +52,18 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
       if (errorBatch || !inherents || inherents.length === 0)
         throw new Error(inherents?.length === 0 ? `No inherents found in batch ${firstBatchIndex + index}` : `Batch fetch failed: ${errorBatch}`)
 
-      for (const { type, validatorAddress } of inherents.filter(({ kind }) => kind === 'active') as ActiveValidator) {
-        if (validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000' || !epochActivity[validatorAddress])
+      for (const { type, validatorAddress } of inherents) {
+        const isStakingAddress = validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000'
+        const validatorsExists = !!epochActivity[validatorAddress]
+        const validatorIsActive = validatorsExists && epochActivity[validatorAddress].kind === 'active'
+        if (isStakingAddress || !validatorIsActive || !validatorsExists)
           continue
 
+        const activity = epochActivity[validatorAddress] as ActiveValidator
         if (type === InherentType.Reward)
-          epochActivity[validatorAddress].rewarded++
+          activity.rewarded++
         else if ([InherentType.Penalize, InherentType.Jail].includes(type))
-          epochActivity[validatorAddress].missed++
+          activity.missed++
       }
     }
     catch (error) {
