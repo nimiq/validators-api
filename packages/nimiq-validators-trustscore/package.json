@@ -42,9 +42,7 @@
     "release": "bumpp && npm publish",
     "start": "esno src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "test": "vitest"
   },
   "dependencies": {
     "defu": "^6.1.4",
@@ -52,19 +50,11 @@
     "vitest": "^2.0.5"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "catalog:",
-    "eslint": "catalog:",
     "esno": "catalog:",
     "lint-staged": "catalog:",
     "simple-git-hooks": "catalog:",
     "typescript": "catalog:",
     "unbuild": "catalog:",
     "vite": "catalog:"
-  },
-  "simple-git-hooks": {
-    "pre-commit": "pnpm lint-staged"
-  },
-  "lint-staged": {
-    "*": "eslint --fix"
   }
 }

@@ -38,6 +38,9 @@ importers:
       '@nimiq/core':
         specifier: next
         version: 2.0.0-next.rc.5
+      '@nimiq/utils':
+        specifier: ^0.12.2
+        version: 0.12.2
       '@nuxthub/core':
         specifier: ^0.8.3
         version: 0.8.3(ioredis@5.4.1)(magicast@0.3.5)(rollup@4.24.2)(vite@5.4.10(@types/node@22.9.0)(terser@5.36.0))(webpack-sources@3.2.3)
@@ -1691,6 +1694,9 @@ packages:
   '@nimiq/core@2.0.0-next.rc.5':
     resolution: {integrity: sha512-vXqsBv8Yacbnu+O9/3KPk9JcM1w0xq3LrHpwb6uXop1rIpe2+p55B1MT/1EvwNcHce8hQk/ghtC1Vau4fyhELQ==}
 
+  '@nimiq/utils@0.12.2':
+    resolution: {integrity: sha512-grdZ4GulwC/JNCf77TJBl4VUaHcEnyZaMemOTc/9QV8NKtAuwAXDysfreU0M5oEPjLwYEZd3jHgfGylBqOB/NA==}
+
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -2892,6 +2898,10 @@ packages:
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
+
+  big-integer@1.6.52:
+    resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
+    engines: {node: '>=0.6'}
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -7921,6 +7931,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@nimiq/utils@0.12.2':
+    dependencies:
+      big-integer: 1.6.52
+
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -9739,6 +9753,8 @@ snapshots:
     optional: true
 
   base64-js@1.5.1: {}
+
+  big-integer@1.6.52: {}
 
   binary-extensions@2.3.0: {}
 
