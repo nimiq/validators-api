@@ -1,4 +1,3 @@
-import type { Validator } from 'nimiq-rpc-client-ts'
 import type { Range } from 'nimiq-validators-trustscore'
 import { getRpcClient } from '~~/server/lib/client'
 import { mainQuerySchema } from '~~/server/utils/schemas'
@@ -18,21 +17,17 @@ export default defineCachedEventHandler(async (event) => {
     return createError(JSON.stringify(e))
   }
 
-  let addresses: string[] = []
-
   let epochNumber = 1
 
-  let activeValidators: Validator[] = []
-  if (params['only-active']) {
-    const { data: _activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
-    if (errorActiveValidators)
-      return createError(errorActiveValidators)
-    activeValidators = _activeValidators
-    addresses = activeValidators.map(v => v.address)
-  }
+  const { data: _activeValidators, error: errorActiveValidators } = await getRpcClient().blockchain.getActiveValidators()
+  if (errorActiveValidators)
+    return createError(errorActiveValidators)
+  const activeValidators = _activeValidators
 
-  const existingScores = await Promise.all(activeValidators.map(({ address }) => checkIfScoreExistsInDb(range, address)))
-  if (!(existingScores.every(x => x === true))) {
+  const hasMissingScores = await Promise
+    .all(activeValidators.map(({ address }) => checkIfScoreExistsInDb(range, address)))
+    .then(scores => scores.every(s => s === true))
+  if (hasMissingScores) {
     const { data, error } = await calculateScores(range)
     if (!data || error)
       consola.warn(`Error calculating scores for range ${JSON.stringify(range)}`, error)
@@ -43,7 +38,7 @@ export default defineCachedEventHandler(async (event) => {
     throw createError(errorEpochNumber || 'Epoch number not found')
   epochNumber = data - 1
 
-  const { data: validators, error: errorValidators } = await fetchValidators({ ...params, addresses, epochNumber })
+  const { data: validators, error: errorValidators } = await fetchValidators({ ...params, epochNumber })
   if (errorValidators || !validators)
     throw createError(errorValidators)
 

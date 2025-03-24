@@ -142,7 +142,7 @@ export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<
   return { data: validators, error: undefined }
 }
 
-export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[], epochNumber: number }
+export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber: number }
 
 type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
   logo?: string
@@ -152,13 +152,11 @@ type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
+  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
 
   const filters: SQLWrapper[] = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
-  if (addresses?.length > 0)
-    filters.push(inArray(tables.validators.address, addresses))
   if (onlyKnown)
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
