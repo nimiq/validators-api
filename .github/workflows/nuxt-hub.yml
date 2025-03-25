@@ -1,0 +1,42 @@
+name: Deploy to NuxtHub
+on: push
+
+jobs:
+  deploy:
+    name: Deploy to NuxtHub
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build site
+        run: pnpm run build
+
+      - name: Deploy to NuxtHub Testnet
+        uses: nuxt-hub/action@v1
+        with:
+          project-key: ${{ secrets.NUXT_PROJECT_TESTNET_KEY }}
+        env:
+          RPC_URL: ${{ secrets.RPC_URL_TESTNET }}
+
+      - name: Deploy to NuxtHub Mainnet
+        uses: nuxt-hub/action@v1
+        with:
+          project-key: ${{ secrets.NUXT_PROJECT_MAINNET_KEY }}
+        env:
+          RPC_URL: ${{ secrets.RPC_URL_MAINNET }}
