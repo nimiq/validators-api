@@ -1,6 +1,6 @@
 import { posSupplyAt } from '@nimiq/utils/supply-calculator'
 import { not, sql } from 'drizzle-orm'
-import { getRpcClient } from '~~/server/lib/client'
+import { getRpcClient } from '~~/server/utils/client'
 
 export default defineCachedEventHandler(async () => {
   const db = useDrizzle()

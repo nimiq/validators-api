@@ -1,4 +1,3 @@
-import type { Range } from 'nimiq-validator-trustscore/types'
 import type { Activity, Score, Validator } from './drizzle'
 
 export enum PayoutType {
@@ -12,26 +11,3 @@ export type ValidatorScore =
   & Pick<Score, 'availability' | 'dominance' | 'reliability' | 'total'>
   & Pick<Activity, 'dominanceRatioViaBalance' | 'dominanceRatioViaSlots'>
   & { reason: { missedEpochs: number[], goodSlots: number, badSlots: number, stakedBalance: number } }
-
-export enum HealthFlag {
-  MissingEpochs = 'missing-epochs',
-  NoValidators = 'no-validators',
-  // TODO,
-  // ScoreNotComputed = 'score-not-computed',
-}
-
-export interface HealthStatus {
-  // TODO
-  // latestScoreEpoch: number | undefined
-  latestFetchedEpoch: number | undefined
-  totalValidators: number
-  headBlockNumber: number
-  currentEpoch: number
-  missingEpochs: number[]
-  fetchedEpochs: number[]
-  range: Range
-
-  isSynced: boolean
-  flags: HealthFlag[]
-  network: string
-}

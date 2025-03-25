@@ -144,18 +144,3 @@ export async function persistScores(scores: NewScore[]) {
   //   await tx.insert(tables.scores).values(scores.map(s => ({ ...s, updatedAt })))
   // })
 }
-
-export async function checkIfScoreExistsInDb(range: Range, address: string): Promise<boolean> {
-  const result = await useDrizzle().query.validators.findFirst({
-    with: {
-      scores: {
-        where: eq(tables.scores.epochNumber, range.toEpoch),
-        limit: 1,
-        columns: { validatorId: true },
-      },
-    },
-    where: (validators, { eq }) => eq(validators.address, address),
-  })
-
-  return !!result?.scores?.length || false
-}

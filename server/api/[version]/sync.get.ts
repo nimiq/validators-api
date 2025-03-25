@@ -1,5 +1,5 @@
-import { getRpcClient } from '~~/server/lib/client'
-import { fetchActiveEpoch, fetchMissingEpochs } from '~~/server/lib/fetch'
+import { getRpcClient } from '~~/server/utils/client'
+import { fetchActiveEpoch, fetchMissingEpochs } from '~~/server/utils/fetch'
 
 export default defineEventHandler(async () => {
   const rpcClient = getRpcClient()

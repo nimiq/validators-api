@@ -1,5 +1,5 @@
-import { getRpcClient } from '../lib/client'
-import { fetchActiveEpoch, fetchMissingEpochs } from '../lib/fetch'
+import { getRpcClient } from '../utils/client'
+import { fetchActiveEpoch, fetchMissingEpochs } from '../utils/fetch'
 
 export default defineTask({
   meta: {

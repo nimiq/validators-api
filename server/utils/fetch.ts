@@ -3,8 +3,8 @@ import type { CurrentEpoch, EpochsActivities, Result } from 'nimiq-validator-tru
 import { consola } from 'consola'
 import { fetchCurrentEpoch, fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
 import { getRange } from 'nimiq-validator-trustscore/utils'
-import { findMissingEpochs, storeActivities, storeSingleActivity } from '../utils/activities'
-import { categorizeValidators, fetchValidatorBalances } from '../utils/validators'
+import { findMissingEpochs, storeActivities, storeSingleActivity } from './activities'
+import { categorizeValidators, fetchValidatorBalances } from './validators'
 
 const EPOCHS_IN_PARALLEL = 3
 
@@ -32,19 +32,19 @@ export async function fetchMissingEpochs(client: NimiqRPCClient): Result<number[
 
     // Fetch the activities in parallel
     for (let i = 0; i < EPOCHS_IN_PARALLEL; i++) {
-      const { value: pair, done } = await epochGenerator.next()
-      if (done || !pair)
+      const { value: epochActivity, done } = await epochGenerator.next()
+      if (done || !epochActivity)
         break
-      if (pair.activity === null) {
-        consola.warn(`Epoch ${pair.epochIndex} is missing`, pair)
-        await storeSingleActivity({ address: '', activity: null, epochNumber: pair.epochIndex })
+      if (epochActivity.activity === null) {
+        consola.warn(`Epoch ${epochActivity.epochIndex} is missing`, epochActivity)
+        await storeSingleActivity({ address: '', activity: null, epochNumber: epochActivity.epochIndex })
         continue
       }
-      if (!epochsActivities[`${pair.epochIndex}`])
-        epochsActivities[`${pair.epochIndex}`] = {}
-      const epoch = epochsActivities[`${pair.epochIndex}`]
-      if (!epoch[pair.address])
-        epoch[pair.address] = pair.activity
+      if (!epochsActivities[`${epochActivity.epochIndex}`])
+        epochsActivities[`${epochActivity.epochIndex}`] = {}
+      const epoch = epochsActivities[`${epochActivity.epochIndex}`]
+      if (!epoch[epochActivity.address])
+        epoch[epochActivity.address] = epochActivity.activity
     }
 
     const epochs = Object.keys(epochsActivities).map(Number)
