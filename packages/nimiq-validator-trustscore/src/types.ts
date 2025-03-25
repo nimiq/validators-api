@@ -94,14 +94,13 @@ export interface Range {
   // The last block number that we will consider
   toBlockNumber: number
 
-  // Given a block number, it returns the index in the array of epochs
-  blockNumberToEpochIndex: (blockNumber: number) => number
-
-  // Given an epoch index, it returns the block number
-  epochIndexToBlockNumber: (epochIndex: number) => number
-
-  blocksPerEpoch: number
-
   // The amount of epochs in the range
   epochCount: number
 }
+
+export type Result<T> = Promise<
+  | { data: T, error?: undefined }
+  | { data?: undefined, error: string }
+>
+
+export type ResultSync<T> = Awaited<Result<T>>
