@@ -55,7 +55,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
       for (const { type, validatorAddress } of inherents) {
         const isStakingAddress = validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000'
         const validatorsExists = !!epochActivity[validatorAddress]
-        const validatorIsActive = validatorsExists && epochActivity[validatorAddress].kind === 'active'
+        const validatorIsActive = validatorsExists && epochActivity[validatorAddress]?.kind === 'active'
         if (isStakingAddress || !validatorIsActive || !validatorsExists)
           continue
 

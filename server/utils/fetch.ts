@@ -42,7 +42,7 @@ export async function fetchMissingEpochs(client: NimiqRPCClient): Result<number[
       }
       if (!epochsActivities[`${epochActivity.epochIndex}`])
         epochsActivities[`${epochActivity.epochIndex}`] = {}
-      const epoch = epochsActivities[`${epochActivity.epochIndex}`]
+      const epoch = epochsActivities[`${epochActivity.epochIndex}`]!
       if (!epoch[epochActivity.address])
         epoch[epochActivity.address] = epochActivity.activity
     }
@@ -77,9 +77,9 @@ export async function fetchActiveEpoch(client: NimiqRPCClient): Result<FetchActi
   const balances = await fetchValidatorBalances(client, validators)
   for (const { address, balance } of balances) {
     if (inactiveValidators.includes(address))
-      activityInEpoch[address] = { balance, kind: 'inactive' }
+      activityInEpoch![address] = { balance, kind: 'inactive' }
     else
-      activityInEpoch[address].balance = balance
+      activityInEpoch![address]!.balance = balance
   }
 
   await storeActivities(epoch.activity)
