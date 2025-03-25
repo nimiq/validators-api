@@ -1,5 +1,5 @@
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { EpochsActivities } from 'nimiq-validator-trustscore/types'
+import type { CurrentEpoch, EpochsActivities, Result } from 'nimiq-validator-trustscore/types'
 import { consola } from 'consola'
 import { fetchCurrentEpoch, fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
 import { getRange } from 'nimiq-validator-trustscore/utils'
@@ -10,13 +10,11 @@ const EPOCHS_IN_PARALLEL = 3
 
 let running = false
 
-export async function getActiveValidators(client: NimiqRPCClient) {
-  const { data: activeValidators, error: errorActiveValidators } = await client.blockchain.getActiveValidators()
-  if (errorActiveValidators || !activeValidators)
-    throw new Error(errorActiveValidators.message || 'No active validators')
-  return activeValidators
+interface FetchActivityResult {
+  missingEpochs: number[]
+  missingValidators: string[]
+  addressesCurrentValidators: string[]
 }
-
 // TODO rename to retrieveActivities or something with activity
 /**
  * Fetches the required data for computing the score.
@@ -29,40 +27,42 @@ export async function getActiveValidators(client: NimiqRPCClient) {
  *
  * @param client
  */
-export async function retrieveActivity(client: NimiqRPCClient) {
-  if (running) {
-    consola.info('Task is already running')
-    return
+export async function retrieveActivity(client: NimiqRPCClient): Result<FetchActivityResult> {
+  if (running)
+    return { error: 'Task is already running' }
+
+  running = true
+
+  async function _retrieveActivity() {
+    const [missingEpochsRes, activeEpochRes] = await Promise.all([fetchMissingEpochs(client), fetchActiveEpoch(client)])
+    if (missingEpochsRes.error || activeEpochRes.error)
+      return { error: 'Failed to fetch activities' }
+    const missingEpochs = missingEpochsRes.data!
+    const { missingValidators, addresses: addressesCurrentValidators } = activeEpochRes.data!
+    return { data: { missingEpochs, missingValidators, addressesCurrentValidators } }
   }
 
-  try {
-    running = true
-    const missingEpochs = await fetchMissingEpochs(client)
-    const { missingValidators, addresses: addressesCurrentValidators } = await fetchActiveEpoch(client)
-    return { missingEpochs, missingValidators, addressesCurrentValidators }
-  }
-  catch (error) {
-    consola.error(error)
-    throw error
-  }
-  finally {
-    running = false
-  }
+  running = false
+
+  const result = await _retrieveActivity()
+  return result
 }
 
 /**
  * Fetches the activities of the epochs that have finished and are missing in the database.
  */
-async function fetchMissingEpochs(client: NimiqRPCClient) {
+async function fetchMissingEpochs(client: NimiqRPCClient): Result<number[]> {
   // The range that we will consider
-  const range = await getRange(client)
-  consola.info(`Fetching data for range: ${JSON.stringify(range)}`)
+  const { data: range, error: errorRange } = await getRange(client)
+  if (errorRange || !range)
+    return { error: errorRange || 'No range' }
 
+  consola.info(`Fetching data for range: ${JSON.stringify(range)}`)
   // Only fetch the missing epochs that are not in the database
   const missingEpochs = await findMissingEpochs(range)
   consola.info(`Fetching missing epochs: ${JSON.stringify(missingEpochs)}`)
   if (missingEpochs.length === 0)
-    return []
+    return { data: [] }
 
   const fetchedEpochs = []
   const epochGenerator = fetchEpochs(client, missingEpochs)
@@ -99,20 +99,29 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
     await storeActivities(epochsActivities)
   }
 
-  return missingEpochs
+  return { data: missingEpochs }
 }
 
-async function fetchActiveEpoch(client: NimiqRPCClient) {
+interface FetchActiveEpochResult extends CurrentEpoch {
+  missingValidators: string[]
+  inactiveValidators: string[]
+}
+async function fetchActiveEpoch(client: NimiqRPCClient): Result<FetchActiveEpochResult> {
   // We need to fetch the data of the active validators that are active in the current epoch
   // but we don't have the data yet.
   const { data: epoch, error } = await fetchCurrentEpoch(client)
   if (error || !epoch)
-    throw new Error(error)
+    return { error: error || 'No active epoch' }
 
   const { missingValidators, inactiveValidators } = await categorizeValidators(epoch.addresses)
 
   // Store new validators
-  await Promise.all(missingValidators.map(missingValidator => storeValidator(missingValidator)))
+  const res = await Promise.allSettled(missingValidators.map(missingValidator => storeValidator(missingValidator)))
+  const rejected = res.filter(result => result.status === 'rejected')
+  if (rejected.length > 0) {
+    consola.warn('Failed to store some validators', rejected)
+    return { error: `Failed to store some validators: ${JSON.stringify(rejected)}` }
+  }
 
   // Handle inactive validators - fetch their balances and store them
   if (inactiveValidators.length > 0) {
@@ -121,11 +130,10 @@ async function fetchActiveEpoch(client: NimiqRPCClient) {
     // Add inactive validator balances to the epoch activity
     for (const { address, balance } of inactiveBalances) {
       if (!epoch.activity[epoch.currentEpoch])
-
         epoch.activity[epoch.currentEpoch][address] = { balance, kind: 'inactive' }
     }
   }
 
   await storeActivities(epoch.activity)
-  return { missingValidators, inactiveValidators, ...epoch }
+  return { data: { missingValidators, inactiveValidators, ...epoch } }
 }

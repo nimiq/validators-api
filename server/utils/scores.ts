@@ -1,6 +1,6 @@
-import type { Range, ScoreParams } from 'nimiq-validator-trustscore/types'
+import type { Range, Result, ScoreParams } from 'nimiq-validator-trustscore/types'
 import type { NewScore } from './drizzle'
-import type { Result, ValidatorScore } from './types'
+import type { ValidatorScore } from './types'
 import { consola } from 'consola'
 import { gte, inArray, lte } from 'drizzle-orm'
 import { computeScore } from 'nimiq-validator-trustscore/score'
@@ -17,7 +17,6 @@ const emptyDominance = { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -
 /**
  * Given a range of epochs, it returns the scores for the validators in that range.
  */
-// TODO THisis no longer relevant remove
 export async function calculateScores(range: Range): Result<GetScoresResult> {
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length > 0)
@@ -72,8 +71,13 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     if (!validatorsParams.has(validatorId)) {
       const { dominanceRatioViaBalance, dominanceRatioViaSlots } = dominanceLastEpochByValidator.get(validatorId) ?? emptyDominance
       if (dominanceRatioViaBalance === -1 && dominanceRatioViaSlots === -1) {
-        return { error: `Missing dominance ratio for validator ${validatorId}. Range: ${range.fromEpoch}-${range.toEpoch}. ${{ dominanceRatioViaBalance, dominanceRatioViaSlots,
-        }}`, data: undefined }
+        return {
+          error: `Missing dominance ratio for validator ${validatorId}. Range: ${range.fromEpoch}-${range.toEpoch}. ${{
+            dominanceRatioViaBalance,
+            dominanceRatioViaSlots,
+          }}`,
+          data: undefined,
+        }
       }
       validatorsParams.set(validatorId, { dominanceRatioViaBalance, dominanceRatioViaSlots, inherentsPerEpoch: new Map() })
     }
@@ -84,7 +88,7 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
     validatorInherents.set(epoch, { rewarded: accRewarded + Math.max(rewarded, 0), missed: accMissed + Math.max(missed, 0) })
   }
 
-  const scores = Array.from(validatorsParams.entries()).map(([validatorId, { inherentsPerEpoch }]) => {
+  const scoresResult = Array.from(validatorsParams.entries()).map(([validatorId, { inherentsPerEpoch }]) => {
     const activeEpochStates = Array.from({ length: range.toEpoch - range.fromEpoch + 1 }, (_, i) => {
       if (!inherentsPerEpoch.has(range.fromEpoch + i))
         return 0
@@ -104,13 +108,19 @@ export async function calculateScores(range: Range): Result<GetScoresResult> {
       badSlots: Array.from(inherentsPerEpoch.values()).reduce((acc, { missed }) => acc + missed, 0),
     }
 
-    const score = computeScore({ availability, dominance, reliability })
+    const { data: score, error } = computeScore({ availability, dominance, reliability })
+    if (error || !score)
+      return { error }
     const newScore: NewScore = { validatorId: Number(validatorId), epochNumber: range.toEpoch, ...score, reason }
-    return newScore
+    return { data: newScore, error: undefined }
   })
 
+  const errors = scoresResult.filter(s => s.error)
+  if (errors.length > 0)
+    return { error: errors.map(e => e.error).join(', ') }
+  const scores = scoresResult.map(s => s.data!) as NewScore[]
+
   // If the range is the default window dominance or the range starts at the PoS fork block, we persist the scores
-  // TODO Once the chain is older than 9 months, we should remove range.fromBlockNumber === 1
   if (range.toEpoch - range.fromEpoch + 1 === DEFAULT_WINDOW_IN_EPOCHS || range.fromEpoch === 1)
     await persistScores(scores)
 

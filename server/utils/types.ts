@@ -1,8 +1,6 @@
 import type { Range } from 'nimiq-validator-trustscore/types'
 import type { Activity, Score, Validator } from './drizzle'
 
-export type Result<T> = Promise<{ data: T, error: undefined } | { data: undefined, error: string }>
-
 export enum PayoutType {
   Restake = 'restake',
   Direct = 'direct',

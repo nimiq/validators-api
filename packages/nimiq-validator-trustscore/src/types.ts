@@ -98,6 +98,12 @@ export interface Range {
   epochCount: number
 }
 
+export interface CurrentEpoch {
+  currentEpoch: number
+  activity: EpochsActivities
+  addresses: string[]
+}
+
 export type Result<T> = Promise<
   | { data: T, error?: undefined }
   | { data?: undefined, error: string }

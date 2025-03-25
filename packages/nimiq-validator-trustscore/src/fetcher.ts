@@ -1,5 +1,5 @@
 import type { ElectionMacroBlock, NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { ActiveValidator, EpochActivity, EpochsActivities, ResultSync } from './types'
+import type { ActiveValidator, CurrentEpoch, EpochActivity, EpochsActivities, ResultSync } from './types'
 import { InherentType } from 'nimiq-rpc-client-ts'
 import { BATCHES_PER_EPOCH, electionBlockOf, SLOTS } from './policy'
 
@@ -133,11 +133,7 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
   }
 }
 
-export async function fetchCurrentEpoch(client: NimiqRPCClient): Promise<ResultSync<{
-  currentEpoch: number
-  activity: EpochsActivities
-  addresses: string[]
-}>> {
+export async function fetchCurrentEpoch(client: NimiqRPCClient): Promise<ResultSync<CurrentEpoch>> {
   const { data: currentEpoch, error } = await client.blockchain.getEpochNumber()
   if (error || !currentEpoch)
     return { error: JSON.stringify({ error, currentEpoch }) }

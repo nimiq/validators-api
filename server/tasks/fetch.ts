@@ -15,8 +15,9 @@ export default defineTask({
 export async function fetch() {
   consola.info('Running fetch task...')
   const client = getRpcClient()
-  const res = await retrieveActivity(client)
-  if (!res)
-    return { result: 'No new epochs fetched' }
-  return { result: `New ${res.missingEpochs.length} epochs fetched and ${res.missingValidators.length} validators of the current epoch stored ${JSON.stringify(res.addressesCurrentValidators)}` }
+  const { data, error } = await retrieveActivity(client)
+  if (!data || error)
+    return { result: error || 'Error fetching data' }
+  const { missingEpochs, missingValidators, addressesCurrentValidators } = data
+  return { result: `New ${missingEpochs.length} epochs fetched and ${missingValidators.length} validators of the current epoch stored ${JSON.stringify(addressesCurrentValidators)}` }
 }
