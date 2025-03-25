@@ -105,7 +105,10 @@ async function fetchMissingEpochs(client: NimiqRPCClient) {
 async function fetchActiveEpoch(client: NimiqRPCClient) {
   // We need to fetch the data of the active validators that are active in the current epoch
   // but we don't have the data yet.
-  const epoch = await fetchCurrentEpoch(client)
+  const { data: epoch, error } = await fetchCurrentEpoch(client)
+  if (error || !epoch)
+    throw new Error(error)
+
   const { missingValidators, inactiveValidators } = await categorizeValidators(epoch.addresses)
 
   // Store new validators
