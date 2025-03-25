@@ -38,6 +38,7 @@ export const validatorSchema = z.object({
     youtube: z.string().regex(/^@?(\w){1,50}$/).optional(),
   }).optional(),
 })
+export const validatorsSchema = z.array(validatorSchema)
 export type ValidatorJSON = z.infer<typeof validatorSchema>
 
 function getDefaults<Schema extends z.AnyZodObject>(schema: Schema) {

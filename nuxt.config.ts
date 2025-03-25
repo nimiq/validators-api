@@ -1,6 +1,8 @@
+import { execSync } from 'node:child_process'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
+import { updateRuntimeConfig } from 'nuxt/kit'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
 
@@ -26,7 +28,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     rpcUrl: process.env.NUXT_RPC_URL || '',
-    GITHUB_ACTIONS: process.env.GITHUB_ACTIONS || '',
+    gitBranch: '', // Modify at before:build
     public: {
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
     },
@@ -71,6 +73,9 @@ export default defineNuxtConfig({
       if (!validNimiqNetworks.includes(nimiqNetwork)) {
         consola.warn(`Invalid nimiqNetwork: ${nimiqNetwork}. Please make sure it is one of: ${validNimiqNetworks.join(', ')}`)
       }
+
+      const branch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+      updateRuntimeConfig({ gitBranch: branch })
     },
   },
 

@@ -10,11 +10,14 @@ import { consola } from 'consola'
 import { and, desc, eq, inArray, max, sql } from 'drizzle-orm'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
-import { defaultValidatorJSON, validatorSchema } from './schemas'
+import { defaultValidatorJSON, validatorsSchema } from './schemas'
 
 interface ValidatorCategorization {
   inactiveValidators: string[]
   missingValidators: string[]
+
+  /* A list of all validators independently of their status */
+  validators: string[]
 }
 
 /**
@@ -45,7 +48,8 @@ export async function categorizeValidators(activeAddresses: string[]): Promise<V
     .then(r => r.map(r => r.address))
   const missingValidators = activeAddresses.filter(activeAddress => !dbAddresses.includes(activeAddress))
   const inactiveValidators = dbAddresses.filter(dbAddress => !activeAddresses.includes(dbAddress))
-  return { inactiveValidators, missingValidators }
+  const validators = [...new Set([...activeAddresses, ...dbAddresses])]
+  return { inactiveValidators, missingValidators, validators }
 }
 
 const validators = new Map<string, number>()
@@ -60,7 +64,7 @@ interface StoreValidatorOptions {
 
 export async function storeValidator(address: string, rest: ValidatorJSON = defaultValidatorJSON, options: StoreValidatorOptions = {}): Promise<number | undefined> {
   try {
-    // TODO Build broken
+    // TODO Use @nimiq/utils
     // Address.fromString(address)
   }
   catch (error: unknown) {
@@ -268,39 +272,64 @@ export async function fetchValidatorBalances(client: NimiqRPCClient, addresses: 
  * This function is expected to be used when initializing the database with validators, so it will throw
  * an error if the files are not valid and the program should stop.
  */
-export async function importValidatorsFromFiles(folderPath: string) {
+async function importValidatorsFromFiles(folderPath: string): Result<any[]> {
   const allFiles = await readdir(folderPath)
   const files = allFiles
     .filter(f => path.extname(f) === '.json')
     .filter(f => !f.endsWith('.example.json'))
 
-  const validators = []
+  const rawValidators: any[] = []
   for (const file of files) {
     const filePath = path.join(folderPath, file)
     const fileContent = await readFile(filePath, 'utf8')
 
-    // Validate the file content
-    let jsonData
     try {
-      jsonData = JSON.parse(fileContent)
+      rawValidators.push(JSON.parse(fileContent))
     }
     catch (error) {
-      throw new Error(`Invalid JSON in file: ${file}. Error: ${error}`)
+      return { error: `Invalid JSON in file: ${file}. Error: ${error}` }
     }
-    const { success, data: validator, error } = validatorSchema.safeParse(jsonData)
-    if (!success || error)
-      throw new Error(`Invalid file: ${file}. Error: ${JSON.stringify(error)}`)
-
-    // Check if the address in the title matches the address in the body
-    const fileNameAddress = path.basename(file, '.json')
-    if (jsonData.address !== fileNameAddress)
-      throw new Error(`Address mismatch in file: ${file}`)
-
-    validators.push(validator)
   }
+  return { data: rawValidators }
+}
+
+/**
+ * Import validators from GitHub. Useful since in cloudflare runtime we don't have access to the file system.
+ */
+async function importValidatorsFromGitHub(path: string): Result<any[]> {
+  let validatorsJson
+  try {
+    const { gitBranch } = useRuntimeConfig()
+    const url = `https://ungh.cc/repos/nimiq/validators-api/files/${gitBranch}`
+    const response = await $fetch<{ files: { path: string }[] }>(`${url}/${path}`)
+    const fileUrls = response.files.map(file => `${url}/${path}/${file.path}`)
+    consola.info(`Fetching ${fileUrls.length} files from GitHub`)
+    const files = await Promise.all(fileUrls.map(url => $fetch<{ contents: string }>(url)))
+    validatorsJson = files.map(file => JSON.parse(file.contents))
+  }
+  catch (e) {
+    return { error: JSON.stringify(e) }
+  }
+
+  return { data: validatorsJson }
+}
+
+export async function importValidators(source: 'filesystem' | 'github'): Result<boolean> {
+  const { nimiqNetwork } = useRuntimeConfig().public
+  const path = `public/validators/${nimiqNetwork}`
+  const { data: validatorsData, error: errorReading } = source === 'filesystem'
+    ? await importValidatorsFromFiles(path)
+    : await importValidatorsFromGitHub(path)
+  if (errorReading || !validatorsData)
+    return { error: errorReading }
+
+  const { success, data: validators, error } = validatorsSchema.safeParse(validatorsData)
+  if (!success || !validators || error)
+    return { error: `Invalid validators data: ${error}` }
+
   const res = await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
   const errors = res.filter(r => r.status === 'rejected')
-  if (errors.length > 0) {
-    throw new Error(`There were errors while importing the validators: ${errors.map(e => e.reason)}`)
-  }
+  if (errors.length > 0)
+    return { error: `There were errors while importing the validators: ${errors.map(e => e.reason)}` }
+  return { data: true }
 }

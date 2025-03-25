@@ -1,6 +1,5 @@
-import { consola } from 'consola'
 import { getRpcClient } from '../lib/client'
-import { retrieveActivity } from '../lib/fetch'
+import { fetchActiveEpoch, fetchMissingEpochs } from '../lib/fetch'
 
 export default defineTask({
   meta: {
@@ -8,16 +7,16 @@ export default defineTask({
     description: 'Fetches the necessary data from the blockchain',
   },
   async run() {
-    return await fetch()
+    const rpcClient = getRpcClient()
+
+    const [missingEpochsResult, balancesResult, validatorsResult] = await Promise.all([
+      // Sync all epochs
+      fetchMissingEpochs(rpcClient),
+      // Sync all balances in current epoch
+      fetchActiveEpoch(rpcClient),
+      // Sync all validators JSON files
+      undefined,
+    ])
+    return { result: missingEpochsResult, balancesResult, validatorsResult }
   },
 })
-
-export async function fetch() {
-  consola.info('Running fetch task...')
-  const client = getRpcClient()
-  const { data, error } = await retrieveActivity(client)
-  if (!data || error)
-    return { result: error || 'Error fetching data' }
-  const { missingEpochs, missingValidators, addressesCurrentValidators } = data
-  return { result: `New ${missingEpochs.length} epochs fetched and ${missingValidators.length} validators of the current epoch stored ${JSON.stringify(addressesCurrentValidators)}` }
-}
