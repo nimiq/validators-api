@@ -1,6 +1,6 @@
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { Range, Result } from './types'
-import { BLOCK_SEPARATION_TIME, BLOCKS_PER_EPOCH, electionBlockOf, firstBlockOf } from './policy'
+import { BLOCK_SEPARATION_TIME, BLOCKS_PER_EPOCH, electionBlockOf, firstBlockOf } from '@nimiq/utils/albatross-policy'
 
 interface GetRangeOptions {
   /**

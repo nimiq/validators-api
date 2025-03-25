@@ -1,7 +1,7 @@
 import type { ElectionMacroBlock, NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { ActiveValidator, CurrentEpoch, EpochActivity, EpochsActivities, ResultSync } from './types'
+import { BATCHES_PER_EPOCH, electionBlockOf, SLOTS } from '@nimiq/utils/albatross-policy'
 import { InherentType } from 'nimiq-rpc-client-ts'
-import { BATCHES_PER_EPOCH, electionBlockOf, SLOTS } from './policy'
 
 /**
  * For a given block number, fetches the validator slots assignation.
