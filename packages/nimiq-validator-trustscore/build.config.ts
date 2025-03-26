@@ -5,7 +5,7 @@ export default defineBuildConfig({
     'src/fetcher',
     'src/score',
     'src/types',
-    'src/utils',
+    'src/range',
   ],
   declaration: 'node16',
   clean: true,

@@ -26,9 +26,9 @@
       "types": "./dist/types.d.mts",
       "import": "./dist/types.mjs"
     },
-    "./utils": {
-      "types": "./dist/utils.d.mts",
-      "import": "./dist/utils.mjs"
+    "./range": {
+      "types": "./dist/range.d.mts",
+      "import": "./dist/range.mjs"
     }
   },
   "files": ["dist"],

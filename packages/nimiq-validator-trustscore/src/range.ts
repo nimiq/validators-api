@@ -29,9 +29,9 @@ export async function getRange(
   const durationMs = options?.durationMs || DEFAULT_WINDOW_IN_MS
   const epochsCount = Math.ceil(durationMs / (BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH))
 
-  const { data: currentEpoch, error: errorCurrentEpoch } = await client.blockchain.getEpochNumber()
-  if (errorCurrentEpoch || currentEpoch === undefined)
-    return { error: errorCurrentEpoch?.message || 'No current epoch' }
+  const { data: currentEpoch, error: errorRange } = await client.blockchain.getEpochNumber()
+  if (errorRange || currentEpoch === undefined)
+    return { error: errorRange?.message || 'No current epoch' }
 
   const toEpoch = options?.toEpochIndex ?? currentEpoch - 1
   const fromEpoch = Math.max(1, toEpoch - epochsCount)
