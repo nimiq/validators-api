@@ -33,7 +33,7 @@
     "@vueuse/core": "catalog:",
     "consola": "catalog:",
     "defu": "catalog:",
-    "drizzle-orm": "0.41.0",
+    "drizzle-orm": "catalog:",
     "identicons-esm": "catalog:",
     "nimiq-rpc-client-ts": "catalog:",
     "nimiq-validator-trustscore": "workspace:*",

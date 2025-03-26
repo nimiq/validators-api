@@ -1,24 +1,24 @@
 packages:
   - packages/**
 catalog:
-  '@antfu/eslint-config': 4.11.0
-  '@antfu/ni': ^23.3.1
+  '@antfu/eslint-config': ^4.11.0
+  '@antfu/ni': ^24.3.0
   '@nimiq/core': ^2.0.8
   '@nimiq/utils': ^0.12.3
   '@nuxt/eslint': ^1.2.0
   '@nuxt/image': ^1.10.0
-  '@nuxthub/core': ^0.8.18
+  '@nuxthub/core': ^0.8.19
   '@nuxtjs/color-mode': ^3.5.2
   '@pinia/nuxt': ^0.10.1
   '@types/node': ^22.13.13
-  '@unocss/eslint-config': ^66.1.0-beta.6
-  '@unocss/nuxt': ^66.1.0-beta.6
-  '@unocss/reset': ^66.1.0-beta.6
+  '@unocss/eslint-config': ^66.1.0-beta.7
+  '@unocss/nuxt': ^66.1.0-beta.7
+  '@unocss/reset': ^66.1.0-beta.7
   '@unovis/ts': ^1.5.1
   '@unovis/vue': ^1.5.1
   '@vueuse/core': ^13.0.0
   '@vueuse/nuxt': ^13.0.0
-  bumpp: ^10.0.3
+  bumpp: ^10.1.0
   consola: ^3.4.2
   defu: ^6.1.4
   drizzle-kit: ^0.30.5
@@ -36,9 +36,8 @@ catalog:
   svgo: ^3.3.2
   typescript: ^5.8.2
   unbuild: ^3.5.0
-  unocss: ^66.1.0-beta.6
+  unocss: ^66.1.0-beta.7
   unocss-preset-scale-px: ^1.0.0-beta.15
-  vite: ^5.4.15
   vite-plugin-top-level-await: ^1.5.0
   vite-plugin-wasm: ^3.4.1
   vitest: ^3.0.9
