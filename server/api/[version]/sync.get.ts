@@ -13,5 +13,10 @@ export default defineEventHandler(async () => {
     importValidators('github'),
   ])
 
-  return { missingEpochsResult, balancesResult, validatorsResult }
+  if (missingEpochsResult.error || balancesResult.error || validatorsResult.error)
+    return { missingEpochsResult, balancesResult, validatorsResult, scores: null }
+
+  const scores = await calculateScores()
+
+  return { missingEpochsResult, balancesResult, validatorsResult, scores }
 })

@@ -10,7 +10,7 @@ import { getStoredValidatorsAddress, storeValidator } from './validators'
 /**
  * Given a range, it returns the epochs that are missing in the database.
  */
-export async function findMissingEpochs(range: Range) {
+async function findMissingEpochs(range: Range) {
   const existingEpochs = await useDrizzle()
     .selectDistinct({ epochBlockNumber: tables.activity.epochNumber })
     .from(tables.activity)
@@ -34,7 +34,7 @@ export async function findMissingEpochs(range: Range) {
 /**
  * We loop over all the pairs activities/epochBlockNumber and store the validator activities.
  */
-export async function storeActivities(epochs: EpochsActivities) {
+async function storeActivities(epochs: EpochsActivities) {
   const promises = Object.entries(epochs).map(async ([_epochNumber, activities]) => {
     const epochNumber = Number(_epochNumber)
     const activePromises = Object.entries(activities)
@@ -52,7 +52,7 @@ interface StoreActivityParams {
 
 const defaultActivity: TrackedActiveValidator = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, kind: 'active' }
 
-export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
+async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
   if (!validatorId)
     return

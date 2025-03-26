@@ -64,7 +64,7 @@ export interface ScoreParams {
      * - `rewarded`: The number of blocks for which the validator received rewards in the epoch.
      * - `missed`: The number of blocks the validator was expected to produce but did not.
      */
-    inherentsPerEpoch?: Map<number, { rewarded: number, missed: number }>
+    inherentsPerEpoch: Map<number, { rewarded: number, missed: number }>
   }
 }
 

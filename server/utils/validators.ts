@@ -2,22 +2,16 @@ import type { SQLWrapper } from 'drizzle-orm'
 import type { Result } from 'nimiq-validator-trustscore/types'
 import type { Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
-import type { ValidatorScore } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { and, desc, eq, inArray, max, sql } from 'drizzle-orm'
+import { and, eq, max, sql } from 'drizzle-orm'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorsSchema } from './schemas'
 
-export async function getStoredValidatorsAddress(): Promise<string[]> {
-  return useDrizzle()
-    .select({ address: tables.validators.address })
-    .from(tables.validators)
-    .execute()
-    .then(r => r.map(r => r.address))
-}
+export const getStoredValidatorsId = () => useDrizzle().select({ id: tables.validators.id }).from(tables.validators).execute().then(r => r.map(v => v.id))
+export const getStoredValidatorsAddress = () => useDrizzle().select({ address: tables.validators.address }).from(tables.validators).execute().then(r => r.map(v => v.address))
 
 const validators = new Map<string, number>()
 
@@ -87,31 +81,6 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
 
   validators.set(address, validatorId!)
   return validatorId
-}
-
-export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<ValidatorScore[]> {
-  const validators = await useDrizzle()
-    .select({
-      id: tables.validators.id,
-      name: tables.validators.name,
-      address: tables.validators.address,
-      fee: tables.validators.fee,
-      payoutType: tables.validators.payoutType,
-      description: tables.validators.description,
-      logo: tables.validators.logo,
-      isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
-      website: tables.validators.website,
-      total: tables.scores.total,
-      availability: tables.scores.availability,
-      dominance: tables.scores.dominance,
-    })
-    .from(tables.validators)
-    .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
-    .where(inArray(tables.validators.id, validatorIds))
-    .groupBy(tables.validators.id)
-    .orderBy(desc(tables.scores.total))
-    .all() as ValidatorScore[]
-  return { data: validators, error: undefined }
 }
 
 export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber?: number }
