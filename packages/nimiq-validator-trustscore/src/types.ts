@@ -69,15 +69,18 @@ export interface ScoreParams {
 }
 
 // The activity of the validator and their block production activity for a given election block
-export interface ActiveValidator { likelihood: number, missed: number, rewarded: number, dominanceRatioViaBalance: number, dominanceRatioViaSlots: number, balance: number, kind: 'active' }
-// The basic information of the inactive validator
-export interface InactiveValidator { balance: number, kind: 'inactive' }
+interface BaseValidator { likelihood: number, missed: number, rewarded: number, dominanceRatioViaBalance: number, dominanceRatioViaSlots: number, balance: number }
+export interface TrackedActiveValidator extends BaseValidator { kind: 'active' }
+export interface UntrackedActiveValidator extends BaseValidator { kind: 'untracked' }
+export interface InactiveValidator extends BaseValidator { balance: number, kind: 'inactive' }
+export interface ValidatorCurrentEpochActivity extends Pick<BaseValidator, 'balance' | 'dominanceRatioViaBalance' | 'dominanceRatioViaSlots'> { kind: 'active' | 'inactive' | 'untracked', address: string }
+export type ValidatorActivity = TrackedActiveValidator | InactiveValidator | UntrackedActiveValidator
 
 // A map of validator addresses to their activities in a single epoch
-export type EpochActivity = Record<string /* address */, ActiveValidator | InactiveValidator>
+export type EpochActivity<T = ValidatorActivity> = Record<string, T>
 
 // A map of validator addresses to their activities across multiple epochs
-export type EpochsActivities = Record<number /* election block */, EpochActivity>
+export type EpochsActivities<T = ValidatorActivity> = Record<number /* election block */, EpochActivity<T>>
 
 export interface ScoreValues { availability: number, reliability: number, dominance: number, total: number }
 
@@ -99,9 +102,8 @@ export interface Range {
 }
 
 export interface CurrentEpoch {
-  currentEpoch: number
-  activity: EpochsActivities
-  addresses: string[]
+  epochNumber: number
+  validators: ValidatorCurrentEpochActivity[]
 }
 
 export type Result<T> = Promise<

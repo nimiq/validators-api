@@ -1,4 +1,4 @@
-import type { ActiveValidator, EpochsActivities, Range } from 'nimiq-validator-trustscore/types'
+import type { EpochsActivities, Range, TrackedActiveValidator, ValidatorActivity } from 'nimiq-validator-trustscore/types'
 import type { NewActivity } from './drizzle'
 import { eq, gte, lte, not } from 'drizzle-orm'
 import { storeValidator } from './validators'
@@ -33,21 +33,20 @@ export async function findMissingEpochs(range: Range) {
 export async function storeActivities(epochs: EpochsActivities) {
   const promises = Object.entries(epochs).map(async ([_epochNumber, activities]) => {
     const epochNumber = Number(_epochNumber)
-    const activityPromises = Object.entries(activities)
-      .filter(([, activity]) => activity.kind === 'active')
-      .map(async ([address, activity]) => storeSingleActivity({ address, activity: activity as ActiveValidator, epochNumber }))
-    return await Promise.all(activityPromises)
+    const activePromises = Object.entries(activities)
+      .map(async ([address, activity]) => storeSingleActivity({ address, activity, epochNumber }))
+    return await Promise.all(activePromises)
   })
   await Promise.all(promises)
 }
 
 interface StoreActivityParams {
   address: string
-  activity: ActiveValidator | null
+  activity: ValidatorActivity | null
   epochNumber: number
 }
 
-const defaultActivity: ActiveValidator = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, kind: 'active' }
+const defaultActivity: TrackedActiveValidator = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, kind: 'active' }
 
 export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)

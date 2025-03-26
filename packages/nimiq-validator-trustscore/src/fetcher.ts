@@ -1,5 +1,5 @@
 import type { ElectionMacroBlock, NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { ActiveValidator, CurrentEpoch, EpochActivity, EpochsActivities, ResultSync } from './types'
+import type { CurrentEpoch, EpochActivity, Result, ResultSync, TrackedActiveValidator, ValidatorCurrentEpochActivity } from './types'
 import { BATCHES_PER_EPOCH, electionBlockOf, SLOTS } from '@nimiq/utils/albatross-policy'
 import { InherentType } from 'nimiq-rpc-client-ts'
 
@@ -10,17 +10,17 @@ import { InherentType } from 'nimiq-rpc-client-ts'
 export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, maxRetries = 5): Promise<ResultSync<EpochActivity>> {
   // Epochs start at 1, but election block is the first block of the epoch
   const electionBlock = electionBlockOf(epochIndex)!
-  const { data: block, error } = await client.blockchain.getBlockByNumber(electionBlock, { includeBody: false })
-  if (error || !block) {
-    console.error(JSON.stringify({ epochIndex, error, block }))
-    return { error: `Failed to fetch block: ${error}` }
+  const { data: block, error: errorBlockNumber } = await client.blockchain.getBlockByNumber(electionBlock, { includeBody: false })
+  if (errorBlockNumber || !block) {
+    console.error(JSON.stringify({ epochIndex, error: errorBlockNumber, block }))
+    return { error: `Failed to fetch block: ${errorBlockNumber}` }
   }
   if (!('isElectionBlock' in block))
     return { error: JSON.stringify({ message: 'Block is not election block', epochIndex, block }) }
 
-  const { data: currentEpoch, error: errorCurrentEpoch } = await client.blockchain.getEpochNumber()
-  if (errorCurrentEpoch || !currentEpoch)
-    return { error: `There was an error fetching current epoch: ${JSON.stringify({ epochIndex, errorCurrentEpoch, currentEpoch })}` }
+  const { data: currentEpoch, error: errorEpochNumber } = await client.blockchain.getEpochNumber()
+  if (errorEpochNumber || !currentEpoch)
+    return { error: `There was an error fetching current epoch: ${JSON.stringify({ epochIndex, error: errorEpochNumber, currentEpoch })}` }
   if (epochIndex >= currentEpoch)
     return { error: `You tried to fetch an epoch that is not finished yet: ${JSON.stringify({ epochIndex, currentEpoch })}` }
 
@@ -59,7 +59,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
         if (isStakingAddress || !validatorIsActive || !validatorsExists)
           continue
 
-        const activity = epochActivity[validatorAddress] as ActiveValidator
+        const activity = epochActivity[validatorAddress] as TrackedActiveValidator
         if (type === InherentType.Reward)
           activity.rewarded++
         else if ([InherentType.Penalize, InherentType.Jail].includes(type))
@@ -133,37 +133,77 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
   }
 }
 
-export async function fetchCurrentEpoch(client: NimiqRPCClient): Promise<ResultSync<CurrentEpoch>> {
-  const { data: currentEpoch, error } = await client.blockchain.getEpochNumber()
-  if (error || !currentEpoch)
-    return { error: JSON.stringify({ error, currentEpoch }) }
+/**
+ * This functions returns the validators information for the current epoch plus with a categorization of the
+ * validators:
+ *   - Active validators: It is in the known addresses and active in the current epoch
+ *   - Inactive validators: It is in the known addresses but not active in the current epoch
+ *   - Untracked validators: It is not in the known addresses and active in the current epoch
+ *
+ *          Active validators       "x" represents a validator
+ *          ┌─────────────────┐
+ *          │   ┌─────────────────┐
+ *          │   │       x    x│   │
+ *          │   │ x   x       │   │
+ *     ┌────┼─x │        x  x │   │
+ *     │    │   │   x         │ x─┼─►Validator inactive
+ *     ▼    └───│─────────────┘   │
+ * Untracked    └─────────────────┘
+ *                 Known validators
+ *
+ * Note: Albatross Validator have 4 states:
+ * Active, Inactive, Deleted and not yet created (validators that will be created).
+ * The validators API only handles Active and Inactive validators. Anything that is not active is considered inactive.
+ */
+export async function fetchCurrentEpoch(client: NimiqRPCClient, knownAddresses: string[] = []): Result<CurrentEpoch> {
+  const { data: epochNumber, error } = await client.blockchain.getEpochNumber()
+  if (error || !epochNumber)
+    return { error: JSON.stringify({ error, epochNumber }) }
+
+  // We retrieve the election block because we need the slots distribution
+  // to be able to compute the dominance ratio via slots
+  const { data: electionBlock, error: errorElectionBlock } = await client.blockchain.getBlockByNumber(electionBlockOf(epochNumber)!)
+  if (!electionBlock || errorElectionBlock)
+    return { error: JSON.stringify({ errorElectionBlock, currentElectionBlock: electionBlock }) }
+  if (!('isElectionBlock' in electionBlock) || !('slots' in electionBlock))
+    return { error: JSON.stringify({ message: 'Election block is not election block', epochNumber, electionBlock }) }
+  const slotsDistribution = Object.fromEntries((electionBlock as ElectionMacroBlock).slots.map(({ validator, numSlots }) => [validator, numSlots]))
 
   const { data: activeValidators, error: errorValidators } = await client.blockchain.getActiveValidators()
   if (errorValidators || !activeValidators)
     return { error: JSON.stringify({ errorValidators, activeValidators }) }
+  const totalBalance = activeValidators.reduce((acc, { balance }) => acc + (balance ?? 0), 0)
 
-  const totalBalance = Object.values(activeValidators).reduce((acc, { balance }) => acc + balance, 0)
-  const activity: EpochsActivities = {
-    [currentEpoch]: Object.entries(activeValidators).reduce((acc, [, { address, balance }]) => {
-      acc[address] = {
-        likelihood: -1,
-        missed: -1,
-        rewarded: -1,
-        dominanceRatioViaBalance: balance / totalBalance,
-        dominanceRatioViaSlots: -1,
-        balance,
-        kind: 'active',
-      }
-      return acc
-    }, {} as EpochActivity),
+  const validators: ValidatorCurrentEpochActivity[] = []
+
+  const trackedActiveActivitySet = new Set(knownAddresses.filter(address => activeValidators.map(({ address: a }) => a).includes(address)))
+  const untrackedActiveActivitySet = new Set(activeValidators.map(({ address }) => address).filter(address => !knownAddresses.includes(address)))
+
+  // Helper function to add the information about the active validator
+  function getActiveValidator({ kind, address }: Pick<ValidatorCurrentEpochActivity, 'kind' | 'address'>) {
+    const balance = activeValidators?.find(({ address: a }) => a === address)?.balance
+    if (!balance)
+      throw new Error(`Validator ${address} not found in active validators`) // This should never happen
+    const dominanceRatioViaBalance = balance / totalBalance
+    if (!slotsDistribution[address])
+      throw new Error(`Slots distribution not found for validator ${address}`)
+    const dominanceRatioViaSlots = slotsDistribution[address] / SLOTS
+    return { address, balance, kind, dominanceRatioViaBalance, dominanceRatioViaSlots }
+  }
+  trackedActiveActivitySet.forEach(address => validators.push(getActiveValidator({ address, kind: 'active' })))
+  untrackedActiveActivitySet.forEach(address => validators.push(getActiveValidator({ address, kind: 'untracked' })))
+
+  // Validators that are in the known addresses but not in the active validators
+  // The balances of these validators are fetched through RPC
+  const inactiveActivitySet = new Set(knownAddresses.filter(address => !activeValidators.map(({ address: a }) => a).includes(address)))
+  for (const address of inactiveActivitySet) {
+    const { data: account, error } = await client.blockchain.getAccountByAddress(address)
+    if (error || account === undefined)
+      return { error: `Failed to fetch balance for validator ${address}: ${error?.message || 'Unknown error'}` }
+    // Even though the validator is inactive, we still fetch the balance, so we can track it
+    const balance = account.balance
+    validators.push({ address, balance, kind: 'inactive', dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1 })
   }
 
-  return {
-    data: {
-      currentEpoch,
-      activity,
-      addresses: activeValidators.map(({ address }) => address),
-    },
-    error: undefined,
-  }
+  return { data: { epochNumber, validators } }
 }

@@ -8,7 +8,7 @@ export default defineCachedEventHandler(async (event) => {
   const { data: validators, error: errorValidators } = await fetchValidators(params)
   if (errorValidators || !validators) {
     consola.error(`Failed to fetch validators: ${JSON.stringify(errorValidators)}`)
-    return createError({ message: 'Failed to fetch validators', status: 500 })
+    throw createError({ message: 'Failed to fetch validators', status: 500 })
   }
   return validators
 }, {

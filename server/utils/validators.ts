@@ -1,5 +1,4 @@
 import type { SQLWrapper } from 'drizzle-orm'
-import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { Result } from 'nimiq-validator-trustscore/types'
 import type { Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
@@ -12,44 +11,12 @@ import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorsSchema } from './schemas'
 
-interface ValidatorCategorization {
-  inactiveValidators: string[]
-  missingValidators: string[]
-
-  /* A list of all validators independently of their status */
-  validators: string[]
-}
-
-/**
- * Given a list of active validator addresses, it returns:
- *   - Addresses missing in the database:
- *   - Addresses inactive in the current epoch
- *
- *          Active validators       "x" represents a validator
- *          ┌─────────────────┐
- *          │   ┌─────────────────┐
- *          │   │       x    x│   │
- *          │   │ x   x       │   │
- *     ┌────┼─x │        x  x │   │
- *     │    │   │   x         │ x─┼─►Validator inactive
- *     ▼    └───│─────────────┘   │
- * Not in DB    └─────────────────┘
- *                 Database validators
- *
- * Note: Albatross Validator have 4 states:
- * Active, Inactive, Deleted and not yet created (validators that will be created).
- * The validators API only handles Active and Inactive validators. Anything that is not active is considered inactive.
- */
-export async function categorizeValidators(activeAddresses: string[]): Promise<ValidatorCategorization> {
-  const dbAddresses = await useDrizzle()
+export async function getStoredValidatorsAddress(): Promise<string[]> {
+  return useDrizzle()
     .select({ address: tables.validators.address })
     .from(tables.validators)
     .execute()
     .then(r => r.map(r => r.address))
-  const missingValidators = activeAddresses.filter(activeAddress => !dbAddresses.includes(activeAddress))
-  const inactiveValidators = dbAddresses.filter(dbAddress => !activeAddresses.includes(dbAddress))
-  const validators = [...new Set([...activeAddresses, ...dbAddresses])]
-  return { inactiveValidators, missingValidators, validators }
 }
 
 const validators = new Map<string, number>()
@@ -233,37 +200,6 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     consola.error(`Error fetching validators: ${error}`)
     return { data: undefined, error: JSON.stringify(error) }
   }
-}
-
-/**
- * Fetches balances for a list of validator addresses
- * @param client The Nimiq RPC client
- * @param addresses Array of validator addresses to fetch balances for
- * @returns Array of objects containing address and balance
- */
-export async function fetchValidatorBalances(client: NimiqRPCClient, addresses: string[]) {
-  consola.info(`Fetching balances for ${addresses.length} validators`)
-
-  const balancesPromises = addresses.map(async (address) => {
-    try {
-      const { data, error } = await client.blockchain.getAccountByAddress(address)
-      if (error || !data) {
-        consola.warn(`Failed to fetch balance for validator ${address}: ${error?.message || 'Unknown error'}`)
-        return null
-      }
-      return { address, balance: data.balance || 0 }
-    }
-    catch (error) {
-      consola.error(`Error fetching balance for validator ${address}:`, error)
-      return null
-    }
-  })
-
-  const results = await Promise.all(balancesPromises)
-  const balances = results.filter(Boolean) as Array<{ address: string, balance: number }>
-
-  consola.info(`Successfully fetched balances for ${balances.length} validators`)
-  return balances
 }
 
 /**

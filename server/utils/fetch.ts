@@ -1,10 +1,10 @@
 import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { CurrentEpoch, EpochsActivities, Result } from 'nimiq-validator-trustscore/types'
+import type { CurrentEpoch, EpochActivity, EpochsActivities, Result } from 'nimiq-validator-trustscore/types'
 import { consola } from 'consola'
 import { fetchCurrentEpoch, fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
-import { getRange } from 'nimiq-validator-trustscore/utils'
+import { getRange } from 'nimiq-validator-trustscore/range'
 import { findMissingEpochs, storeActivities, storeSingleActivity } from './activities'
-import { categorizeValidators, fetchValidatorBalances } from './validators'
+import { getStoredValidatorsAddress } from './validators'
 
 const EPOCHS_IN_PARALLEL = 3
 
@@ -62,27 +62,20 @@ export async function fetchMissingEpochs(client: NimiqRPCClient): Result<number[
   return { data: missingEpochs }
 }
 
-interface FetchActiveEpochResult extends CurrentEpoch {
-  missingValidators: string[]
-  inactiveValidators: string[]
-}
-export async function fetchActiveEpoch(client: NimiqRPCClient): Result<FetchActiveEpochResult> {
-  const { data: epoch, error } = await fetchCurrentEpoch(client)
-  if (error || !epoch)
+export async function fetchActiveEpoch(client: NimiqRPCClient): Result<CurrentEpoch> {
+  const dbAddresses = await getStoredValidatorsAddress()
+  const { data, error } = await fetchCurrentEpoch(client, dbAddresses)
+  if (error || !data)
     return { error: error || 'No active epoch' }
 
-  const activityInEpoch = epoch.activity[epoch.currentEpoch]
-  const { missingValidators, inactiveValidators, validators } = await categorizeValidators(epoch.addresses)
+  // Now we transform the data so we can use the same functions as if the epoch was finished
+  // The following fields are the ones that cannot be computed at the moment, and we will compute them later
+  const emptyActivity = { likelihood: -1, missed: -1, rewarded: -1 } as const
+  const activity: EpochActivity = {}
+  for (const { address, ...rest } of data.validators)
+    activity[address] = { ...emptyActivity, ...rest }
+  const epochActivity: EpochsActivities = { [data.epochNumber]: activity }
+  await storeActivities(epochActivity)
 
-  const balances = await fetchValidatorBalances(client, validators)
-  for (const { address, balance } of balances) {
-    if (inactiveValidators.includes(address))
-      activityInEpoch![address] = { balance, kind: 'inactive' }
-    else
-      activityInEpoch![address]!.balance = balance
-  }
-
-  await storeActivities(epoch.activity)
-
-  return { data: { missingValidators, inactiveValidators, ...epoch } }
+  return { data }
 }
