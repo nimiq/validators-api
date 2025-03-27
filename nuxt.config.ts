@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
-import { updateRuntimeConfig } from 'nuxt/kit'
+import { colorize } from 'consola/utils'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
 
@@ -28,7 +28,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     rpcUrl: process.env.NUXT_RPC_URL || '',
-    gitBranch: '', // Modify at before:build
+    gitBranch: 'dev', // Modified in the build hook
     public: {
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
     },
@@ -41,10 +41,10 @@ export default defineNuxtConfig({
   experimental: {
     // when using generate, payload js assets included in sw precache manifest
     // but missing on offline, disabling extraction it until fixed
-    payloadExtraction: false,
-    renderJsonPayloads: true,
-    typedPages: true,
-    viewTransition: true,
+    // payloadExtraction: false,
+    // renderJsonPayloads: true,
+    // typedPages: true,
+    // viewTransition: true,
   },
 
   routeRules: {
@@ -68,27 +68,24 @@ export default defineNuxtConfig({
 
   hooks: {
     'build:before': async () => {
+    },
+    'ready': (nuxt) => {
+      // 1. Modify runtimeConfig
+      const gitBranch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+      nuxt.options.runtimeConfig.gitBranch = gitBranch
+
+      // 2. Log runtimeConfig
       const nimiqNetwork = process.env.NUXT_PUBLIC_NIMIQ_NETWORK as string
       const validNimiqNetworks = ['main-albatross', 'test-albatross']
       if (!validNimiqNetworks.includes(nimiqNetwork)) {
         consola.warn(`Invalid nimiqNetwork: ${nimiqNetwork}. Please make sure it is one of: ${validNimiqNetworks.join(', ')}`)
       }
+      consola.info(`Nimiq network: ${colorize('bgMagenta', nimiqNetwork)}`)
 
-      const branch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
-      updateRuntimeConfig({ gitBranch: branch })
-    },
-  },
+      consola.info(`Git branch: ${colorize('bgMagenta', gitBranch)}`)
 
-  nitro: {
-    esbuild: {
-      options: {
-        target: 'esnext',
-      },
-    },
-
-    experimental: {
-      tasks: true,
-      openAPI: true,
+      const { projectUrl, env } = nuxt.options.runtimeConfig.hub
+      consola.info(`Remote NuxtHub: ${colorize('bgMagenta', `${projectUrl || 'local'}@${env}`)}`)
     },
   },
 
@@ -134,7 +131,7 @@ export default defineNuxtConfig({
     classSuffix: '',
   },
 
-  compatibilityDate: '2024-08-15',
+  compatibilityDate: '2025-02-10',
   future: {
     compatibilityVersion: 4,
   },
