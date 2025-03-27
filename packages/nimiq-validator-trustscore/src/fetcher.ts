@@ -3,13 +3,28 @@ import type { CurrentEpoch, EpochActivity, Result, ResultSync, TrackedActiveVali
 import { BATCHES_PER_EPOCH, electionBlockOf, SLOTS } from '@nimiq/utils/albatross-policy'
 import { InherentType } from 'nimiq-rpc-client-ts'
 
+export interface FetchActivityOptions {
+  /**
+   * The maximum number of retries to fetch the activity for a given batch.
+   * @default 5
+   */
+  maxRetries?: number
+
+  /**
+   * Whether to use the testnet or mainnet (since the migration block is different).
+   * @default false
+   */
+  testnet?: boolean
+}
+
 /**
  * For a given block number, fetches the validator slots assignation.
  * The block number MUST be an election block otherwise it will return an error result.
  */
-export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, maxRetries = 5): Promise<ResultSync<EpochActivity>> {
+export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, options: FetchActivityOptions = {}): Result<EpochActivity> {
+  const { maxRetries = 5, testnet = false } = options
   // Epochs start at 1, but election block is the first block of the epoch
-  const electionBlock = electionBlockOf(epochIndex)!
+  const electionBlock = electionBlockOf(epochIndex, { testnet })!
   const { data: block, error: errorBlockNumber } = await client.blockchain.getBlockByNumber(electionBlock, { includeBody: false })
   if (errorBlockNumber || !block) {
     console.error(JSON.stringify({ epochIndex, error: errorBlockNumber, block }))

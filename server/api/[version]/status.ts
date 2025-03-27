@@ -24,6 +24,7 @@ import { getStoredValidatorsAddress } from '~~/server/utils/validators'
 
 export default defineEventHandler(async () => {
   const client = getRpcClient()
+  const { nimiqNetwork } = useRuntimeConfig().public
 
   const { data: range, error: errorRange } = await getRange(client)
   if (errorRange || !range)
@@ -37,18 +38,19 @@ export default defineEventHandler(async () => {
   const { data: headBlockNumber, error: errorHeadBlockNumber } = await client.blockchain.getBlockNumber()
   if (errorHeadBlockNumber || !headBlockNumber)
     throw createError(errorHeadBlockNumber || 'No head block number')
-  const nextEpochBlockNumber = electionBlockAfter(headBlockNumber)
+  const nextEpochBlockNumber = electionBlockAfter(headBlockNumber, { testnet: nimiqNetwork === 'test-albatross' })
   const blocksUntilNextEpoch = nextEpochBlockNumber - headBlockNumber
-  const expectedTimestamp = new Date(Date.now() + blocksUntilNextEpoch * BLOCK_SEPARATION_TIME * 1000)
+  const expectedTimestampNextEpochStart = new Date(Date.now() + blocksUntilNextEpoch * BLOCK_SEPARATION_TIME * 1000)
 
   return {
     range,
     validators: epoch.validators,
     blockchain: {
+      nimiqNetwork,
       headBlockNumber,
       currentEpoch: epoch.epochNumber,
-      expectedTimestamp,
-      duration: BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH,
+      expectedTimestampNextEpochStart,
+      epochDurationMs: BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH,
     },
   }
 })
