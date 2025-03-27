@@ -16,7 +16,7 @@ export default defineEventHandler(async () => {
   if (missingEpochsResult.error || balancesResult.error || validatorsResult.error)
     return { missingEpochsResult, balancesResult, validatorsResult, scores: null }
 
-  const scores = await calculateScores()
+  const scores = await upsertScoresCurrentEpoch()
 
   return { missingEpochsResult, balancesResult, validatorsResult, scores }
 })

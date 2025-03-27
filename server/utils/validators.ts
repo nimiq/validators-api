@@ -5,7 +5,7 @@ import type { ValidatorJSON } from './schemas'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { and, eq, max, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorsSchema } from './schemas'
@@ -83,27 +83,24 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
   return validatorId
 }
 
-export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber?: number }
+export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber: number }
 
 type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
   logo?: string
-  score?: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
-  dominanceRatio?: number
-  balance?: number
+  score: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
+  dominanceRatio: number | null
+  balance: number
+  activeInEpoch: boolean
 }
 
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false } = params
+  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
 
   const filters: SQLWrapper[] = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
   if (onlyKnown)
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
-
-  const epochNumber = params.epochNumber || await useDrizzle().select({ epochNumber: max(tables.scores.epochNumber) }).from(tables.scores).then(r => r.at(0)?.epochNumber)
-  if (!epochNumber)
-    return { data: undefined, error: 'No epoch number found' }
 
   try {
     const dbValidators = await useDrizzle().query.validators.findMany({
@@ -134,24 +131,18 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     const validators = dbValidators.map((validator) => {
       const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
 
-      const score: FetchedValidator['score'] = scores[0]
-      if (score) {
-        const { availability, dominance, reliability } = scores[0]!
-        if (reliability === -1 || reliability === null) {
-          score.reliability = null
-          score.total = null
-        }
-        if (availability === -1 || availability === null) {
-          score.availability = null
-          score.total = null
-        }
-        if (dominance === -1 || dominance === null) {
-          score.dominance = null
-          score.total = null
-        }
+      if (!scores.at(0) || !activity.at(0)) {
+        throw new Error(`Validator ${validator.address} has no scores or activity for epoch ${epochNumber}`)
       }
 
-      const { dominanceRatioViaBalance, dominanceRatioViaSlots, balance } = activity?.[0] || {}
+      const score: FetchedValidator['score'] = {
+        availability: scores[0]!.availability === -1 ? null : scores[0]!.availability,
+        reliability: scores[0]!.reliability === -1 ? null : scores[0]!.reliability,
+        dominance: scores[0]!.dominance === -1 ? null : scores[0]!.dominance,
+        total: !Object.values(scores[0]!).includes(-1) ? scores[0]!.total : null,
+      }
+
+      const { dominanceRatioViaBalance, dominanceRatioViaSlots, balance } = activity[0]!
 
       return {
         ...rest,
@@ -159,7 +150,8 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         hasDefaultLogo,
         logo: !withIdenticons && hasDefaultLogo ? undefined : logo,
         dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
-        balance,
+        balance: balance!,
+        activeInEpoch: !!(dominanceRatioViaBalance || dominanceRatioViaSlots),
       } satisfies FetchedValidator
     })
 
