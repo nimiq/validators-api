@@ -35,9 +35,11 @@
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub",
-    "prepublishOnly": "nr build"
+    "prepublishOnly": "nr build",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@nimiq/utils": "catalog:",
     "defu": "catalog:",
     "nimiq-rpc-client-ts": "catalog:"
   },
