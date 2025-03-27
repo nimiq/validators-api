@@ -9,10 +9,12 @@ export enum PayoutType {
 export interface CurrentEpochValidators {
   epochNumber: number
   selectedValidators: (SelectedValidator | UnselectedValidator)[]
-  validators: {
-    selectedTrackedValidators: SelectedValidator[]
-    unselectedTrackedValidators: UnselectedValidator[]
-    selectedUntrackedValidators: SelectedValidator[]
-    unselectedUntrackedValidators: UnselectedValidator[]
-  }
+  unselectedValidators: (SelectedValidator | UnselectedValidator)[]
+
+  /**
+   * Validators that are not tracked by the database. The untracked validators are
+   * also part of the `selectedValidators` and `unselectedValidators` arrays, but they are
+   * not stored in the database yet.
+   */
+  untrackedValidators: (SelectedValidator | UnselectedValidator)[]
 }

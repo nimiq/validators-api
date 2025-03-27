@@ -144,7 +144,7 @@ catalogs:
 
 patchedDependencies:
   '@nimiq/utils':
-    hash: 1bed8c7c4faa110471d85cfce0c1973397f4a7d98a01dabd9d23ddf7ec6440b1
+    hash: bbe3440e0c688be92fdfdde0c0ba3b63baa1830607674761bb6aa03f861d40ea
     path: patches/@nimiq__utils.patch
 
 importers:
@@ -156,7 +156,7 @@ importers:
         version: 2.0.8
       '@nimiq/utils':
         specifier: 'catalog:'
-        version: 0.12.3(patch_hash=1bed8c7c4faa110471d85cfce0c1973397f4a7d98a01dabd9d23ddf7ec6440b1)
+        version: 0.12.3(patch_hash=bbe3440e0c688be92fdfdde0c0ba3b63baa1830607674761bb6aa03f861d40ea)
       '@nuxthub/core':
         specifier: 'catalog:'
         version: 0.8.21(db0@0.3.1(drizzle-orm@0.41.0(@cloudflare/workers-types@4.20250321.0)(gel@2.0.1)))(ioredis@5.6.0)(magicast@0.3.5)(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))
@@ -292,7 +292,7 @@ importers:
     dependencies:
       '@nimiq/utils':
         specifier: 'catalog:'
-        version: 0.12.3(patch_hash=1bed8c7c4faa110471d85cfce0c1973397f4a7d98a01dabd9d23ddf7ec6440b1)
+        version: 0.12.3(patch_hash=bbe3440e0c688be92fdfdde0c0ba3b63baa1830607674761bb6aa03f861d40ea)
       defu:
         specifier: 'catalog:'
         version: 6.1.4
@@ -7740,7 +7740,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@nimiq/utils@0.12.3(patch_hash=1bed8c7c4faa110471d85cfce0c1973397f4a7d98a01dabd9d23ddf7ec6440b1)':
+  '@nimiq/utils@0.12.3(patch_hash=bbe3440e0c688be92fdfdde0c0ba3b63baa1830607674761bb6aa03f861d40ea)':
     dependencies:
       big-integer: 1.6.52
 
@@ -11222,7 +11222,7 @@ snapshots:
 
   identicons-esm@0.2.6:
     dependencies:
-      '@nimiq/utils': 0.12.3(patch_hash=1bed8c7c4faa110471d85cfce0c1973397f4a7d98a01dabd9d23ddf7ec6440b1)
+      '@nimiq/utils': 0.12.3(patch_hash=bbe3440e0c688be92fdfdde0c0ba3b63baa1830607674761bb6aa03f861d40ea)
 
   ieee754@1.2.1: {}
 

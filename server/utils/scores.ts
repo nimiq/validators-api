@@ -1,5 +1,6 @@
 import type { Range, Result, ScoreParams } from 'nimiq-validator-trustscore/types'
-import { desc, gte, lte } from 'drizzle-orm'
+import type { NewScore } from './drizzle'
+import { and, desc, eq, gte, lte, or } from 'drizzle-orm'
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { computeScore } from 'nimiq-validator-trustscore/score'
 import { activity } from '../database/schema'
@@ -34,18 +35,31 @@ async function calculateScore(range: Range, validatorId: number): Result<Calcula
       return dominanceViaBalance >= 0 ? dominanceViaBalance : dominanceViaSlots
     })
 
-  const inherentsPerEpoch: Map<number /* epoch */, { rewarded: number, missed: number }> = new Map()
+  // Get all activity data for the validator in the given range in a single query
+  const activities = await useDrizzle()
+    .select({
+      epoch: activity.epochNumber,
+      missed: activity.missed,
+      rewarded: activity.rewarded,
+    })
+    .from(activity)
+    .where(and(
+      eq(activity.validatorId, validatorId),
+      gte(activity.epochNumber, range.fromEpoch),
+      lte(activity.epochNumber, range.toEpoch),
+    ))
+    .execute()
+
+  // Process the data in memory
+  const inherentsPerEpoch = new Map<number, { rewarded: number, missed: number }>()
+  const epochData = new Map(activities.map(a => [a.epoch, { missed: a.missed, rewarded: a.rewarded }]))
   const activeEpochStates: (0 | 1)[] = []
 
+  // Process epochs in order and handle missing data
   for (let epoch = range.fromEpoch; epoch <= range.toEpoch; epoch++) {
-    const { missed, rewarded } = await useDrizzle()
-      .select({ missed: activity.missed, rewarded: activity.rewarded })
-      .from(activity)
-      .where(and(eq(activity.validatorId, validatorId), eq(activity.epochNumber, epoch)))
-      .execute()
-      .then(r => r.at(0)!)
-    inherentsPerEpoch.set(epoch, { missed, rewarded })
-    activeEpochStates.push(missed === 0 && rewarded === 0 ? 0 : 1)
+    const data = epochData.get(epoch) || { missed: -1, rewarded: -1 }
+    inherentsPerEpoch.set(epoch, data)
+    activeEpochStates.push(data.missed === 0 && data.rewarded === 0 ? 0 : 1)
   }
 
   const params: ScoreParams = {
@@ -88,9 +102,15 @@ export async function upsertScoresCurrentEpoch(): Result<CalculateScoreResult> {
     .delete(tables.scores)
     .where(eq(tables.scores.epochNumber, range.toEpoch)) // Delete all scores for that epoch
     .execute()
-  await useDrizzle()
-    .insert(tables.scores)
-    .values(scores)
+
+  // Save the new scores to the database in batches of 5, otherwise cloudflare might complain "too many parameters"
+  for (let i = 0; i < scores.length; i += 5) {
+    const newScores = scores.slice(i, i + 5).map(score => ({ ...score, params: undefined })) as NewScore[]
+    await useDrizzle()
+      .insert(tables.scores)
+      .values(newScores)
+      .execute()
+  }
 
   return { data: { scores, range } }
 }

@@ -99,13 +99,13 @@ export async function fetchMissingEpochs(): Result<number[]> {
   if (errorRange || !range)
     return { error: errorRange || 'No range' }
 
-  consola.info(`Fetching data for range: ${JSON.stringify(range)}`)
+  consola.info(`Fetching data for range: [${range.fromBlockNumber}/${range.fromEpoch} - ${range.toBlockNumber}/${range.toEpoch}] (${range.epochCount} epochs). Now at ${range.head}/${range.currentEpoch}.`)
   // Only fetch the missing epochs that are not in the database
   const missingEpochs = await findMissingEpochs(range)
-  consola.info(`Fetching missing epochs: ${JSON.stringify(missingEpochs)}`)
   if (missingEpochs.length === 0)
     return { data: [] }
 
+  consola.info(`Fetching missing epochs...`)
   const fetchedEpochs = []
   const epochGenerator = fetchEpochs(client, missingEpochs)
 
@@ -149,17 +149,19 @@ export async function fetchActiveEpoch(): Result<CurrentEpochValidators> {
   if (error || !data)
     return { error: error || 'No active epoch' }
 
-  const { unselectedUntrackedValidators, selectedUntrackedValidators } = data.validators
-  const untrackedAddresses = [...unselectedUntrackedValidators, ...selectedUntrackedValidators].map(v => v.address)
+  const untrackedAddresses = data.untrackedValidators.map(v => v.address)
+  if (untrackedAddresses.length > 0)
+    consola.warn(`Found ${untrackedAddresses.length} untracked validators in the current epoch.`, untrackedAddresses)
   await Promise.all(untrackedAddresses.map(address => storeValidator(address)))
 
   // Now we transform the data so we can use the same functions as if the epoch was finished
   // The following fields are the ones that cannot be computed at the moment, and we will compute them later
-  const emptyActivity = { likelihood: -1, missed: -1, rewarded: -1 } as const
   const activity: EpochActivity = {}
-  for (const { address, ...rest } of data.selectedValidators) {
-    activity[address] = { ...emptyActivity, address, ...rest }
-  }
+  for (const { address, ...rest } of data.selectedValidators)
+    activity[address] = { address, ...rest }
+  for (const { address, ...rest } of data.unselectedValidators)
+    activity[address] = { address, ...rest }
+  consola.info(`Fetched active epoch: ${data.epochNumber} ()`)
   const epochActivity: EpochsActivities = { [data.epochNumber]: activity }
   await storeActivities(epochActivity)
 

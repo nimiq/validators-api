@@ -1,4 +1,4 @@
-<!-- <script setup lang="ts">
+<script setup lang="ts">
 const colorMode = useColorMode()
 const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
 
@@ -7,7 +7,7 @@ const validatorDetail = computed(() => !!route.params.address)
 // TOD Add window size stat
 // TODO add clock to next epoch
 
-const networkName = useRuntimeConfig().public.nimiqNetwork
+const { nimiqNetwork } = useRuntimeConfig().public
 </script>
 
 <template>
@@ -16,7 +16,7 @@ const networkName = useRuntimeConfig().public.nimiqNetwork
       <NuxtLink to="/" flex>
         <div aria-hidden i-nimiq:logos-nimiq-horizontal class="!ml-16 !h-24 !w-90" dark:i-nimiq:logos-nimiq-white-horizontal />
         <span ml-8 text-16 font-light tracking-0.75>Validators</span>
-        <span bg="orange/10" relative top--6 ml-6 h-max rounded-2 px-6 py-2 text-9 text-orange nq-label>{{ networkName }}</span>
+        <span bg="orange/10" relative top--6 ml-6 h-max rounded-2 px-6 py-2 text-9 text-orange nq-label>{{ nimiqNetwork }}</span>
       </NuxtLink>
       <NuxtLink v-if="validatorDetail" to="/" block w-max nq-arrow-back nq-ghost-btn>
         Go back
@@ -27,11 +27,5 @@ const networkName = useRuntimeConfig().public.nimiqNetwork
     <main flex-1>
       <NuxtPage />
     </main>
-  </div>
-</template> -->
-
-<template>
-  <div>
-    Hola
   </div>
 </template>

@@ -1,6 +1,6 @@
 import type { ElectionMacroBlock, NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { CurrentEpoch, EpochActivity, Result, ResultSync, SelectedValidator, UnselectedValidator } from './types'
-import { BATCHES_PER_EPOCH, electionBlockOf, SLOTS } from '@nimiq/utils/albatross-policy'
+import { BATCHES_PER_EPOCH, electionBlockOf, isElectionBlockAt, SLOTS } from '@nimiq/utils/albatross-policy'
 import { InherentType } from 'nimiq-rpc-client-ts'
 
 export interface FetchActivityOptions {
@@ -168,21 +168,28 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
  *
  */
 export async function fetchCurrentEpoch(client: NimiqRPCClient, { testnet = false }: { testnet?: boolean }): Result<CurrentEpoch> {
-  const { data: epochNumber, error } = await client.blockchain.getEpochNumber()
-  if (error || !epochNumber)
-    return { error: JSON.stringify({ error, epochNumber }) }
-
   const { data: validatorsStakingContract, error: errorValidators } = await client.blockchain.getValidators()
   if (errorValidators || !validatorsStakingContract)
     return { error: JSON.stringify({ error: errorValidators, validatorsStakingContract }) }
 
+  const { data: currentEpochNumber, error } = await client.blockchain.getEpochNumber()
+  if (error || !currentEpochNumber)
+    return { error: JSON.stringify({ error, epochNumber: currentEpochNumber }) }
+  const previousEpochNumber = currentEpochNumber - 1
+
+  const electionBlockPreviousEpoch = electionBlockOf(previousEpochNumber - 1, { testnet })! + 1
+
+  if (!isElectionBlockAt(electionBlockPreviousEpoch, { testnet }))
+    return { error: JSON.stringify({ message: `${electionBlockPreviousEpoch} is not an election block` }) }
+
   // We retrieve the election block because we need the slots distribution
   // to be able to compute the dominance ratio via slots
-  const { data: electionBlock, error: errorElectionBlock } = await client.blockchain.getBlockByNumber(electionBlockOf(epochNumber, { testnet })!)
+  const { data: electionBlock, error: errorElectionBlock } = await client.blockchain.getBlockByNumber(electionBlockPreviousEpoch)
+  // console.log({ electionBlock })
   if (!electionBlock || errorElectionBlock)
     return { error: JSON.stringify({ errorElectionBlock, currentElectionBlock: electionBlock }) }
   if (!('isElectionBlock' in electionBlock) || !('slots' in electionBlock))
-    return { error: JSON.stringify({ message: 'Election block is not election block', epochNumber, electionBlock }) }
+    return { error: JSON.stringify({ message: `${electionBlockPreviousEpoch} is not an election block`, epochNumber: previousEpochNumber, electionBlock }) }
   const slotsDistribution = Object.fromEntries((electionBlock as ElectionMacroBlock).slots.map(({ validator, numSlots }) => [validator, numSlots]))
 
   const result: ResultSync<CurrentEpoch['validators'][number]>[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
@@ -215,5 +222,5 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient, { testnet = fals
   const totalBalance = validators.reduce((acc, v) => acc + (v.balance ?? 0), 0)
   validators.forEach(v => v.dominanceRatioViaBalance = v.balance / totalBalance)
 
-  return { data: { epochNumber, validators } }
+  return { data: { epochNumber: currentEpochNumber, validators } }
 }

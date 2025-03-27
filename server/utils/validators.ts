@@ -133,8 +133,18 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     const validators = dbValidators.map((validator) => {
       const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
 
-      if (!scores.at(0) || !activity.at(0)) {
-        throw new Error(`Validator ${validator.address} has no scores or activity for epoch ${epochNumber}`)
+      if (!scores.at(0)) {
+        // Gracefully handle the case where the validator has no score for the current epoch
+        // But, if this happens there is a bug
+        consola.error(`Validator ${validator.address} has no score for epoch ${epochNumber}`)
+        scores.push({ availability: -1, dominance: -1, reliability: -1, total: -1 })
+      }
+
+      if (!activity.at(0)) {
+        // Gracefully handle the case where the validator has no activity for the next epoch
+        // But, if this happens there is a bug
+        consola.error(`Validator ${validator.address} has no activity for epoch ${epochNumber + 1}`)
+        activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1 })
       }
 
       const score: FetchedValidator['score'] = {
@@ -196,24 +206,34 @@ async function importValidatorsFromFiles(folderPath: string): Result<any[]> {
  * Import validators from GitHub. Useful since in cloudflare runtime we don't have access to the file system.
  */
 async function importValidatorsFromGitHub(path: string): Result<any[]> {
-  let validatorsJson
+  const { gitBranch } = useRuntimeConfig()
+  const url = `https://ungh.cc/repos/nimiq/validators-api/files/${gitBranch}`
+  let response
   try {
-    const { gitBranch } = useRuntimeConfig()
-    const url = `https://ungh.cc/repos/nimiq/validators-api/files/${gitBranch}`
-    const response = await $fetch<{ files: { path: string }[] }>(`${url}/${path}`)
-    const fileUrls = response.files.map(file => `${url}/${path}/${file.path}`)
-    consola.info(`Fetching ${fileUrls.length} files from GitHub`)
-    const files = await Promise.all(fileUrls.map(url => $fetch<{ contents: string }>(url)))
-    validatorsJson = files.map(file => JSON.parse(file.contents))
+    response = await $fetch<{ files: { path: string }[] }>(url)
   }
   catch (e) {
-    return { error: JSON.stringify(e) }
+    consola.warn(`Error fetching file: ${e}`)
   }
+  if (!response || !response.files)
+    return { error: 'No files found' }
 
+  const fileUrls = response.files
+    .filter(file => file.path.startsWith(`${path}/`) && file.path.endsWith('.json') && !file.path.endsWith('.example.json'))
+  const files = await Promise.all(fileUrls.map(async (fileUrl) => {
+    const fullFileUrl = `${url}/${fileUrl.path}`
+    const file = await $fetch<{ file: { contents: string } }>(fullFileUrl)
+    if (!file) {
+      consola.warn(`File ${fileUrl.path} not found`)
+      return undefined
+    }
+    return file.file.contents
+  }))
+  const validatorsJson = files.filter(Boolean).map(contents => JSON.parse(contents!))
   return { data: validatorsJson }
 }
 
-export async function importValidators(source: 'filesystem' | 'github'): Result<boolean> {
+export async function importValidators(source: 'filesystem' | 'github'): Result<ValidatorJSON[]> {
   const { nimiqNetwork } = useRuntimeConfig().public
   const path = `public/validators/${nimiqNetwork}`
   const { data: validatorsData, error: errorReading } = source === 'filesystem'
@@ -230,7 +250,7 @@ export async function importValidators(source: 'filesystem' | 'github'): Result<
   const errors = res.filter(r => r.status === 'rejected')
   if (errors.length > 0)
     return { error: `There were errors while importing the validators: ${errors.map(e => e.reason)}` }
-  return { data: true }
+  return { data: validators }
 }
 
 /**
@@ -246,29 +266,22 @@ export async function importValidators(source: 'filesystem' | 'github'): Result<
  *   untracked validators is a rare exception since, we rarely have new validators.
  */
 export async function categorizeValidatorsCurrentEpoch(): Result<CurrentEpochValidators> {
-  const { networkName } = useRuntimeConfig().public
-  const { data: epoch, error } = await fetchCurrentEpoch(getRpcClient(), { testnet: networkName === 'test-albatross' })
+  const { nimiqNetwork } = useRuntimeConfig().public
+  const { data: epoch, error } = await fetchCurrentEpoch(getRpcClient(), { testnet: nimiqNetwork === 'test-albatross' })
   if (!epoch || error)
     return { error: error || 'No data' }
 
   const dbAddresses = await getStoredValidatorsAddress()
-  const selectedValidators = epoch.validators
-
-  const selectedTrackedValidators = selectedValidators.filter(v => v.selected && dbAddresses.includes(v.address)) as SelectedValidator[]
-  const unselectedTrackedValidators = selectedValidators.filter(v => !v.selected && dbAddresses.includes(v.address)) as UnselectedValidator[]
-  const selectedUntrackedValidators = selectedValidators.filter(v => v.selected && !dbAddresses.includes(v.address)) as SelectedValidator[]
-  const unselectedUntrackedValidators = selectedValidators.filter(v => !v.selected && !dbAddresses.includes(v.address)) as UnselectedValidator[]
+  const selectedValidators = epoch.validators.filter(v => v.selected) as SelectedValidator[]
+  const unselectedValidators = epoch.validators.filter(v => !v.selected) as UnselectedValidator[]
+  const untrackedValidators = selectedValidators.filter(v => !dbAddresses.includes(v.address)) as (SelectedValidator & UnselectedValidator)[]
 
   return {
     data: {
       epochNumber: epoch.epochNumber,
       selectedValidators,
-      validators: {
-        selectedTrackedValidators,
-        unselectedTrackedValidators,
-        selectedUntrackedValidators,
-        unselectedUntrackedValidators,
-      },
+      unselectedValidators,
+      untrackedValidators,
     },
   }
 }

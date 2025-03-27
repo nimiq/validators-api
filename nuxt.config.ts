@@ -75,7 +75,7 @@ export default defineNuxtConfig({
       nuxt.options.runtimeConfig.gitBranch = gitBranch
 
       // 2. Log runtimeConfig
-      const nimiqNetwork = process.env.NUXT_PUBLIC_NIMIQ_NETWORK as string
+      const nimiqNetwork = nuxt.options.runtimeConfig.public.nimiqNetwork
       const validNimiqNetworks = ['main-albatross', 'test-albatross']
       if (!validNimiqNetworks.includes(nimiqNetwork)) {
         consola.warn(`Invalid nimiqNetwork: ${nimiqNetwork}. Please make sure it is one of: ${validNimiqNetworks.join(', ')}`)
