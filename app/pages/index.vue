@@ -1,57 +1,50 @@
 <script setup lang="ts">
-const { validators, range, statusValidators, errorValidators } = useApiStore()
-
+const { data: status, status: statusFetch, error: statusError } = await useFetch('/api/v1/status')
+const { data: validators, status: validatorsStatus, error: validatorsError } = await useFetch('/api/v1/validators')
 const averageScore = computed(() => {
-  if (!validators?.length)
+  if (!validators?.value?.length)
     return 0
-  const scores = validators.map(validator => validator.total).filter(t => !!t) as number[]
+  const scores = validators.value.map(validator => validator.score?.total).filter(t => !!t) as number[]
   const totalScore = scores?.reduce((acc, score) => acc + score, 0) || 0
-  return totalScore / validators.length
+  return totalScore / scores.length
 })
+
+const [DefineStat, ReuseStat] = createReusableTemplate<{ value: number, label: string }>()
 </script>
 
 <template>
-  <div v-if="statusValidators === 'pending'">
-    Loading...
-  </div>
-  <div v-else-if="statusValidators === 'error'">
-    There was an error: {{ JSON.stringify(errorValidators) }}
-  </div>
+  <div>
+    <DefineStat v-slot="{ label, value }">
+      <div flex="~ col">
+        <span text-32 font-semibold lh-none v-bind="$attrs">
+          {{ value }}
+        </span>
+        <span nq-label text="11 neutral-800">
+          {{ label }}
+        </span>
+      </div>
+    </DefineStat>
 
-  <div v-else-if="statusValidators === 'success'" flex="~ col" pt-64 pb-128>
-    <div flex="~ wrap gap-96 justify-center" of-x-auto mx--32 px-32 pb-64>
-      <Stat text-green>
-        <template #value>
-          {{ validators?.length }}
-        </template>
-        <template #description>
-          Validators
-        </template>
-      </Stat>
-      <Stat text-blue>
-        <template #value>
-          {{ range?.toEpoch }}
-        </template>
-        <template #description>
-          Epoch
-        </template>
-      </Stat>
-      <Stat text-red>
-        <template #value>
-          {{ (averageScore * 100).toFixed(2) }}
-        </template>
-        <template #description>
-          Avg. score
-        </template>
-      </Stat>
+    <div v-if="statusFetch === 'pending' || validatorsStatus === 'pending'">
+      Loading...
     </div>
+    <div v-else-if="statusFetch === 'error' || validatorsStatus === 'error'">
+      There was an error: {{ JSON.stringify({ statusFetchError: statusError, validatorsStatusError: validatorsError }) }}
+    </div>
+    <div v-else-if="statusFetch === 'success' && validatorsStatus === 'success' && validators" flex="~ col" pt-64 pb-128>
+      <div flex="~ wrap gap-96 justify-center" of-x-auto mx--32 px-32 pb-64>
+        <ReuseStat :value="validators?.length" label="Validators" text-green />
+        <ReuseStat :value="status!.range.toEpoch + 1" label="Current epoch" text-green />
+        <ReuseStat :value="averageScore" label="Avg. Score" text-purple />
+      </div>
 
-    <ValidatorsTable :validators mt-96 />
+      <ValidatorsTable :validators mt-96 />
 
-    <h2 text-center mt-128>
-      Dominance distribution
-    </h2>
+      <h2 text-center mt-128>
+        Dominance distribution
+      </h2>
 
-    <Donut :data="validators" mt-48 />
+      <Donut :data="validators" mt-48 />
+    </div>
   </div>
 </template>
