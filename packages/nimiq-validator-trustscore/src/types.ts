@@ -69,18 +69,37 @@ export interface ScoreParams {
 }
 
 // The activity of the validator and their block production activity for a given election block
-interface BaseValidator { likelihood: number, missed: number, rewarded: number, dominanceRatioViaBalance: number, dominanceRatioViaSlots: number, balance: number }
-export interface TrackedActiveValidator extends BaseValidator { kind: 'active' }
-export interface UntrackedActiveValidator extends BaseValidator { kind: 'untracked' }
-export interface InactiveValidator extends BaseValidator { balance: number, kind: 'inactive' }
-export interface ValidatorCurrentEpochActivity extends Pick<BaseValidator, 'balance' | 'dominanceRatioViaBalance' | 'dominanceRatioViaSlots'> { kind: 'active' | 'inactive' | 'untracked', address: string }
-export type ValidatorActivity = TrackedActiveValidator | InactiveValidator | UntrackedActiveValidator
+export interface BaseValidator {
+  balance: number
+  address: string
+  dominanceRatioViaBalance: number
+  dominanceRatioViaSlots: number
+}
+
+export interface SelectedValidator extends BaseValidator {
+  selected: true
+  missed: number
+  rewarded: number
+  likelihood: number
+}
+
+export interface UnselectedValidator extends BaseValidator {
+  selected: false
+  missed: -1
+  rewarded: -1
+  likelihood: -1
+}
+
+export interface CurrentEpoch {
+  epochNumber: number
+  validators: (UnselectedValidator | SelectedValidator)[]
+}
 
 // A map of validator addresses to their activities in a single epoch
-export type EpochActivity<T = ValidatorActivity> = Record<string, T>
+export type EpochActivity<T = SelectedValidator | UnselectedValidator> = Record<string, T>
 
 // A map of validator addresses to their activities across multiple epochs
-export type EpochsActivities<T = ValidatorActivity> = Record<number /* election block */, EpochActivity<T>>
+export type EpochsActivities<T = SelectedValidator | UnselectedValidator> = Record<number /* election block */, EpochActivity<T>>
 
 export interface ScoreValues { availability: number, reliability: number, dominance: number, total: number }
 
@@ -105,11 +124,6 @@ export interface Range {
 
   // The amount of epochs in the range
   epochCount: number
-}
-
-export interface CurrentEpoch {
-  epochNumber: number
-  validators: ValidatorCurrentEpochActivity[]
 }
 
 export type Result<T> = Promise<

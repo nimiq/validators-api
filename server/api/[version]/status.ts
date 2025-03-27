@@ -1,7 +1,5 @@
 import { BLOCK_SEPARATION_TIME, BLOCKS_PER_EPOCH, electionBlockAfter } from '@nimiq/utils/albatross-policy'
-import { fetchCurrentEpoch } from 'nimiq-validator-trustscore/fetcher'
 import { getRange } from 'nimiq-validator-trustscore/range'
-import { getStoredValidatorsAddress } from '~~/server/utils/validators'
 
 /**
  * This endpoint returns the status of the API:
@@ -30,8 +28,7 @@ export default defineEventHandler(async () => {
   if (errorRange || !range)
     throw createError(errorRange || 'No range')
 
-  const dbAddresses = await getStoredValidatorsAddress()
-  const { data: epoch, error } = await fetchCurrentEpoch(client, dbAddresses)
+  const { data: epoch, error } = await categorizeValidatorsCurrentEpoch()
   if (!epoch || error)
     throw createError(error || 'No data')
 

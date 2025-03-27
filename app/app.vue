@@ -4,6 +4,8 @@ const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' 
 
 const route = useRoute()
 const validatorDetail = computed(() => !!route.params.address)
+// TOD Add window size stat
+// TODO add clock to next epoch
 
 const networkName = useRuntimeConfig().public.nimiqNetwork
 </script>

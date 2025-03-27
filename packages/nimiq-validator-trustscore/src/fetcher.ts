@@ -1,5 +1,5 @@
 import type { ElectionMacroBlock, NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { CurrentEpoch, EpochActivity, Result, ResultSync, TrackedActiveValidator, ValidatorCurrentEpochActivity } from './types'
+import type { CurrentEpoch, EpochActivity, Result, ResultSync, SelectedValidator, UnselectedValidator } from './types'
 import { BATCHES_PER_EPOCH, electionBlockOf, SLOTS } from '@nimiq/utils/albatross-policy'
 import { InherentType } from 'nimiq-rpc-client-ts'
 
@@ -52,7 +52,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
     const dominanceRatioViaSlots = likelihood / SLOTS
     const balance = -1
     const dominanceRatioViaBalance = -1
-    epochActivity[validator] = { likelihood, missed: 0, rewarded: 0, dominanceRatioViaBalance, dominanceRatioViaSlots, balance, kind: 'active' }
+    epochActivity[validator] = { address: validator, likelihood, missed: 0, rewarded: 0, dominanceRatioViaBalance, dominanceRatioViaSlots, balance, selected: true }
   }
 
   const maxBatchSize = 120
@@ -70,11 +70,13 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
       for (const { type, validatorAddress } of inherents) {
         const isStakingAddress = validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000'
         const validatorsExists = !!epochActivity[validatorAddress]
-        const validatorIsActive = validatorsExists && epochActivity[validatorAddress]?.kind === 'active'
-        if (isStakingAddress || !validatorIsActive || !validatorsExists)
+        const validatorIsSelected = validatorsExists && epochActivity[validatorAddress]?.selected
+        if (isStakingAddress || !validatorIsSelected || !validatorsExists)
           continue
 
-        const activity = epochActivity[validatorAddress] as TrackedActiveValidator
+        const activity = epochActivity[validatorAddress]
+        if (!activity)
+          continue
         if (type === InherentType.Reward)
           activity.rewarded++
         else if ([InherentType.Penalize, InherentType.Jail].includes(type))
@@ -149,33 +151,23 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
 }
 
 /**
- * This functions returns the validators information for the current epoch plus with a categorization of the
- * validators:
- *   - Active validators: It is in the known addresses and active in the current epoch
- *   - Inactive validators: It is in the known addresses but not active in the current epoch
- *   - Untracked validators: It is not in the known addresses and active in the current epoch
+ * This function returns the validators information for the current epoch.
  *
- *    ┌──────────────► Unknown validators (new validators)
- *    │     ┌────────► Known validators (in your database)
- *    │     │      ┌─► Active validators in staking contract
- * ┌──┼─────┼──────┴──────┐
- * │┌─┴─────┼─────────┐   │
- * ││   ┌───┴─────────────────┐
- * ││   │             │   │   │
- * ││ x │  x   x  x   │x  │   │
- * ││   │             │   │   │
- * ││   │         x   │ x │   │
- * ││   │   x         │   │ x ─► Deleted validator
- * ││   │             │   │   │
- * │└───│─────────────┘ x │   │
- * └────│─────────────────┘   │
- *      └─────────────────────┘
+ *    ┌────────────► Selected validators in the epoch
+ *    │          ┌─► Active validators
+ * ┌──┼──────────┴──────┐
+ * │┌─┴─────────────┐   │
+ * ││               │   │
+ * ││ x   x  x  x   │x  │
+ * ││               │   │
+ * ││           x   │ x │
+ * ││      x        │   │
+ * ││               │   │
+ * │└───────────────┘ x │
+ * └────────────────────┘
  *
- * Note: Albatross Validator have 4 states:
- * Selected (which means is active), unselected (active or inactive), deleted and not yet created (validators that will be created).
- * The validators API only handles Active and Inactive validators. Anything that is not active is considered inactive.
  */
-export async function fetchCurrentEpoch(client: NimiqRPCClient, knownAddresses: string[] = [], { testnet = false }: { testnet?: boolean }): Result<CurrentEpoch> {
+export async function fetchCurrentEpoch(client: NimiqRPCClient, { testnet = false }: { testnet?: boolean }): Result<CurrentEpoch> {
   const { data: epochNumber, error } = await client.blockchain.getEpochNumber()
   if (error || !epochNumber)
     return { error: JSON.stringify({ error, epochNumber }) }
@@ -193,21 +185,34 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient, knownAddresses: 
     return { error: JSON.stringify({ message: 'Election block is not election block', epochNumber, electionBlock }) }
   const slotsDistribution = Object.fromEntries((electionBlock as ElectionMacroBlock).slots.map(({ validator, numSlots }) => [validator, numSlots]))
 
-  const validators: ValidatorCurrentEpochActivity[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
+  const result: ResultSync<CurrentEpoch['validators'][number]>[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
     const { data: account, error } = await client.blockchain.getAccountByAddress(address)
     if (error || account === undefined)
-      return [address, -1]
-    const isActive = slotsDistribution[address] !== undefined
-    const isKnown = knownAddresses.includes(address)
-    const kind = isActive ? (isKnown ? 'active' : 'untracked') : (isKnown ? 'inactive' : 'unknown')
+      return { error: JSON.stringify({ error, address }) }
+
     const dominanceRatioViaBalance = -1 // We update the value later once we have the total balance
-    const dominanceRatioViaSlots = isActive ? slotsDistribution[address] / SLOTS : -1
-    const balance = account.balance
-    return { address, balance, kind, dominanceRatioViaBalance, dominanceRatioViaSlots } satisfies ValidatorCurrentEpochActivity
+    const isSelected = slotsDistribution[address] !== undefined
+    let data: SelectedValidator | UnselectedValidator
+    if (!isSelected) {
+      const defaultValues: Pick<UnselectedValidator, 'missed' | 'rewarded' | 'dominanceRatioViaSlots' | 'likelihood'> = { missed: -1, rewarded: -1, dominanceRatioViaSlots: -1, likelihood: -1 }
+      data = { address, balance: account.balance, selected: false, dominanceRatioViaBalance, ...defaultValues } satisfies UnselectedValidator
+    }
+    else {
+      const dominanceRatioViaSlots = isSelected ? slotsDistribution[address]! / SLOTS : -1
+      const unknownParametersAtm: Pick<SelectedValidator, 'missed' | 'rewarded'> = { missed: -1, rewarded: -1 }
+      const likelihood = slotsDistribution[address]! / SLOTS
+      data = { address, balance: account.balance, selected: true, dominanceRatioViaBalance, dominanceRatioViaSlots, ...unknownParametersAtm, likelihood } satisfies SelectedValidator
+    }
+    return { data }
   },
   ))
 
-  const totalBalance = Object.values(balances).reduce((acc, balance) => acc + (balance ?? 0), 0)
+  const errors = result.filter(v => !!v.error).map(v => v.error)
+  if (errors.length > 0)
+    return { error: `Failed to fetch validators: ${JSON.stringify(errors)}` }
+
+  const validators = result.map(v => v.data).filter(v => !!v) as CurrentEpoch['validators']
+  const totalBalance = validators.reduce((acc, v) => acc + (v.balance ?? 0), 0)
   validators.forEach(v => v.dominanceRatioViaBalance = v.balance / totalBalance)
 
   return { data: { epochNumber, validators } }

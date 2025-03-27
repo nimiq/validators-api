@@ -1,11 +1,11 @@
-import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { CurrentEpoch, EpochActivity, EpochsActivities, Range, Result, TrackedActiveValidator, ValidatorActivity } from 'nimiq-validator-trustscore/types'
+import type { EpochActivity, EpochsActivities, Range, Result, SelectedValidator, UnselectedValidator } from 'nimiq-validator-trustscore/types'
 import type { NewActivity } from './drizzle'
+import type { CurrentEpochValidators } from './types'
 import { consola } from 'consola'
 import { eq, gte, lte, not } from 'drizzle-orm'
-import { fetchCurrentEpoch, fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
+import { fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
 import { getRange } from 'nimiq-validator-trustscore/range'
-import { getStoredValidatorsAddress, storeValidator } from './validators'
+import { storeValidator } from './validators'
 
 /**
  * Given a range, it returns the epochs that are missing in the database.
@@ -46,11 +46,11 @@ async function storeActivities(epochs: EpochsActivities) {
 
 interface StoreActivityParams {
   address: string
-  activity: ValidatorActivity | null
+  activity: SelectedValidator | UnselectedValidator | null
   epochNumber: number
 }
 
-const defaultActivity: TrackedActiveValidator = { likelihood: -1, missed: -1, rewarded: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, kind: 'active' }
+const defaultActivity: SelectedValidator = { likelihood: -1, balance: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, missed: -1, rewarded: -1, address: '', selected: true }
 
 async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
@@ -91,7 +91,9 @@ const EPOCHS_IN_PARALLEL = 3
 /**
  * Fetches the activities of the epochs that have finished and are missing in the database.
  */
-export async function fetchMissingEpochs(client: NimiqRPCClient): Result<number[]> {
+export async function fetchMissingEpochs(): Result<number[]> {
+  const client = getRpcClient()
+
   // The range that we will consider
   const { data: range, error: errorRange } = await getRange(client)
   if (errorRange || !range)
@@ -142,18 +144,22 @@ export async function fetchMissingEpochs(client: NimiqRPCClient): Result<number[
   return { data: missingEpochs }
 }
 
-export async function fetchActiveEpoch(client: NimiqRPCClient): Result<CurrentEpoch> {
-  const dbAddresses = await getStoredValidatorsAddress()
-  const { data, error } = await fetchCurrentEpoch(client, dbAddresses)
+export async function fetchActiveEpoch(): Result<CurrentEpochValidators> {
+  const { data, error } = await categorizeValidatorsCurrentEpoch()
   if (error || !data)
     return { error: error || 'No active epoch' }
+
+  const { unselectedUntrackedValidators, selectedUntrackedValidators } = data.validators
+  const untrackedAddresses = [...unselectedUntrackedValidators, ...selectedUntrackedValidators].map(v => v.address)
+  await Promise.all(untrackedAddresses.map(address => storeValidator(address)))
 
   // Now we transform the data so we can use the same functions as if the epoch was finished
   // The following fields are the ones that cannot be computed at the moment, and we will compute them later
   const emptyActivity = { likelihood: -1, missed: -1, rewarded: -1 } as const
   const activity: EpochActivity = {}
-  for (const { address, ...rest } of data.validators)
-    activity[address] = { ...emptyActivity, ...rest }
+  for (const { address, ...rest } of data.selectedValidators) {
+    activity[address] = { ...emptyActivity, address, ...rest }
+  }
   const epochActivity: EpochsActivities = { [data.epochNumber]: activity }
   await storeActivities(epochActivity)
 

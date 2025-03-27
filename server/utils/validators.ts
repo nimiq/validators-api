@@ -1,11 +1,13 @@
 import type { SQLWrapper } from 'drizzle-orm'
-import type { Result } from 'nimiq-validator-trustscore/types'
+import type { Result, SelectedValidator, UnselectedValidator } from 'nimiq-validator-trustscore/types'
 import type { Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
+import type { CurrentEpochValidators } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
 import { and, eq, sql } from 'drizzle-orm'
+import { fetchCurrentEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON, validatorsSchema } from './schemas'
@@ -229,4 +231,44 @@ export async function importValidators(source: 'filesystem' | 'github'): Result<
   if (errors.length > 0)
     return { error: `There were errors while importing the validators: ${errors.map(e => e.reason)}` }
   return { data: true }
+}
+
+/**
+ * Gets the validators in the current epoch and categorizes them into:
+ * - selectedTrackedValidators: selected validators that are tracked in the database
+ * - unselectedTrackedValidators: unselected validators that are tracked in the database
+ * - selectedUntrackedValidators: selected validators that are not tracked in the database
+ * - unselectedUntrackedValidators: unselected validators that are not tracked in the database
+ *
+ * Untracked validators are not the same as anonymous validators:
+ * - anonymous validators are the ones that didn't submit any information, but we do track them
+ * - untracked validators are the ones that are not in the database, because they were recently added. Having
+ *   untracked validators is a rare exception since, we rarely have new validators.
+ */
+export async function categorizeValidatorsCurrentEpoch(): Result<CurrentEpochValidators> {
+  const { networkName } = useRuntimeConfig().public
+  const { data: epoch, error } = await fetchCurrentEpoch(getRpcClient(), { testnet: networkName === 'test-albatross' })
+  if (!epoch || error)
+    return { error: error || 'No data' }
+
+  const dbAddresses = await getStoredValidatorsAddress()
+  const selectedValidators = epoch.validators
+
+  const selectedTrackedValidators = selectedValidators.filter(v => v.selected && dbAddresses.includes(v.address)) as SelectedValidator[]
+  const unselectedTrackedValidators = selectedValidators.filter(v => !v.selected && dbAddresses.includes(v.address)) as UnselectedValidator[]
+  const selectedUntrackedValidators = selectedValidators.filter(v => v.selected && !dbAddresses.includes(v.address)) as SelectedValidator[]
+  const unselectedUntrackedValidators = selectedValidators.filter(v => !v.selected && !dbAddresses.includes(v.address)) as UnselectedValidator[]
+
+  return {
+    data: {
+      epochNumber: epoch.epochNumber,
+      selectedValidators,
+      validators: {
+        selectedTrackedValidators,
+        unselectedTrackedValidators,
+        selectedUntrackedValidators,
+        unselectedUntrackedValidators,
+      },
+    },
+  }
 }

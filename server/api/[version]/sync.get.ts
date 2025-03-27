@@ -1,22 +1,19 @@
 import { fetchActiveEpoch, fetchMissingEpochs } from '~~/server/utils/activities'
-import { getRpcClient } from '~~/server/utils/client'
 
 export default defineEventHandler(async () => {
-  const rpcClient = getRpcClient()
+  const { data: importData, error: errorImport } = await importValidators('github')
+  if (!importData || errorImport)
+    throw createError({ statusCode: 500, statusMessage: errorImport || 'Unable to import from GitHub' })
 
-  const [missingEpochsResult, balancesResult, validatorsResult] = await Promise.all([
-    // Sync all epochs
-    fetchMissingEpochs(rpcClient),
-    // Sync all balances in current epoch
-    fetchActiveEpoch(rpcClient),
-    // Sync all validators JSON files
-    importValidators('github'),
-  ])
+  const { data: fetchEpochsData, error: fetchEpochsError } = await fetchMissingEpochs()
+  if (fetchEpochsError || !fetchEpochsData)
+    throw createError({ statusCode: 500, statusMessage: fetchEpochsError || 'Unable to fetch missing epochs' })
 
-  if (missingEpochsResult.error || balancesResult.error || validatorsResult.error)
-    return { missingEpochsResult, balancesResult, validatorsResult, scores: null }
+  const { data: fetchActiveEpochData, error: fetchActiveEpochError } = await fetchActiveEpoch()
+  if (fetchActiveEpochError || !fetchActiveEpochData)
+    throw createError({ statusCode: 500, statusMessage: fetchActiveEpochError })
 
   const scores = await upsertScoresCurrentEpoch()
 
-  return { missingEpochsResult, balancesResult, validatorsResult, scores }
+  return { fetchEpochsData, fetchActiveEpochData, scores, importData }
 })
