@@ -85,6 +85,12 @@ export type EpochsActivities<T = ValidatorActivity> = Record<number /* election 
 export interface ScoreValues { availability: number, reliability: number, dominance: number, total: number }
 
 export interface Range {
+  // The head number when the range was created
+  head: number
+
+  // The current epoch index
+  currentEpoch: number
+
   // The first epoch index that we will consider
   fromEpoch: number
 
