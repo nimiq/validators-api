@@ -155,70 +155,60 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
  *   - Inactive validators: It is in the known addresses but not active in the current epoch
  *   - Untracked validators: It is not in the known addresses and active in the current epoch
  *
- *          Active validators       "x" represents a validator
- *          ┌─────────────────┐
- *          │   ┌─────────────────┐
- *          │   │       x    x│   │
- *          │   │ x   x       │   │
- *     ┌────┼─x │        x  x │   │
- *     │    │   │   x         │ x─┼─►Validator inactive
- *     ▼    └───│─────────────┘   │
- * Untracked    └─────────────────┘
- *                 Known validators
+ *    ┌──────────────► Unknown validators (new validators)
+ *    │     ┌────────► Known validators (in your database)
+ *    │     │      ┌─► Active validators in staking contract
+ * ┌──┼─────┼──────┴──────┐
+ * │┌─┴─────┼─────────┐   │
+ * ││   ┌───┴─────────────────┐
+ * ││   │             │   │   │
+ * ││ x │  x   x  x   │x  │   │
+ * ││   │             │   │   │
+ * ││   │         x   │ x │   │
+ * ││   │   x         │   │ x ─► Deleted validator
+ * ││   │             │   │   │
+ * │└───│─────────────┘ x │   │
+ * └────│─────────────────┘   │
+ *      └─────────────────────┘
  *
  * Note: Albatross Validator have 4 states:
- * Active, Inactive, Deleted and not yet created (validators that will be created).
+ * Selected (which means is active), unselected (active or inactive), deleted and not yet created (validators that will be created).
  * The validators API only handles Active and Inactive validators. Anything that is not active is considered inactive.
  */
-export async function fetchCurrentEpoch(client: NimiqRPCClient, knownAddresses: string[] = []): Result<CurrentEpoch> {
+export async function fetchCurrentEpoch(client: NimiqRPCClient, knownAddresses: string[] = [], { testnet = false }: { testnet?: boolean }): Result<CurrentEpoch> {
   const { data: epochNumber, error } = await client.blockchain.getEpochNumber()
   if (error || !epochNumber)
     return { error: JSON.stringify({ error, epochNumber }) }
 
+  const { data: validatorsStakingContract, error: errorValidators } = await client.blockchain.getValidators()
+  if (errorValidators || !validatorsStakingContract)
+    return { error: JSON.stringify({ error: errorValidators, validatorsStakingContract }) }
+
   // We retrieve the election block because we need the slots distribution
   // to be able to compute the dominance ratio via slots
-  const { data: electionBlock, error: errorElectionBlock } = await client.blockchain.getBlockByNumber(electionBlockOf(epochNumber)!)
+  const { data: electionBlock, error: errorElectionBlock } = await client.blockchain.getBlockByNumber(electionBlockOf(epochNumber, { testnet })!)
   if (!electionBlock || errorElectionBlock)
     return { error: JSON.stringify({ errorElectionBlock, currentElectionBlock: electionBlock }) }
   if (!('isElectionBlock' in electionBlock) || !('slots' in electionBlock))
     return { error: JSON.stringify({ message: 'Election block is not election block', epochNumber, electionBlock }) }
   const slotsDistribution = Object.fromEntries((electionBlock as ElectionMacroBlock).slots.map(({ validator, numSlots }) => [validator, numSlots]))
 
-  const { data: activeValidators, error: errorValidators } = await client.blockchain.getActiveValidators()
-  if (errorValidators || !activeValidators)
-    return { error: JSON.stringify({ errorValidators, activeValidators }) }
-  const totalBalance = activeValidators.reduce((acc, { balance }) => acc + (balance ?? 0), 0)
-
-  const validators: ValidatorCurrentEpochActivity[] = []
-
-  const trackedActiveActivitySet = new Set(knownAddresses.filter(address => activeValidators.map(({ address: a }) => a).includes(address)))
-  const untrackedActiveActivitySet = new Set(activeValidators.map(({ address }) => address).filter(address => !knownAddresses.includes(address)))
-
-  // Helper function to add the information about the active validator
-  function getActiveValidator({ kind, address }: Pick<ValidatorCurrentEpochActivity, 'kind' | 'address'>) {
-    const balance = activeValidators?.find(({ address: a }) => a === address)?.balance
-    if (!balance)
-      throw new Error(`Validator ${address} not found in active validators`) // This should never happen
-    const dominanceRatioViaBalance = balance / totalBalance
-    if (!slotsDistribution[address])
-      throw new Error(`Slots distribution not found for validator ${address}`)
-    const dominanceRatioViaSlots = slotsDistribution[address] / SLOTS
-    return { address, balance, kind, dominanceRatioViaBalance, dominanceRatioViaSlots }
-  }
-  trackedActiveActivitySet.forEach(address => validators.push(getActiveValidator({ address, kind: 'active' })))
-  untrackedActiveActivitySet.forEach(address => validators.push(getActiveValidator({ address, kind: 'untracked' })))
-
-  // Validators that are in the known addresses but not in the active validators
-  // The balances of these validators are fetched through RPC
-  const inactiveActivitySet = new Set(knownAddresses.filter(address => !activeValidators.map(({ address: a }) => a).includes(address)))
-  for (const address of inactiveActivitySet) {
+  const validators: ValidatorCurrentEpochActivity[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
     const { data: account, error } = await client.blockchain.getAccountByAddress(address)
     if (error || account === undefined)
-      return { error: `Failed to fetch balance for validator ${address}: ${error?.message || 'Unknown error'}` }
-    // Even though the validator is inactive, we still fetch the balance, so we can track it
+      return [address, -1]
+    const isActive = slotsDistribution[address] !== undefined
+    const isKnown = knownAddresses.includes(address)
+    const kind = isActive ? (isKnown ? 'active' : 'untracked') : (isKnown ? 'inactive' : 'unknown')
+    const dominanceRatioViaBalance = -1 // We update the value later once we have the total balance
+    const dominanceRatioViaSlots = isActive ? slotsDistribution[address] / SLOTS : -1
     const balance = account.balance
-    validators.push({ address, balance, kind: 'inactive', dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1 })
-  }
+    return { address, balance, kind, dominanceRatioViaBalance, dominanceRatioViaSlots } satisfies ValidatorCurrentEpochActivity
+  },
+  ))
+
+  const totalBalance = Object.values(balances).reduce((acc, balance) => acc + (balance ?? 0), 0)
+  validators.forEach(v => v.dominanceRatioViaBalance = v.balance / totalBalance)
 
   return { data: { epochNumber, validators } }
 }
