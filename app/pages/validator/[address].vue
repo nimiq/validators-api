@@ -1,8 +1,6 @@
 <script setup lang="ts">
-const { getValidatorByAddress } = useApiStore()
-
 const route = useRoute()
-const validator = computed(() => getValidatorByAddress(route.params.address as string))
+const validator = undefined as any
 </script>
 
 <template>
