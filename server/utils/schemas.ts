@@ -58,6 +58,7 @@ export const mainQuerySchema = z.object({
   'only-known': z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
   'with-identicons': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'force': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'epoch-number': z.number().min(1).default(1),
 })
 
 export type MainQuerySchema = z.infer<typeof mainQuerySchema>

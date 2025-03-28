@@ -1,15 +1,16 @@
 import type { MainQuerySchema } from '~~/server/utils/schemas'
+import { getRange } from '~~/packages/nimiq-validator-trustscore/src/range'
 import { mainQuerySchema } from '~~/server/utils/schemas'
 import { fetchValidators } from '~~/server/utils/validators'
 
 export default defineCachedEventHandler(async (event) => {
   const queryParams = await getValidatedQuery(event, mainQuerySchema.parse)
 
-  const { data: epochNumber, error: errorEpochNumber } = await getRpcClient().blockchain.getEpochNumber()
-  if (errorEpochNumber || !epochNumber)
-    throw createError({ statusCode: 500, message: `JSON.stringify({ error: errorEpochNumber, epochNumber })` })
+  const { data: range, error: errorEpochNumber } = await getRange(getRpcClient())
+  if (errorEpochNumber || !range)
+    throw createError({ statusCode: 500, message: `JSON.stringify({ error: errorEpochNumber, range })` })
 
-  const params = { ...queryParams, epochNumber: epochNumber - 1 }
+  const params = { epochNumber: range.toEpoch, ...queryParams }
   const { data: validators, error: errorValidators } = await fetchValidators(params)
   if (errorValidators || !validators)
     throw createError({ message: 'Failed to fetch validators', status: 500 })

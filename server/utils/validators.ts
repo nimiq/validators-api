@@ -133,17 +133,17 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     const validators = dbValidators.map((validator) => {
       const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
 
-      if (!scores.at(0)) {
+      if (scores.length === 0) {
         // Gracefully handle the case where the validator has no score for the current epoch
         // But, if this happens there is a bug
-        consola.error(`Validator ${validator.address} has no score for epoch ${epochNumber}`)
+        consola.warn(`Validator ${validator.address} has no score for epoch ${epochNumber}`)
         scores.push({ availability: -1, dominance: -1, reliability: -1, total: -1 })
       }
 
-      if (!activity.at(0)) {
+      if (activity.length === 0) {
         // Gracefully handle the case where the validator has no activity for the next epoch
         // But, if this happens there is a bug
-        consola.error(`Validator ${validator.address} has no activity for epoch ${epochNumber + 1}`)
+        consola.warn(`Validator ${validator.address} has no activity for epoch ${epochNumber}`)
         activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1 })
       }
 

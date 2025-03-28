@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { data: status, execute: refetchStatus } = await useFetch('/api/v1/status')
 const colorMode = useColorMode()
 const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
 
@@ -8,6 +9,8 @@ const validatorDetail = computed(() => !!route.params.address)
 // TODO add clock to next epoch
 
 const { nimiqNetwork } = useRuntimeConfig().public
+
+const { status: syncStatus, execute: sync } = await useFetch('/api/v1/sync', { lazy: true, onResponse: refetchStatus })
 </script>
 
 <template>
@@ -21,6 +24,11 @@ const { nimiqNetwork } = useRuntimeConfig().public
       <NuxtLink v-if="validatorDetail" to="/" block w-max nq-arrow-back nq-ghost-btn>
         Go back
       </NuxtLink>
+      <div ml-auto>
+        <button v-if="status?.missingEpochs?.length" nq-pill :disabled="syncStatus === 'pending'" @click="() => sync()">
+          Sync
+        </button>
+      </div>
       <NuxtLink to="https://github.com/nimiq/validators-api" i-nimiq:logos-github-mono target="_blank" />
       <button i-nimiq:moon @click="() => toggleDark()" />
     </header>

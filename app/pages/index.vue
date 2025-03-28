@@ -9,7 +9,7 @@ const averageScore = computed(() => {
   return totalScore / scores.length
 })
 
-const [DefineStat, ReuseStat] = createReusableTemplate<{ value: number, label: string }>()
+const [DefineStat, Stat] = createReusableTemplate<{ value?: number, label: string }>()
 </script>
 
 <template>
@@ -17,7 +17,7 @@ const [DefineStat, ReuseStat] = createReusableTemplate<{ value: number, label: s
     <DefineStat v-slot="{ label, value }">
       <div flex="~ col">
         <span text-32 font-semibold lh-none v-bind="$attrs">
-          {{ value }}
+          <slot name="default">{{ value }}</slot>
         </span>
         <span nq-label text="11 neutral-800">
           {{ label }}
@@ -33,9 +33,13 @@ const [DefineStat, ReuseStat] = createReusableTemplate<{ value: number, label: s
     </div>
     <div v-else-if="statusFetch === 'success' && validatorsStatus === 'success' && validators" flex="~ col" pt-64 pb-128>
       <div flex="~ wrap gap-96 justify-center" of-x-auto mx--32 px-32 pb-64>
-        <ReuseStat :value="validators?.length" label="Validators" text-green />
-        <ReuseStat :value="status!.range.toEpoch + 1" label="Current epoch" text-green />
-        <ReuseStat :value="averageScore" label="Avg. Score" text-purple />
+        <Stat label="Validators" text-gold>
+          <template #default>
+            {{ status?.validators?.selectedValidators?.length }} <span text="neutral-600 f-sm">out of {{ status?.validators?.unselectedValidators?.length }}</span>
+          </template>
+        </Stat>
+        <Stat :value="status!.range.currentEpoch" label="Current epoch" text-green />
+        <Stat :value="averageScore" label="Avg. Score" text-purple />
       </div>
 
       <ValidatorsTable :validators mt-96 />

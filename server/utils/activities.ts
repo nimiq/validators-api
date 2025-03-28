@@ -10,7 +10,7 @@ import { storeValidator } from './validators'
 /**
  * Given a range, it returns the epochs that are missing in the database.
  */
-async function findMissingEpochs(range: Range) {
+export async function findMissingEpochs(range: Range) {
   const existingEpochs = await useDrizzle()
     .selectDistinct({ epochBlockNumber: tables.activity.epochNumber })
     .from(tables.activity)

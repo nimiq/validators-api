@@ -1,5 +1,6 @@
 import { BLOCK_SEPARATION_TIME, BLOCKS_PER_EPOCH, electionBlockAfter } from '@nimiq/utils/albatross-policy'
 import { getRange } from 'nimiq-validator-trustscore/range'
+import { findMissingEpochs } from '~~/server/utils/activities'
 
 /**
  * This endpoint returns the status of the API:
@@ -28,8 +29,8 @@ export default defineEventHandler(async () => {
   if (errorRange || !range)
     throw createError(errorRange || 'No range')
 
-  const { data: epoch, error } = await categorizeValidatorsCurrentEpoch()
-  if (!epoch || error)
+  const { data: validatorsEpoch, error } = await categorizeValidatorsCurrentEpoch()
+  if (!validatorsEpoch || error)
     throw createError(error || 'No data')
 
   const { data: headBlockNumber, error: errorHeadBlockNumber } = await client.blockchain.getBlockNumber()
@@ -39,13 +40,16 @@ export default defineEventHandler(async () => {
   const blocksUntilNextEpoch = nextEpochBlockNumber - headBlockNumber
   const expectedTimestampNextEpochStart = new Date(Date.now() + blocksUntilNextEpoch * BLOCK_SEPARATION_TIME * 1000)
 
+  const missingEpochs = await findMissingEpochs(range)
+
   return {
     range,
-    validators: epoch.validators,
+    validators: validatorsEpoch,
+    missingEpochs,
     blockchain: {
       nimiqNetwork,
       headBlockNumber,
-      currentEpoch: epoch.epochNumber,
+      currentEpoch: validatorsEpoch.epochNumber,
       expectedTimestampNextEpochStart,
       epochDurationMs: BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH,
     },
