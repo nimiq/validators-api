@@ -88,8 +88,9 @@ describe('get range with mock implementation', () => {
     const mockClient = createMockClient()
     const defaultBlockNumber = await mockClient.blockchain.getBlockNumber().then(r => r.data)
 
-    const { data: range, error } = await getRange(mockClient as NimiqRPCClient)
+    const [rangeOk, error, range] = await getRange(mockClient as NimiqRPCClient)
 
+    expect(rangeOk).toBe(true)
     expect(error).toBeUndefined()
     expect(range).toBeDefined()
 
@@ -107,8 +108,8 @@ describe('get range with mock implementation', () => {
       blockNumber: { data: undefined, error: { code: 200, message: 'Failed to get block number' } },
     })
 
-    const { data, error } = await getRange(mockClient as NimiqRPCClient)
-
+    const [rangeOk, error, data] = await getRange(mockClient as NimiqRPCClient)
+    expect(rangeOk).toBe(false)
     expect(error).toBe('Failed to get block number')
     expect(data).toBeUndefined()
   })
@@ -118,8 +119,10 @@ describe('get range with mock implementation', () => {
     const defaultBlockNumber = await mockClient.blockchain.getBlockNumber().then(r => r.data)
     const specificEpoch = 5
 
-    const { data: range } = await getRange(mockClient as NimiqRPCClient, { toEpochIndex: specificEpoch })
+    const [rangeOk, error, range] = await getRange(mockClient as NimiqRPCClient, { toEpochIndex: specificEpoch })
 
+    expect(rangeOk).toBe(true)
+    expect(error).toBeUndefined()
     const expectedRange = generateExpectedRange({
       head: defaultBlockNumber!,
       toEpochIndex: specificEpoch,
@@ -149,8 +152,10 @@ describe('get range with mock implementation', () => {
     const oneMonthHead = await mockClientOneMonth.blockchain.getBlockNumber().then(r => r.data)
     const threeMonthsHead = await mockClientThreeMonths.blockchain.getBlockNumber().then(r => r.data)
 
-    const { data: range1, error: error1 } = await getRange(mockClientOneMonth as NimiqRPCClient, { durationMs: oneMonthMs })
-    const { data: range2, error: error2 } = await getRange(mockClientThreeMonths as NimiqRPCClient, { durationMs: threeMonthsMs })
+    const [range1Ok, error1, range1] = await getRange(mockClientOneMonth as NimiqRPCClient, { durationMs: oneMonthMs })
+    const [range2Ok, error2, range2] = await getRange(mockClientThreeMonths as NimiqRPCClient, { durationMs: threeMonthsMs })
+    expect(range1Ok).toBe(true)
+    expect(range2Ok).toBe(true)
 
     // Generate expected ranges
     const expectedRange1 = generateExpectedRange({ head: oneMonthHead!, durationMs: oneMonthMs })
@@ -178,7 +183,10 @@ describe('get range with mock implementation', () => {
     const mockClient = createMockClient()
     const defaultBlockNumber = await mockClient.blockchain.getBlockNumber().then(r => r.data)
 
-    const { data: range } = await getRange(mockClient as NimiqRPCClient, { testnet: true })
+    const [rangeOk, error, range] = await getRange(mockClient as NimiqRPCClient, { testnet: true })
+
+    expect(rangeOk).toBe(true)
+    expect(error).toBeUndefined()
 
     const expectedRange = generateExpectedRange({
       head: defaultBlockNumber!,
@@ -206,7 +214,8 @@ describe('get range without mocking', () => {
   })
 
   it('should return a valid range with default settings', async () => {
-    const { data: range, error } = await getRange(client, { testnet: isTestnet })
+    const [rangeOk, error, range] = await getRange(client, { testnet: isTestnet })
+    expect(rangeOk).toBe(true)
 
     expect(error).toBeUndefined()
     expect(range).toBeDefined()
@@ -225,8 +234,8 @@ describe('get range without mocking', () => {
   it('should handle custom duration parameter', async () => {
     // Use a custom duration of 2 weeks
     const twoWeeksMs = 1000 * 60 * 60 * 24 * 14
-    const { data: range, error } = await getRange(client, { testnet: isTestnet, durationMs: twoWeeksMs })
-
+    const [rangeOk, error, range] = await getRange(client, { testnet: isTestnet, durationMs: twoWeeksMs })
+    expect(rangeOk).toBe(true)
     expect(error).toBeUndefined()
     expect(range).toBeDefined()
 
@@ -247,8 +256,8 @@ describe('get range without mocking', () => {
 
   it('should respect toEpochIndex parameter', async () => {
     const specificEpoch = 5
-    const { data: range, error } = await getRange(client, { testnet: isTestnet, toEpochIndex: specificEpoch })
-
+    const [rangeOk, error, range] = await getRange(client, { testnet: isTestnet, toEpochIndex: specificEpoch })
+    expect(rangeOk).toBe(true)
     expect(error).toBeUndefined()
     expect(range).toBeDefined()
 
@@ -267,14 +276,15 @@ describe('get range without mocking', () => {
 
   it('should return error for invalid parameters', async () => {
     // Test with negative toEpochIndex
-    const { data: range1, error: error1 } = await getRange(client, { testnet: isTestnet, toEpochIndex: -1 })
-
+    const [range1Ok, error1, range1] = await getRange(client, { testnet: isTestnet, toEpochIndex: -1 })
+    expect(range1Ok).toBe(false)
     expect(error1).toBeDefined()
     expect(range1).toBeUndefined()
 
     // Test with extremely large duration
     const extremelyLargeDuration = Number.MAX_SAFE_INTEGER
-    const { data: range2, error: error2 } = await getRange(client, { testnet: isTestnet, durationMs: extremelyLargeDuration })
+    const [range2Ok, error2, range2] = await getRange(client, { testnet: isTestnet, durationMs: extremelyLargeDuration })
+    expect(range2Ok).toBe(true)
 
     // Either it should work with a large range or return an error, but it shouldn't crash
     if (error2)

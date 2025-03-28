@@ -95,15 +95,15 @@ export async function fetchMissingEpochs(): Result<number[]> {
   const client = getRpcClient()
 
   // The range that we will consider
-  const { data: range, error: errorRange } = await getRange(client)
-  if (errorRange || !range)
-    return { error: errorRange || 'No range' }
+  const [rangeSuccess, errorRange, range] = await getRange(client)
+  if (!rangeSuccess || !range)
+    return [false, errorRange || 'No range', undefined]
 
   consola.info(`Fetching data for range: [${range.fromBlockNumber}/${range.fromEpoch} - ${range.toBlockNumber}/${range.toEpoch}] (${range.epochCount} epochs). Now at ${range.head}/${range.currentEpoch}.`)
   // Only fetch the missing epochs that are not in the database
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length === 0)
-    return { data: [] }
+    return [true, undefined, []]
 
   consola.info(`Fetching missing epochs...`)
   const fetchedEpochs = []
@@ -141,13 +141,13 @@ export async function fetchMissingEpochs(): Result<number[]> {
     await storeActivities(epochsActivities)
   }
 
-  return { data: missingEpochs }
+  return [true, undefined, missingEpochs]
 }
 
 export async function fetchActiveEpoch(): Result<CurrentEpochValidators> {
-  const { data, error } = await categorizeValidatorsCurrentEpoch()
-  if (error || !data)
-    return { error: error || 'No active epoch' }
+  const [success, error, data] = await categorizeValidatorsCurrentEpoch()
+  if (!success || !data)
+    return [false, error || 'No active epoch', undefined]
 
   const untrackedAddresses = data.untrackedValidators.map(v => v.address)
   if (untrackedAddresses.length > 0)
@@ -165,5 +165,5 @@ export async function fetchActiveEpoch(): Result<CurrentEpochValidators> {
   const epochActivity: EpochsActivities = { [data.epochNumber]: activity }
   await storeActivities(epochActivity)
 
-  return { data }
+  return [true, undefined, data]
 }

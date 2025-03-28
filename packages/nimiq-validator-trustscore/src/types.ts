@@ -126,9 +126,5 @@ export interface Range {
   epochCount: number
 }
 
-export type Result<T> = Promise<
-  | { data: T, error?: undefined }
-  | { data?: undefined, error: string }
->
-
-export type ResultSync<T> = Awaited<Result<T>>
+export type ResultSync<T> = [true, undefined, T] | [false, string, undefined]
+export type Result<T> = Promise<ResultSync<T>>

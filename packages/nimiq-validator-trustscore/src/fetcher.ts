@@ -28,23 +28,24 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
   const { data: block, error: errorBlockNumber } = await client.blockchain.getBlockByNumber(electionBlock, { includeBody: false })
   if (errorBlockNumber || !block) {
     console.error(JSON.stringify({ epochIndex, error: errorBlockNumber, block }))
-    return { error: `Failed to fetch block: ${errorBlockNumber}` }
+    return [false, `Failed to fetch block: ${errorBlockNumber}`, undefined]
   }
   if (!('isElectionBlock' in block))
-    return { error: JSON.stringify({ message: 'Block is not election block', epochIndex, block }) }
+    return [false, JSON.stringify({ message: 'Block is not election block', epochIndex, block }), undefined]
 
   const { data: currentEpoch, error: errorEpochNumber } = await client.blockchain.getEpochNumber()
   if (errorEpochNumber || !currentEpoch)
-    return { error: `There was an error fetching current epoch: ${JSON.stringify({ epochIndex, error: errorEpochNumber, currentEpoch })}` }
+    return [false, `There was an error fetching current epoch: ${JSON.stringify({ epochIndex, error: errorEpochNumber, currentEpoch })}`, undefined]
+
   if (epochIndex >= currentEpoch)
-    return { error: `You tried to fetch an epoch that is not finished yet: ${JSON.stringify({ epochIndex, currentEpoch })}` }
+    return [false, `You tried to fetch an epoch that is not finished yet: ${JSON.stringify({ epochIndex, currentEpoch })}`, undefined]
 
   // The election block will be the first block of the epoch, since we only fetch finished epochs, we can assume that all the batches in this epoch can be fetched
   // First, we need to know in which batch this block is. Batches start at 1
   const firstBatchIndex = 1 + (epochIndex - 1) * BATCHES_PER_EPOCH
   if (firstBatchIndex % 1 !== 0 || firstBatchIndex < 1)
     // It should be an exact division since we are fetching election blocks
-    return { error: JSON.stringify({ message: 'Something happened calculating batchIndex', firstBatchIndex, electionBlock, block }) }
+    return [false, JSON.stringify({ message: 'Something happened calculating batchIndex', firstBatchIndex, electionBlock, block }), undefined]
 
   // Initialize the list of validators and their activity in the epoch
   const epochActivity: EpochActivity = {}
@@ -64,7 +65,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
       const { data: inherents, error: errorBatch } = await client.blockchain.getInherentsByBatchNumber(firstBatchIndex + index)
       if (errorBatch || !inherents || inherents.length === 0) {
         const errorMsg = inherents?.length === 0 ? `No inherents found in batch ${firstBatchIndex + index}` : `Batch fetch failed: ${errorBatch}`
-        return { error: errorMsg }
+        return [false, errorMsg, undefined]
       }
 
       for (const { type, validatorAddress } of inherents) {
@@ -83,11 +84,11 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
           activity.missed++
       }
 
-      return { data: undefined, error: undefined }
+      return [true, undefined, undefined]
     }
     catch (error) {
       if (retryCount >= maxRetries)
-        return { error: `Max retries exceeded for batch ${firstBatchIndex + index}: ${error}` }
+        return [false, `Max retries exceeded for batch ${firstBatchIndex + index}: ${error}`, undefined]
       await new Promise(resolve => setTimeout(resolve, 2 ** retryCount * 1000))
       return createPromise(index, retryCount + 1)
     }
@@ -100,7 +101,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
       const batchPromises = Array.from({ length: currentBatchSize }, (_, j) => createPromise(i + j))
 
       const results = await Promise.all(batchPromises)
-      const failures = results.filter(result => !!result.error).length
+      const failures = results.filter(result => !!result[1]).length
 
       // Adjust batch dominance based on success rate
       if (failures > 0)
@@ -110,18 +111,18 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
 
       // Check for any remaining errors
       const errors = results
-        .filter(result => !!result.error)
-        .map(result => result.error)
+        .filter(result => !result[0])
+        .map(result => result[1])
       if (errors.length > 0) {
         console.error(errors)
-        return { error: `Failed to process batches: ${JSON.stringify(errors)}` }
+        return [false, `Failed to process batches: ${JSON.stringify(errors)}`, undefined]
       }
     }
 
-    return { data: epochActivity, error: undefined }
+    return [true, undefined, epochActivity]
   }
   catch (error) {
-    return { error: `Error processing batches: ${error instanceof Error ? error.message : String(error)}` }
+    return [false, `Error processing batches: ${error instanceof Error ? error.message : String(error)}`, undefined]
   }
 }
 
@@ -136,15 +137,15 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
  */
 export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number[]) {
   for (const epochIndex of epochsIndexes) {
-    const activityResult = await fetchActivity(client, epochIndex)
+    const [activityOk, _activityError, activities] = await fetchActivity(client, epochIndex)
 
     // If there was an error or validatorActivities is empty, yield null activity
-    if (activityResult.error || !activityResult.data || Object.keys(activityResult.data).length === 0) {
+    if (!activityOk) {
       yield { epochIndex, address: '', activity: null }
       continue
     }
 
-    for (const [address, activity] of Object.entries(activityResult.data)) {
+    for (const [address, activity] of Object.entries(activities)) {
       yield { address, epochIndex, activity }
     }
   }
@@ -170,32 +171,31 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
 export async function fetchCurrentEpoch(client: NimiqRPCClient, { testnet = false }: { testnet?: boolean }): Result<CurrentEpoch> {
   const { data: validatorsStakingContract, error: errorValidators } = await client.blockchain.getValidators()
   if (errorValidators || !validatorsStakingContract)
-    return { error: JSON.stringify({ error: errorValidators, validatorsStakingContract }) }
+    return [false, JSON.stringify({ error: errorValidators, validatorsStakingContract }), undefined]
 
   const { data: currentEpochNumber, error } = await client.blockchain.getEpochNumber()
   if (error || !currentEpochNumber)
-    return { error: JSON.stringify({ error, epochNumber: currentEpochNumber }) }
+    return [false, JSON.stringify({ error, epochNumber: currentEpochNumber }), undefined]
   const previousEpochNumber = currentEpochNumber - 1
 
   const electionBlockPreviousEpoch = electionBlockOf(previousEpochNumber - 1, { testnet })! + 1
 
   if (!isElectionBlockAt(electionBlockPreviousEpoch, { testnet }))
-    return { error: JSON.stringify({ message: `${electionBlockPreviousEpoch} is not an election block` }) }
+    return [false, JSON.stringify({ message: `${electionBlockPreviousEpoch} is not an election block` }), undefined]
 
   // We retrieve the election block because we need the slots distribution
   // to be able to compute the dominance ratio via slots
   const { data: electionBlock, error: errorElectionBlock } = await client.blockchain.getBlockByNumber(electionBlockPreviousEpoch)
-  // console.log({ electionBlock })
   if (!electionBlock || errorElectionBlock)
-    return { error: JSON.stringify({ errorElectionBlock, currentElectionBlock: electionBlock }) }
+    return [false, JSON.stringify({ errorElectionBlock, currentElectionBlock: electionBlock }), undefined]
   if (!('isElectionBlock' in electionBlock) || !('slots' in electionBlock))
-    return { error: JSON.stringify({ message: `${electionBlockPreviousEpoch} is not an election block`, epochNumber: previousEpochNumber, electionBlock }) }
+    return [false, JSON.stringify({ message: `${electionBlockPreviousEpoch} is not an election block`, epochNumber: previousEpochNumber, electionBlock }), undefined]
   const slotsDistribution = Object.fromEntries((electionBlock as ElectionMacroBlock).slots.map(({ validator, numSlots }) => [validator, numSlots]))
 
   const result: ResultSync<CurrentEpoch['validators'][number]>[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
     const { data: account, error } = await client.blockchain.getAccountByAddress(address)
     if (error || account === undefined)
-      return { error: JSON.stringify({ error, address }) }
+      return [false, JSON.stringify({ error, address }), undefined]
 
     const dominanceRatioViaBalance = -1 // We update the value later once we have the total balance
     const isSelected = slotsDistribution[address] !== undefined
@@ -210,17 +210,17 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient, { testnet = fals
       const likelihood = slotsDistribution[address]! / SLOTS
       data = { address, balance: account.balance, selected: true, dominanceRatioViaBalance, dominanceRatioViaSlots, ...unknownParametersAtm, likelihood } satisfies SelectedValidator
     }
-    return { data }
+    return [true, undefined, data]
   },
   ))
 
-  const errors = result.filter(v => !!v.error).map(v => v.error)
+  const errors = result.filter(v => !v[0]).map(v => v[1])
   if (errors.length > 0)
-    return { error: `Failed to fetch validators: ${JSON.stringify(errors)}` }
+    return [false, `Failed to fetch validators: ${JSON.stringify(errors)}`, undefined]
 
-  const validators = result.map(v => v.data).filter(v => !!v) as CurrentEpoch['validators']
+  const validators = result.map(v => v[2]).filter(v => !!v) as CurrentEpoch['validators']
   const totalBalance = validators.reduce((acc, v) => acc + (v.balance ?? 0), 0)
   validators.forEach(v => v.dominanceRatioViaBalance = v.balance / totalBalance)
 
-  return { data: { epochNumber: currentEpochNumber, validators } }
+  return [true, undefined, { epochNumber: currentEpochNumber, validators }]
 }

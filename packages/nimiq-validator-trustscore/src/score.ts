@@ -2,16 +2,16 @@ import type { ResultSync, ScoreParams, ScoreValues } from './types'
 
 export function getDominance({ threshold = 0.15, steepness = 7.5, dominanceRatio }: ScoreParams['dominance']): ResultSync<number> {
   if (!threshold || !steepness || !dominanceRatio)
-    return { error: `Dominance Ratio, threshold or steepness is not set. ${JSON.stringify({ threshold, steepness, dominanceRatio })}` }
+    return [false, `Dominance Ratio, threshold or steepness is not set. ${JSON.stringify({ threshold, steepness, dominanceRatio })}`, undefined]
   if (dominanceRatio < 0 || dominanceRatio > 1)
-    return { error: `Invalid dominance ratio: ${dominanceRatio}` }
+    return [false, `Invalid dominance ratio: ${dominanceRatio}`, undefined]
   const s = Math.max(0, 1 - (dominanceRatio / threshold) ** steepness)
-  return { data: s }
+  return [true, undefined, s]
 }
 
 export function getAvailability({ activeEpochStates, weightFactor = 0.5 }: ScoreParams['availability']): ResultSync<number> {
   if (!activeEpochStates || !weightFactor || activeEpochStates.length === 0)
-    return { error: `Invalid availability params: ${JSON.stringify({ activeEpochStates, weightFactor })}` }
+    return [false, `Invalid availability params: ${JSON.stringify({ activeEpochStates, weightFactor })}`, undefined]
 
   let weightedSum = 0
   let weightTotal = 0
@@ -23,17 +23,17 @@ export function getAvailability({ activeEpochStates, weightFactor = 0.5 }: Score
   }
 
   if (weightTotal === 0)
-    return { error: 'Weight total is zero, cannot divide by zero' }
+    return [false, 'Weight total is zero, cannot divide by zero', undefined]
 
   const movingAverage = weightedSum / weightTotal
   const availability = -(movingAverage ** 2) + 2 * movingAverage
 
-  return { data: availability }
+  return [true, undefined, availability]
 }
 
 export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCenter = -0.16 }: ScoreParams['reliability']): ResultSync<number> {
   if (!inherentsPerEpoch || !weightFactor || !curveCenter)
-    return { error: `Invalid reliability params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}` }
+    return [false, `Invalid reliability params: ${JSON.stringify({ inherentsPerEpoch, weightFactor, curveCenter })}`, undefined]
 
   let numerator = 0
   let denominator = 0
@@ -55,31 +55,31 @@ export function getReliability({ inherentsPerEpoch, weightFactor = 0.5, curveCen
 
   // Could be the case that the division is NaN, so we return 0 in that case. That means there's no inherents, so no blocks, so not reliable because there's no data
   if (Number.isNaN(reliability))
-    return { data: -1 }
+    return [true, undefined, -1]
 
   // Ensure the expression under the square root is non-negative
   const discriminant = -(reliability ** 2) + 2 * curveCenter * reliability + (curveCenter - 1) ** 2
   if (discriminant < 0)
-    return { data: -1 }
+    return [true, undefined, -1]
 
   // Plot into the curve
-  return { data: -curveCenter + 1 - Math.sqrt(discriminant) }
+  return [true, undefined, -curveCenter + 1 - Math.sqrt(discriminant)]
 }
 
 export function computeScore(params: ScoreParams): ResultSync<ScoreValues> {
-  const { data: dominance, error: errorDominance } = getDominance(params.dominance)
-  if (errorDominance || dominance === undefined)
-    return { error: errorDominance }
+  const [dominanceSuccess, dominanceError, dominance] = getDominance(params.dominance)
+  if (!dominanceSuccess || dominance === undefined)
+    return [false, dominanceError, undefined]
 
-  const { data: availability, error: errorAvailability } = getAvailability(params.availability)
-  if (errorAvailability || availability === undefined)
-    return { error: errorAvailability }
+  const [availabilitySuccess, availabilityError, availability] = getAvailability(params.availability)
+  if (!availabilitySuccess || availability === undefined)
+    return [false, availabilityError, undefined]
 
-  const { data: reliability, error: errorReliability } = getReliability(params.reliability)
-  if (errorReliability || reliability === undefined)
-    return { error: errorReliability }
+  const [reliabilitySuccess, reliabilityError, reliability] = getReliability(params.reliability)
+  if (!reliabilitySuccess || reliability === undefined)
+    return [false, reliabilityError, undefined]
 
   const total = dominance * availability * reliability
   const score: ScoreValues = { dominance, availability, reliability, total }
-  return { data: score }
+  return [true, undefined, score]
 }

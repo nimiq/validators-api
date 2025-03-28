@@ -67,35 +67,35 @@ async function calculateScore(range: Range, validatorId: number): Result<Calcula
     dominance: { dominanceRatio },
     reliability: { inherentsPerEpoch },
   }
-  const { data: scoreValues, error: errorScore } = computeScore(params)
-  if (errorScore || !scoreValues)
-    return { error: `Error in ${validatorId}: ${errorScore}` }
+  const [scoreAreOk, errorScore, scoreValues] = computeScore(params)
+  if (!scoreAreOk)
+    return [false, errorScore, undefined]
   const score: Score = {
     ...scoreValues,
     validatorId,
     epochNumber: range.toEpoch,
     reason: '{}',
   }
-  return { data: { ...score, params } }
+  return [true, undefined, { ...score, params }]
 }
 
 /**
  * Given a range of epochs, it will compute the score for each validator entry found in the activity table.
  */
 export async function upsertScoresCurrentEpoch(): Result<CalculateScoreResult> {
-  const { data: range, error: errorRange } = await getRange(getRpcClient())
-  if (errorRange || !range)
-    return { error: errorRange || 'No range' }
+  const [rangeSuccess, errorRange, range] = await getRange(getRpcClient())
+  if (!rangeSuccess || !range)
+    return [false, errorRange || 'No range', undefined]
 
   const validatorsId = await getStoredValidatorsId()
   const scorePromises = validatorsId.map(validatorId => calculateScore(range, validatorId))
   const maybeRes = await Promise.all(scorePromises)
 
   // If we have an error, we stop
-  if (maybeRes.some(s => s.error))
-    return { error: maybeRes.map(s => s.error).join(', ') }
+  if (maybeRes.some(s => !s[0]))
+    return [false, maybeRes.filter(s => !s[0]).map(s => s[1]).join(', '), undefined]
 
-  const scores = maybeRes.map(s => s.data!)
+  const scores = maybeRes.map(s => s[2]!)
 
   // Write the scores to the database
   await useDrizzle()
@@ -112,5 +112,5 @@ export async function upsertScoresCurrentEpoch(): Result<CalculateScoreResult> {
       .execute()
   }
 
-  return { data: { scores, range } }
+  return [true, undefined, { scores, range }]
 }

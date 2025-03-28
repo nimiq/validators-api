@@ -6,8 +6,9 @@ export default defineNitroPlugin(async () => {
 
   hubHooks.hookOnce('database:migrations:done', async () => {
     consola.info('Running migrations...')
-    const { error } = await importValidators('filesystem')
-    if (error)
+    const [ok, error, validators] = await importValidators('filesystem')
+    if (!ok)
       throw new Error(`Error importing validators: ${error}`)
+    consola.success(`${validators.length} validators imported successfully`)
   })
 })

@@ -5,25 +5,25 @@ const consola = createConsola({ defaults: { tag: 'sync' } })
 
 export default defineEventHandler(async () => {
   consola.info('Starting syncing...')
-  const { data: importData, error: errorImport } = await importValidators('github')
-  if (!importData || errorImport)
+  const [importSuccess, errorImport, importData] = await importValidators('github')
+  if (!importSuccess || !importData)
     throw createError({ statusCode: 500, statusMessage: errorImport || 'Unable to import from GitHub' })
 
   consola.success('Imported from GitHub')
 
-  const { data: fetchEpochsData, error: fetchEpochsError } = await fetchMissingEpochs()
-  if (fetchEpochsError || !fetchEpochsData)
+  const [fetchEpochsSuccess, fetchEpochsError, fetchEpochsData] = await fetchMissingEpochs()
+  if (!fetchEpochsSuccess || !fetchEpochsData)
     throw createError({ statusCode: 500, statusMessage: fetchEpochsError || 'Unable to fetch missing epochs' })
   consola.success('Fetched missing epochs:', fetchEpochsData)
 
-  const { data: fetchActiveEpochData, error: fetchActiveEpochError } = await fetchActiveEpoch()
-  if (fetchActiveEpochError || !fetchActiveEpochData)
+  const [fetchActiveEpochSuccess, fetchActiveEpochError, fetchActiveEpochData] = await fetchActiveEpoch()
+  if (!fetchActiveEpochSuccess || !fetchActiveEpochData)
     throw createError({ statusCode: 500, statusMessage: fetchActiveEpochError })
   const { selectedValidators, unselectedValidators } = fetchActiveEpochData
   consola.success(`Fetched active epoch: ${fetchActiveEpochData.epochNumber} with ${selectedValidators.length} selected and ${unselectedValidators.length} unselected validators`)
 
-  const { data: scores, error: errorScores } = await upsertScoresCurrentEpoch()
-  if (errorScores || !scores)
+  const [scoresSuccess, errorScores, scores] = await upsertScoresCurrentEpoch()
+  if (!scoresSuccess || !scores)
     throw createError({ statusCode: 500, statusMessage: errorScores || 'Unable to fetch scores' })
 
   return { fetchEpochsData, fetchActiveEpochData, scores, importData }

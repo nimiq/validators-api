@@ -167,11 +167,11 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
       } satisfies FetchedValidator
     })
 
-    return { data: validators, error: undefined }
+    return [true, undefined, validators]
   }
   catch (error) {
     consola.error(`Error fetching validators: ${error}`)
-    return { data: undefined, error: JSON.stringify(error) }
+    return [false, JSON.stringify(error), undefined]
   }
 }
 
@@ -196,10 +196,10 @@ async function importValidatorsFromFiles(folderPath: string): Result<any[]> {
       rawValidators.push(JSON.parse(fileContent))
     }
     catch (error) {
-      return { error: `Invalid JSON in file: ${file}. Error: ${error}` }
+      return [false, `Invalid JSON in file: ${file}. Error: ${error}`, undefined]
     }
   }
-  return { data: rawValidators }
+  return [true, undefined, rawValidators]
 }
 
 /**
@@ -216,7 +216,7 @@ async function importValidatorsFromGitHub(path: string): Result<any[]> {
     consola.warn(`Error fetching file: ${e}`)
   }
   if (!response || !response.files)
-    return { error: 'No files found' }
+    return [false, 'No files found', undefined]
 
   const fileUrls = response.files
     .filter(file => file.path.startsWith(`${path}/`) && file.path.endsWith('.json') && !file.path.endsWith('.example.json'))
@@ -230,27 +230,27 @@ async function importValidatorsFromGitHub(path: string): Result<any[]> {
     return file.file.contents
   }))
   const validatorsJson = files.filter(Boolean).map(contents => JSON.parse(contents!))
-  return { data: validatorsJson }
+  return [true, undefined, validatorsJson]
 }
 
 export async function importValidators(source: 'filesystem' | 'github'): Result<ValidatorJSON[]> {
   const { nimiqNetwork } = useRuntimeConfig().public
   const path = `public/validators/${nimiqNetwork}`
-  const { data: validatorsData, error: errorReading } = source === 'filesystem'
+  const [importOk, errorReading, validatorsData] = source === 'filesystem'
     ? await importValidatorsFromFiles(path)
     : await importValidatorsFromGitHub(path)
-  if (errorReading || !validatorsData)
-    return { error: errorReading }
+  if (!importOk)
+    return [false, errorReading, undefined]
 
   const { success, data: validators, error } = validatorsSchema.safeParse(validatorsData)
   if (!success || !validators || error)
-    return { error: `Invalid validators data: ${error}` }
+    return [false, `Invalid validators data: ${error}`, undefined]
 
   const res = await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
   const errors = res.filter(r => r.status === 'rejected')
   if (errors.length > 0)
-    return { error: `There were errors while importing the validators: ${errors.map(e => e.reason)}` }
-  return { data: validators }
+    return [false, `There were errors while importing the validators: ${errors.map(e => e.reason)}`, undefined]
+  return [true, undefined, validators]
 }
 
 /**
@@ -267,21 +267,19 @@ export async function importValidators(source: 'filesystem' | 'github'): Result<
  */
 export async function categorizeValidatorsCurrentEpoch(): Result<CurrentEpochValidators> {
   const { nimiqNetwork } = useRuntimeConfig().public
-  const { data: epoch, error } = await fetchCurrentEpoch(getRpcClient(), { testnet: nimiqNetwork === 'test-albatross' })
-  if (!epoch || error)
-    return { error: error || 'No data' }
+  const [epochOk, error, epoch] = await fetchCurrentEpoch(getRpcClient(), { testnet: nimiqNetwork === 'test-albatross' })
+  if (!epochOk)
+    return [false, error, undefined]
 
   const dbAddresses = await getStoredValidatorsAddress()
   const selectedValidators = epoch.validators.filter(v => v.selected) as SelectedValidator[]
   const unselectedValidators = epoch.validators.filter(v => !v.selected) as UnselectedValidator[]
   const untrackedValidators = selectedValidators.filter(v => !dbAddresses.includes(v.address)) as (SelectedValidator & UnselectedValidator)[]
 
-  return {
-    data: {
-      epochNumber: epoch.epochNumber,
-      selectedValidators,
-      unselectedValidators,
-      untrackedValidators,
-    },
-  }
+  return [true, undefined, {
+    epochNumber: epoch.epochNumber,
+    selectedValidators,
+    unselectedValidators,
+    untrackedValidators,
+  }]
 }

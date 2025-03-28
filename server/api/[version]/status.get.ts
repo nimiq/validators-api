@@ -1,6 +1,7 @@
 import { BLOCK_SEPARATION_TIME, BLOCKS_PER_EPOCH, electionBlockAfter } from '@nimiq/utils/albatross-policy'
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { findMissingEpochs } from '~~/server/utils/activities'
+import { categorizeValidatorsCurrentEpoch } from '~~/server/utils/validators'
 
 /**
  * This endpoint returns the status of the API:
@@ -21,16 +22,17 @@ import { findMissingEpochs } from '~~/server/utils/activities'
  *   - Duration of epoch
  */
 
-export default defineEventHandler(async () => {
-  const client = getRpcClient()
+export default defineCachedEventHandler(async () => {
   const { nimiqNetwork } = useRuntimeConfig().public
 
-  const { data: range, error: errorRange } = await getRange(client)
-  if (errorRange || !range)
+  // We get a "window" whose size is determined by the range
+  const client = getRpcClient()
+  const [rangeSuccess, errorRange, range] = await getRange(client)
+  if (!rangeSuccess || !range)
     throw createError(errorRange || 'No range')
 
-  const { data: validatorsEpoch, error } = await categorizeValidatorsCurrentEpoch()
-  if (!validatorsEpoch || error)
+  const [validatorsSuccess, error, validatorsEpoch] = await categorizeValidatorsCurrentEpoch()
+  if (!validatorsSuccess || !validatorsEpoch)
     throw createError(error || 'No data')
 
   const { data: headBlockNumber, error: errorHeadBlockNumber } = await client.blockchain.getBlockNumber()
