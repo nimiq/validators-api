@@ -17,7 +17,7 @@ export default defineCachedEventHandler(async (event) => {
 
   return validators
 }, {
-  maxAge: 10 * 60, // 10 minutes
+  maxAge: import.meta.dev ? 0 : 10 * 60, // 10 minutes
   getKey(event) {
     const { 'only-known': onlyKnown, 'with-identicons': withIdenticons, force, 'payout-type': payoutType } = getQuery<MainQuerySchema>(event)
     return `validators:${onlyKnown}:${withIdenticons}:${force}:${payoutType}`

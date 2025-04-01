@@ -1,5 +1,7 @@
 <script setup lang="ts">
-defineProps<{ validators: ValidatorScore[] }>()
+import type { FetchedValidator } from '~~/server/utils/types'
+
+defineProps<{ validators: FetchedValidator[] }>()
 </script>
 
 <template>
@@ -40,7 +42,7 @@ defineProps<{ validators: ValidatorScore[] }>()
       <Copyable :content="validator.address" :style="{ 'view-transition-name': `address-${validator.id}` }" />
 
       <ScorePie
-        size-32 text-12 mx-auto :score="validator.total" :decimals="0"
+        size-32 text-12 mx-auto :score="validator.score.total!" :decimals="0"
         :style="{ 'view-transition-name': `score-${validator.id}` }"
       />
     </NuxtLink>

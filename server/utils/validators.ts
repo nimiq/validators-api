@@ -1,12 +1,11 @@
 import type { SQLWrapper } from 'drizzle-orm'
 import type { Result, SelectedValidator, UnselectedValidator } from 'nimiq-validator-trustscore/types'
-import type { Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
-import type { CurrentEpochValidators } from './types'
+import type { CurrentEpochValidators, FetchedValidator } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { fetchCurrentEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
@@ -87,14 +86,6 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
 
 export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber: number }
 
-type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
-  logo?: string
-  score: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
-  dominanceRatio: number | null
-  balance: number
-  activeInEpoch: boolean
-}
-
 export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
   const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
 
@@ -128,6 +119,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
           limit: 1,
         },
       },
+      orderBy: [desc(tables.scores.total)],
     })
 
     const validators = dbValidators.map((validator) => {

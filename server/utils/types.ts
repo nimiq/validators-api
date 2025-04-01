@@ -18,3 +18,11 @@ export interface CurrentEpochValidators {
    */
   untrackedValidators: (SelectedValidator | UnselectedValidator)[]
 }
+
+export type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
+  logo?: string
+  score: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
+  dominanceRatio: number | null
+  balance: number
+  activeInEpoch: boolean
+}
