@@ -21,7 +21,7 @@ const snapshotBlockFormatted = rangeFormatter.format(range.snapshotBlock)
 // For progress calculation
 const now = useNow({ interval: 1_000 })
 const currentEpochProgress = computed(() =>
-  100 - Math.max(0, Math.max(0, ((range.snapshotTimestamp - now.value.getTime()) / range.epochDurationMs) * 100)),
+  Math.ceil(100 - Math.max(0, Math.max(0, ((range.snapshotTimestamp - now.value.getTime()) / range.epochDurationMs) * 100))),
 )
 
 const snapshotTimestamp = new Date(range.snapshotTimestamp)
@@ -29,18 +29,18 @@ const countdown = computed(() => {
   const hoursLeft = String(Math.floor((snapshotTimestamp.getTime() - now.value.getTime()) / 3_600_000)).padStart(2, '0')
   const minutesLeft = String(Math.floor((snapshotTimestamp.getTime() - now.value.getTime()) / 60_000) % 60).padStart(2, '0')
   const secondsLeft = String(Math.floor((snapshotTimestamp.getTime() - now.value.getTime()) / 1_000) % 60).padStart(2, '0')
-  return `in ~${hoursLeft}:${minutesLeft}:${secondsLeft}`
+  return `ends in ~${hoursLeft}:${minutesLeft}:${secondsLeft}`
 })
 </script>
 
 <template>
   <DefineEpoch v-slot="{ epochNumber, timestamp, blockNumberFormatted }">
     <div flex="~ col items-center" relative z-10>
-      <div outline="1.5 ~ neutral/10" bg-neutral-50 rounded-8 f-p-2xs size-80 flex="~ col justify-center items-center gap-2">
+      <div outline="1.5 ~ offset--1.5 neutral/10" bg-neutral-50 rounded-8 f-p-2xs size-80 flex="~ col justify-center items-center gap-2">
         <span font-bold text="f-md neutral-900">{{ epochNumber }}</span>
         <span text="neutral-700 10">{{ blockNumberFormatted }}</span>
       </div>
-      <RelativeTime v-if="timestamp" absolute bottom--16 :timestamp />
+      <RelativeTime v-if="timestamp" :timestamp />
     </div>
   </DefineEpoch>
 
@@ -89,7 +89,7 @@ const countdown = computed(() => {
 }
 
 .progress-indicator {
-  --uno: 'block relative  bg-blue size-full h-16 translate-x-$offset-x';
+  --uno: 'block relative  bg-blue size-full h-16 translate-x-$offset-x rounded-r-2';
   transition: transform 0.3s ease-in-out;
   /*       class="indicator rounded-full block relative w-full h-full bg-grass9 transition-transform overflow-hidden duration-[660ms] ease-[cubic-bezier(0.65, 0, 0.35, 1)] after:animate-progress after:content-[''] after:absolute after:inset-0  after:bg-[linear-gradient(-45deg,_rgba(255,255,255,0.2)_25%,_transparent_25%,_transparent_50%,_rgba(255,255,255,0.2)_50%,_rgba(255,255,255,0.2)_75%,_transparent_75%,_transparent)] after:bg-[length:30px_30px]" */
 

@@ -15,7 +15,7 @@ const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, lab
 <template>
   <div>
     <DefineStat v-slot="{ label, value, color, $slots }">
-      <div flex="~ col gap-12" outline="~ 1.5 neutral/6" rounded-8 f-p-md shadow>
+      <div flex="~ col gap-12" outline="~ 1.5 neutral/6" rounded-8 f-p-md shadow relative z-1 bg-neutral-0>
         <span nq-label text="11 neutral-800">
           {{ label }}
         </span>
@@ -35,8 +35,8 @@ const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, lab
       There was an error: {{ JSON.stringify({ statusFetchError: statusError, validatorsStatusError: validatorsError }) }}
     </div>
     <div v-else-if="statusFetch === 'success' && validatorsStatus === 'success' && validators" flex="~ col" pt-64 pb-128>
-      <div grid="~ cols-6 gap-24">
-        <Stat label="Validators" col-span-2>
+      <div grid="~ cols-6 gap-24" isolate-auto>
+        <Stat label="Validators">
           <span>
             <span :title="`${status?.validators?.selectedValidators?.length} selected validators`" text-gold>
               {{ status?.validators?.selectedValidators?.length }}
@@ -44,14 +44,17 @@ const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, lab
             <span text="neutral-600 f-sm" :title="`${status?.validators?.unselectedValidators?.length} tracked validators`"> / {{ status?.validators?.unselectedValidators?.length }}</span>
           </span>
         </Stat>
-        <Stat :value="status!.range.currentEpoch" label="Current epoch" color="green" col-span-2 />
-        <Stat :value="averageScore" label="Avg. Score" color="purple" col-span-2 />
-        <Stat label="Score window" col-span-3>
-          <Window v-if="status?.range" :range="status.range" />
-        </Stat>
-        <Stat label="Stake distribution" col-span-3>
+        <Stat :value="status!.range.currentEpoch" label="Stakers" color="purple" row-start-2 />
+        <Stat label="Stake distribution" col-span-2 row-span-2>
           <StakingDistributionDonut />
         </Stat>
+        <Stat label="Stake distribution" col-span-3 row-span-2>
+          <StakingDistributionDonut />
+        </Stat>
+        <Stat label="Score window" col-span-4 z-20>
+          <Window v-if="status?.range" :range="status.range" />
+        </Stat>
+        <Stat :value="averageScore" label="Avg. Score" color="purple" col-span-1 />
       </div>
 
       <ValidatorsTable :validators mt-96 />
