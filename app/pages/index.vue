@@ -48,13 +48,44 @@ const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, lab
         <Stat label="Stake distribution" col-span-2 row-span-2>
           <StakingDistributionDonut />
         </Stat>
-        <Stat label="Stake distribution" col-span-3 row-span-2>
-          <StakingDistributionDonut />
+        <Stat label="Validator distribution" col-span-3 row-span-2 relative>
+          <div flex="~ gap-32 items-center">
+            <ValidatorDistributionDonut :validators />
+            <div absolute right--0 top--0>
+              <ScrollAreaRoot absolute flex-1 relative of-hidden style="--scrollbar-size: 8px" h-256>
+                <div absolute top-0 z-10 w-full h-16 bg-gradient-to-t from-transparent to-white rounded-tr-8 />
+                <ScrollAreaViewport size-full>
+                  <ul f-p-xs flex="~ col gap-12">
+                    <li v-for="validator in validators" :key="validator.id" f-text-xs flex="~ justify-between items-center gap-8" f-text-sm>
+                      <Identicon :validator f-size-md />
+                      <div flex="~ col" flex-1>
+                        <div flex="~ justify-between gap-32 items-baseline">
+                          <span text-ellipsis>
+                            {{ validator.name }}
+                          </span>
+                          <span flex op-80>
+                            {{ nimFormatter.format(validator.balance / 1e5) }} NIM
+                          </span>
+                        </div>
+                        <span nq-label letter-spacing="0px">
+                          {{ validator.address.slice(0, 4) }}...{{ validator.address.slice(-4) }}
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
+                </ScrollAreaViewport>
+                <ScrollAreaScrollbar flex select-none touch-none p-1 z-20 bg="neutral-100 hocus:neutral-200" transition-colors duration-160 ease-out w-12 overscroll-contain rounded-r-8>
+                  <ScrollAreaThumb flex-1 bg-neutral="300 hocus:400" relative before="absolute top-50% left-50% translate-x-50% translate-y-50% size-full min-w-40 min-h-40" rounded-full />
+                </ScrollAreaScrollbar>
+                <div absolute bottom-0 z-10 w-full h-16 bg-gradient-to-b from-transparent to-white rounded-br-8 />
+              </ScrollAreaRoot>
+            </div>
+          </div>
         </Stat>
-        <Stat label="Score window" col-span-4 z-20>
+        <Stat label="Score epoch window" col-span-4 z-20>
           <Window v-if="status?.range" :range="status.range" />
         </Stat>
-        <Stat :value="averageScore" label="Avg. Score" color="purple" col-span-1 />
+        <Stat :value="decimalsFormatter.format(averageScore * 100)" label="Avg. Score" color="purple" col-span-1 />
       </div>
 
       <ValidatorsTable :validators mt-96 />

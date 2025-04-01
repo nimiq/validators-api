@@ -4,7 +4,6 @@ import type { DonutDatum } from './Donut.client.vue'
 
 const { data: distribution, status, error } = await useFetch('/api/v1/distribution')
 
-const percentageFormatter = new Intl.NumberFormat('en', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const stakedRatio = computed(() => distribution.value?.stakedRatio)
 
 const datum = computed(() => {
@@ -19,15 +18,8 @@ const datum = computed(() => {
 // Center the donut chart so the staked amount center points to the right
 const startAngle = computed(() => (90 - 180 * (datum.value.at(0)?.value || 0)))
 
-// formatter for big numbers
-const formatter = new Intl.NumberFormat('en', {
-  notation: 'compact',
-  compactDisplay: 'short',
-  maximumFractionDigits: 1,
-})
-
-const formattedCirculating = computed(() => `${formatter.format(distribution.value?.circulating || 0)} NIM`)
-const formattedStakedAmount = computed(() => `${formatter.format(distribution.value?.staked || 0)} NIM`)
+const formattedCirculating = computed(() => `${nimFormatter.format(distribution.value?.circulating || 0)} NIM`)
+const formattedStakedAmount = computed(() => `${nimFormatter.format(distribution.value?.staked || 0)} NIM`)
 </script>
 
 <template>

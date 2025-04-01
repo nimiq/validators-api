@@ -108,6 +108,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
             dominance: true,
             reliability: true,
           },
+          orderBy: [desc(tables.scores.total)],
         },
         activity: {
           where: eq(tables.scores.epochNumber, epochNumber + 1),
@@ -119,7 +120,6 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
           limit: 1,
         },
       },
-      orderBy: [desc(tables.scores.total)],
     })
 
     const validators = dbValidators.map((validator) => {

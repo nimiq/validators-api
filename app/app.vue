@@ -64,7 +64,7 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
             </CollapsibleContent>
           </CollapsibleRoot>
 
-          <div flex="~ items-center gap-8" f-px-2xs py-6 :title="`Status for git+${gitBranch}@nimiq+${nimiqNetwork}`" :class="statusRequest === 'pending' ? 'bg-neutral-400' : isHealthy ? 'bg-green-400' : 'bg-red-400'">
+          <div flex="~ items-center gap-8" f-px-2xs py-6 whitespace-nowrap :title="`Status for git+${gitBranch}@nimiq+${nimiqNetwork}`" :class="statusRequest === 'pending' ? 'bg-neutral-400' : isHealthy ? 'bg-green-400' : 'bg-red-400'">
             <template v-if="statusRequest === 'pending'">
               <div i-nimiq:spinner />
               Getting health
