@@ -206,7 +206,7 @@ async function importValidatorsFromFiles(folderPath: string): Result<any[]> {
  * Import validators from GitHub. Useful since in cloudflare runtime we don't have access to the file system.
  */
 async function importValidatorsFromGitHub(path: string): Result<any[]> {
-  const { gitBranch } = useRuntimeConfig()
+  const { gitBranch } = useRuntimeConfig().public
   const url = `https://ungh.cc/repos/nimiq/validators-api/files/${gitBranch}`
   let response
   try {
@@ -266,8 +266,8 @@ export async function importValidators(source: 'filesystem' | 'github'): Result<
  *   untracked validators is a rare exception since, we rarely have new validators.
  */
 export async function categorizeValidatorsCurrentEpoch(): Result<CurrentEpochValidators> {
-  const { nimiqNetwork } = useRuntimeConfig().public
-  const [epochOk, error, epoch] = await fetchCurrentEpoch(getRpcClient(), { testnet: nimiqNetwork === 'test-albatross' })
+  const { nimiqNetwork: network } = useRuntimeConfig().public
+  const [epochOk, error, epoch] = await fetchCurrentEpoch(getRpcClient(), { network })
   if (!epochOk)
     return [false, error, undefined]
 

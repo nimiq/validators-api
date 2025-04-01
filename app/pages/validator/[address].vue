@@ -21,7 +21,7 @@ const validator = undefined as any
         v-if="validator.isMaintainedByNimiq" nq-pill-sm self-start bg-green-400 text-green-1100 nq-pill-secondary
         flex="~ items-center gap-8"
       >
-        <div aria-hidden i-nimiq:icons-lg-verified-filled />
+        <div aria-hidden i-nimiq:verified-filled />
         <span>Maintained by Nimiq</span>
       </div>
       <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill-sm ml-auto self-start nq-arrow nq-pill-tertiary>

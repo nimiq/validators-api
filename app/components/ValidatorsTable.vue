@@ -32,7 +32,7 @@ defineProps<{ validators: ValidatorScore[] }>()
           {{ validator.name }}
         </h2>
         <div
-          v-if="validator.isMaintainedByNimiq" i-nimiq:icons-lg-verified-filled text="13 green/70"
+          v-if="validator.isMaintainedByNimiq" i-nimiq:verified-filled text="13 green/70"
           title="Maintained by Nimiq"
         />
       </div>

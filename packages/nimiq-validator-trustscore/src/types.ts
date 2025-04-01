@@ -124,6 +124,38 @@ export interface Range {
 
   // The amount of epochs in the range
   epochCount: number
+
+  // The timestamp of the first block in the range
+  fromTimestamp: number
+
+  // The timestamp of the last block in the range
+  toTimestamp: number
+
+  /**
+   * The epoch used for network size/balance snapshot measurements.
+   * This is the epoch immediately following the analysis window (toEpoch + 1).
+   * Used to determine validators' stake sizes and network dominance at the end of the analysis period.
+   */
+  snapshotEpoch: number
+
+  /**
+   * The block number of the snapshot election block.
+   * This is the block number of the first block of the snapshot epoch.
+   */
+  snapshotBlock: number
+
+  /**
+   * The timestamp of the snapshot election block.
+   */
+  snapshotTimestamp: number
+
+  /**
+   * The duration of the epoch in milliseconds.
+   * This is the time it takes to produce a single epoch.
+   * Is calculated as:
+   * - BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH - BLOCK_SEPARATION_TIME * BATCHES_PER_EPOCH
+   */
+  epochDurationMs: number
 }
 
 export type ResultSync<T> = [true, undefined, T] | [false, string, undefined]

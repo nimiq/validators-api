@@ -1,17 +1,19 @@
 import { presetNimiq } from 'nimiq-css'
-import { defineConfig, presetAttributify, presetWind3 } from 'unocss'
+import { defineConfig, presetIcons, presetWind3 } from 'unocss'
+import { presetOnmax } from 'unocss-preset-onmax'
 import { presetScalePx } from 'unocss-preset-scale-px'
 
 export default defineConfig({
   presets: [
     presetWind3({ attributifyPseudo: true }),
+    presetOnmax({ presets: { wind4: false } }),
     presetNimiq({
       utilities: true,
-      typography: true,
       attributifyUtilities: true,
+      typography: true,
     }),
     presetScalePx(),
-    presetAttributify(),
+    presetIcons(),
   ],
   rules: [
     [/^view-transition-([\w-]+)$/, ([, name]) => ({ 'view-transition-name': name })],

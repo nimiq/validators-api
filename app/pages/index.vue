@@ -9,19 +9,22 @@ const averageScore = computed(() => {
   return totalScore / scores.length
 })
 
-const [DefineStat, Stat] = createReusableTemplate<{ value?: number, label: string }>()
+const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, label: string, color?: string }>()
 </script>
 
 <template>
   <div>
-    <DefineStat v-slot="{ label, value }">
-      <div flex="~ col">
-        <span text-32 font-semibold lh-none v-bind="$attrs">
-          <slot name="default">{{ value }}</slot>
-        </span>
+    <DefineStat v-slot="{ label, value, color, $slots }">
+      <div flex="~ col gap-12" outline="~ 1.5 neutral/6" rounded-8 f-p-md shadow>
         <span nq-label text="11 neutral-800">
           {{ label }}
         </span>
+        <div text-32 font-semibold lh-none v-bind="$attrs" flex="~ items-center" :style="`color: rgb(var(--nq-${color}))`" h-full>
+          <component :is="$slots.default" v-if="!value" />
+          <span v-else justify-self-start w-max font-semibold>
+            {{ value }}
+          </span>
+        </div>
       </div>
     </DefineStat>
 
@@ -32,23 +35,26 @@ const [DefineStat, Stat] = createReusableTemplate<{ value?: number, label: strin
       There was an error: {{ JSON.stringify({ statusFetchError: statusError, validatorsStatusError: validatorsError }) }}
     </div>
     <div v-else-if="statusFetch === 'success' && validatorsStatus === 'success' && validators" flex="~ col" pt-64 pb-128>
-      <div flex="~ wrap gap-96 justify-center" of-x-auto mx--32 px-32 pb-64>
-        <Stat label="Validators" text-gold>
-          <template #default>
-            {{ status?.validators?.selectedValidators?.length }} <span text="neutral-600 f-sm">out of {{ status?.validators?.unselectedValidators?.length }}</span>
-          </template>
+      <div grid="~ cols-6 gap-24">
+        <Stat label="Validators" col-span-2>
+          <span>
+            <span :title="`${status?.validators?.selectedValidators?.length} selected validators`" text-gold>
+              {{ status?.validators?.selectedValidators?.length }}
+            </span>
+            <span text="neutral-600 f-sm" :title="`${status?.validators?.unselectedValidators?.length} tracked validators`"> / {{ status?.validators?.unselectedValidators?.length }}</span>
+          </span>
         </Stat>
-        <Stat :value="status!.range.currentEpoch" label="Current epoch" text-green />
-        <Stat :value="averageScore" label="Avg. Score" text-purple />
+        <Stat :value="status!.range.currentEpoch" label="Current epoch" color="green" col-span-2 />
+        <Stat :value="averageScore" label="Avg. Score" color="purple" col-span-2 />
+        <Stat label="Score window" col-span-3>
+          <Window v-if="status?.range" :range="status.range" />
+        </Stat>
+        <Stat label="Stake distribution" col-span-3>
+          <StakingDistributionDonut />
+        </Stat>
       </div>
 
       <ValidatorsTable :validators mt-96 />
-
-      <h2 text-center mt-128>
-        Dominance distribution
-      </h2>
-
-      <Donut :data="validators" mt-48 />
     </div>
   </div>
 </template>

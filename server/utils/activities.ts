@@ -93,9 +93,10 @@ const EPOCHS_IN_PARALLEL = 3
  */
 export async function fetchMissingEpochs(): Result<number[]> {
   const client = getRpcClient()
+  const { nimiqNetwork: network } = useRuntimeConfig().public
 
   // The range that we will consider
-  const [rangeSuccess, errorRange, range] = await getRange(client)
+  const [rangeSuccess, errorRange, range] = await getRange(client, { network })
   if (!rangeSuccess || !range)
     return [false, errorRange || 'No range', undefined]
 

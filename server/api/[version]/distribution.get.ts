@@ -25,8 +25,10 @@ export default defineCachedEventHandler(async () => {
 
   const { data: latestBlock, error } = await getRpcClient().blockchain.getLatestBlock()
   if (error)
-    return createError(error)
-  const circulating = posSupplyAt(latestBlock.timestamp)
+    throw createError(error)
+
+  const network = useRuntimeConfig().public.nimiqNetwork as 'test-albatross' | 'main-albatross'
+  const circulating = posSupplyAt(latestBlock.timestamp, { network })
 
   const stakedRatio = staked / circulating
   return { staked, circulating, stakedRatio }

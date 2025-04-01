@@ -10,14 +10,7 @@ import wasm from 'vite-plugin-wasm'
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
-  modules: [
-    '@vueuse/nuxt',
-    '@unocss/nuxt',
-    '@nuxtjs/color-mode',
-    '@nuxt/eslint',
-    '@nuxthub/core',
-    '@nuxt/image',
-  ],
+  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-time'],
 
   hub: {
     database: true,
@@ -27,8 +20,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     rpcUrl: process.env.NUXT_RPC_URL || '',
-    gitBranch: 'dev', // Modified in the build hook
     public: {
+      gitBranch: 'dev', // Modified in the build hook
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
     },
   },
@@ -65,13 +58,18 @@ export default defineNuxtConfig({
     },
   },
 
+  components: [
+    { path: '~/components/[UI]', pathPrefix: false },
+    '~/components',
+  ],
+
   hooks: {
     'build:before': async () => {
     },
     'ready': (nuxt) => {
       // 1. Modify runtimeConfig
       const gitBranch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
-      nuxt.options.runtimeConfig.gitBranch = gitBranch
+      nuxt.options.runtimeConfig.public.gitBranch = gitBranch
 
       // 2. Log runtimeConfig
       const nimiqNetwork = nuxt.options.runtimeConfig.public.nimiqNetwork

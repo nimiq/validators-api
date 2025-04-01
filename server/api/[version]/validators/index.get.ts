@@ -4,9 +4,10 @@ import { fetchValidators } from '~~/server/utils/validators'
 
 export default defineCachedEventHandler(async (event) => {
   const queryParams = await getValidatedQuery(event, mainQuerySchema.parse)
+  const { nimiqNetwork: network } = useRuntimeConfig().public
 
   const client = getRpcClient()
-  const [rangeSuccess, errorRange, range] = await getRange(client)
+  const [rangeSuccess, errorRange, range] = await getRange(client, { network })
   if (!rangeSuccess || !range)
     throw createError({ statusCode: 404, statusMessage: errorRange })
 

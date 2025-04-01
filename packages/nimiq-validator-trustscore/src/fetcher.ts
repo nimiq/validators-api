@@ -1,20 +1,15 @@
+import type { BaseAlbatrossPolicyOptions } from '@nimiq/utils/albatross-policy'
 import type { ElectionMacroBlock, NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { CurrentEpoch, EpochActivity, Result, ResultSync, SelectedValidator, UnselectedValidator } from './types'
 import { BATCHES_PER_EPOCH, electionBlockOf, isElectionBlockAt, SLOTS } from '@nimiq/utils/albatross-policy'
 import { InherentType } from 'nimiq-rpc-client-ts'
 
-export interface FetchActivityOptions {
+export interface FetchActivityOptions extends Pick<BaseAlbatrossPolicyOptions, 'network'> {
   /**
    * The maximum number of retries to fetch the activity for a given batch.
    * @default 5
    */
   maxRetries?: number
-
-  /**
-   * Whether to use the testnet or mainnet (since the migration block is different).
-   * @default false
-   */
-  testnet?: boolean
 }
 
 /**
@@ -22,9 +17,9 @@ export interface FetchActivityOptions {
  * The block number MUST be an election block otherwise it will return an error result.
  */
 export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, options: FetchActivityOptions = {}): Result<EpochActivity> {
-  const { maxRetries = 5, testnet = false } = options
+  const { maxRetries = 5, network = 'mainnet' } = options
   // Epochs start at 1, but election block is the first block of the epoch
-  const electionBlock = electionBlockOf(epochIndex, { testnet })!
+  const electionBlock = electionBlockOf(epochIndex, { network })!
   const { data: block, error: errorBlockNumber } = await client.blockchain.getBlockByNumber(electionBlock, { includeBody: false })
   if (errorBlockNumber || !block) {
     console.error(JSON.stringify({ epochIndex, error: errorBlockNumber, block }))
@@ -151,6 +146,8 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
   }
 }
 
+interface FetchCurrentEpochOptions extends Pick<BaseAlbatrossPolicyOptions, 'network'> {}
+
 /**
  * This function returns the validators information for the current epoch.
  *
@@ -168,7 +165,8 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
  * └────────────────────┘
  *
  */
-export async function fetchCurrentEpoch(client: NimiqRPCClient, { testnet = false }: { testnet?: boolean }): Result<CurrentEpoch> {
+export async function fetchCurrentEpoch(client: NimiqRPCClient, options: FetchCurrentEpochOptions = {}): Result<CurrentEpoch> {
+  const { network = 'mainnet' } = options
   const { data: validatorsStakingContract, error: errorValidators } = await client.blockchain.getValidators()
   if (errorValidators || !validatorsStakingContract)
     return [false, JSON.stringify({ error: errorValidators, validatorsStakingContract }), undefined]
@@ -178,9 +176,9 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient, { testnet = fals
     return [false, JSON.stringify({ error, epochNumber: currentEpochNumber }), undefined]
   const previousEpochNumber = currentEpochNumber - 1
 
-  const electionBlockPreviousEpoch = electionBlockOf(previousEpochNumber - 1, { testnet })! + 1
+  const electionBlockPreviousEpoch = electionBlockOf(previousEpochNumber, { network })!
 
-  if (!isElectionBlockAt(electionBlockPreviousEpoch, { testnet }))
+  if (!isElectionBlockAt(electionBlockPreviousEpoch, { network }))
     return [false, JSON.stringify({ message: `${electionBlockPreviousEpoch} is not an election block` }), undefined]
 
   // We retrieve the election block because we need the slots distribution

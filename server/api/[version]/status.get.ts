@@ -1,4 +1,3 @@
-import { BLOCK_SEPARATION_TIME, BLOCKS_PER_EPOCH, electionBlockAfter } from '@nimiq/utils/albatross-policy'
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { findMissingEpochs } from '~~/server/utils/activities'
 import { categorizeValidatorsCurrentEpoch } from '~~/server/utils/validators'
@@ -23,11 +22,11 @@ import { categorizeValidatorsCurrentEpoch } from '~~/server/utils/validators'
  */
 
 export default defineCachedEventHandler(async () => {
-  const { nimiqNetwork } = useRuntimeConfig().public
+  const { nimiqNetwork: network } = useRuntimeConfig().public
 
   // We get a "window" whose size is determined by the range
   const client = getRpcClient()
-  const [rangeSuccess, errorRange, range] = await getRange(client)
+  const [rangeSuccess, errorRange, range] = await getRange(client, { network })
   if (!rangeSuccess || !range)
     throw createError(errorRange || 'No range')
 
@@ -38,22 +37,12 @@ export default defineCachedEventHandler(async () => {
   const { data: headBlockNumber, error: errorHeadBlockNumber } = await client.blockchain.getBlockNumber()
   if (errorHeadBlockNumber || !headBlockNumber)
     throw createError(errorHeadBlockNumber || 'No head block number')
-  const nextEpochBlockNumber = electionBlockAfter(headBlockNumber, { testnet: nimiqNetwork === 'test-albatross' })
-  const blocksUntilNextEpoch = nextEpochBlockNumber - headBlockNumber
-  const expectedTimestampNextEpochStart = new Date(Date.now() + blocksUntilNextEpoch * BLOCK_SEPARATION_TIME * 1000)
-
   const missingEpochs = await findMissingEpochs(range)
 
   return {
     range,
     validators: validatorsEpoch,
     missingEpochs,
-    blockchain: {
-      nimiqNetwork,
-      headBlockNumber,
-      currentEpoch: validatorsEpoch.epochNumber,
-      expectedTimestampNextEpochStart,
-      epochDurationMs: BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH,
-    },
+    blockchain: { network, headBlockNumber },
   }
 })
