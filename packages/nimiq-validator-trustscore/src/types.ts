@@ -74,6 +74,7 @@ export interface BaseValidator {
   address: string
   dominanceRatioViaBalance: number
   dominanceRatioViaSlots: number
+  stakers: number
 }
 
 export interface SelectedValidator extends BaseValidator {

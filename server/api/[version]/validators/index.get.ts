@@ -1,6 +1,6 @@
-import type { MainQuerySchema } from '~~/server/utils/schemas'
+import type { FetchValidatorsOptions } from '~~/server/utils/validators'
 import { getRange } from '~~/packages/nimiq-validator-trustscore/src/range'
-import { fetchValidators } from '~~/server/utils/validators'
+import { cachedFetchValidators, fetchValidators } from '~~/server/utils/validators'
 
 export default defineCachedEventHandler(async (event) => {
   const queryParams = await getValidatedQuery(event, mainQuerySchema.parse)
@@ -11,15 +11,11 @@ export default defineCachedEventHandler(async (event) => {
   if (!rangeSuccess || !range)
     throw createError({ statusCode: 404, statusMessage: errorRange })
 
-  const [validatorsSuccess, errorValidators, validators] = await fetchValidators({ ...queryParams, epochNumber: range.toEpoch })
+  const resolvedParams: FetchValidatorsOptions = { epochNumber: range.toEpoch, ...queryParams }
+  const fn = queryParams.force ? fetchValidators : cachedFetchValidators
+  const [validatorsSuccess, errorValidators, validators] = await fn(event, resolvedParams)
   if (!validatorsSuccess || !validators)
     throw createError({ statusCode: 500, statusMessage: errorValidators || 'Failed to fetch validators' })
 
   return validators
-}, {
-  maxAge: import.meta.dev ? 0 : 10 * 60, // 10 minutes
-  getKey(event) {
-    const { 'only-known': onlyKnown, 'with-identicons': withIdenticons, force, 'payout-type': payoutType } = getQuery<MainQuerySchema>(event)
-    return `validators:${onlyKnown}:${withIdenticons}:${force}:${payoutType}`
-  },
 })

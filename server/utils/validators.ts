@@ -1,11 +1,12 @@
 import type { SQLWrapper } from 'drizzle-orm'
+import type { H3Event } from 'h3'
 import type { Result, SelectedValidator, UnselectedValidator } from 'nimiq-validator-trustscore/types'
 import type { ValidatorJSON } from './schemas'
 import type { CurrentEpochValidators, FetchedValidator } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { fetchCurrentEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
@@ -86,7 +87,7 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
 
 export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber: number }
 
-export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
+export async function fetchValidators(_event: H3Event, params: FetchValidatorsOptions): Result<FetchedValidator[]> {
   const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
 
   const filters: SQLWrapper[] = []
@@ -108,7 +109,10 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
             dominance: true,
             reliability: true,
           },
-          orderBy: [desc(tables.scores.total)],
+          // Currently not able to order by nested key. Let's wait for this issues to be fixed:
+          // - https://github.com/drizzle-team/drizzle-orm/issues/2650
+          // - https://github.com/drizzle-team/drizzle-orm/discussions/2639
+          // orderBy: (scores, { desc }) => [desc(scores.total)],
         },
         activity: {
           where: eq(tables.scores.epochNumber, epochNumber + 1),
@@ -116,6 +120,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
             dominanceRatioViaBalance: true,
             dominanceRatioViaSlots: true,
             balance: true,
+            stakers: true,
           },
           limit: 1,
         },
@@ -136,7 +141,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         // Gracefully handle the case where the validator has no activity for the next epoch
         // But, if this happens there is a bug
         consola.warn(`Validator ${validator.address} has no activity for epoch ${epochNumber}`)
-        activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1 })
+        activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0 })
       }
 
       const score: FetchedValidator['score'] = {
@@ -146,7 +151,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         total: !Object.values(scores[0]!).includes(-1) ? scores[0]!.total : null,
       }
 
-      const { dominanceRatioViaBalance, dominanceRatioViaSlots, balance } = activity[0]!
+      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1, balance = -1, stakers = 0 } = activity[0]!
 
       return {
         ...rest,
@@ -154,18 +159,28 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         hasDefaultLogo,
         logo: !withIdenticons && hasDefaultLogo ? undefined : logo,
         dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
-        balance: balance!,
+        balance,
+        stakers,
         activeInEpoch: !!(dominanceRatioViaBalance || dominanceRatioViaSlots),
       } satisfies FetchedValidator
     })
 
-    return [true, undefined, validators]
+    // TODO Remove this when the issue is fixed. See comment above
+    const sorted = validators.sort((a, b) => a.score.total! < b.score.total! ? 1 : -1)
+
+    return [true, undefined, sorted]
   }
   catch (error) {
     consola.error(`Error fetching validators: ${error}`)
     return [false, JSON.stringify(error), undefined]
   }
 }
+
+export const cachedFetchValidators = defineCachedFunction((_event: H3Event, params: FetchValidatorsOptions) => fetchValidators(_event, params), {
+  maxAge: import.meta.dev ? 0 : 10 * 60, // 10 minutes
+  name: 'validators',
+  getKey: (_event, p) => `validators:${p['only-known']}:${p['with-identicons']}:${p['payout-type']}:${p.epochNumber}`,
+})
 
 /**
  * Import validators from a folder containing .json files.

@@ -5,18 +5,10 @@ const { range } = defineProps<{ range: Range }>()
 
 const [DefineEpoch, Epoch] = createReusableTemplate()
 
-const rangeFormatter = new Intl.NumberFormat(locale.value, {
-  style: 'decimal',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
-  notation: 'standard',
-  useGrouping: true,
-})
-
 // Formatting for display
-const fromBlockFormatted = rangeFormatter.format(range.fromBlockNumber)
-const toBlockFormatted = rangeFormatter.format(range.toBlockNumber)
-const snapshotBlockFormatted = rangeFormatter.format(range.snapshotBlock)
+const fromBlockFormatted = largeNumberFormatter.format(range.fromBlockNumber)
+const toBlockFormatted = largeNumberFormatter.format(range.toBlockNumber)
+const snapshotBlockFormatted = largeNumberFormatter.format(range.snapshotBlock)
 
 // For progress calculation
 const now = useNow({ interval: 1_000 })
@@ -30,6 +22,10 @@ const countdown = computed(() => {
   const minutesLeft = String(Math.floor((snapshotTimestamp.getTime() - now.value.getTime()) / 60_000) % 60).padStart(2, '0')
   const secondsLeft = String(Math.floor((snapshotTimestamp.getTime() - now.value.getTime()) / 1_000) % 60).padStart(2, '0')
   return `ends in ~${hoursLeft}:${minutesLeft}:${secondsLeft}`
+})
+const snapshotInThePast = computed(() => {
+  const now = new Date()
+  return snapshotTimestamp.getTime() < now.getTime()
 })
 </script>
 
@@ -63,11 +59,17 @@ const countdown = computed(() => {
       :timestamp="range.toTimestamp"
     />
     <div flex-1 relative>
-      <ProgressRoot v-model="currentEpochProgress" data-allow-mismatch flex="~ col" of-hidden bg-neutral-300 h-12 w-full :style="`--progress: ${currentEpochProgress}%; --offset-x: calc(var(--progress) - 100%)`" outline="~ 1.5 neutral-0">
-        <ProgressIndicator class="progress-indicator" data-allow-mismatch />
+      <ProgressRoot v-model="currentEpochProgress" data-allow-mismatch flex="~ col" of-hidden bg-neutral-300 h-12 w-full :style="`--progress: ${currentEpochProgress}%; --offset-x: calc(var(--progress) - 100%)`" outline="~ 1.5 neutral-0" :class="{ 'bg-red-400': snapshotInThePast }">
+        <ProgressIndicator v-if="!snapshotInThePast" class="progress-indicator" data-allow-mismatch />
       </ProgressRoot>
-      <span data-allow-mismatch h-max absolute bottom--16 text="f-2xs neutral-800 center" inset-x-0 whitespace-nowrap :timestamp="range.snapshotTimestamp">
+      <span v-if="!snapshotInThePast" data-allow-mismatch h-max absolute bottom--16 text="f-2xs neutral-800 center" inset-x-0 whitespace-nowrap :timestamp="range.snapshotTimestamp">
         {{ countdown }}
+      </span>
+      <span v-else h-max absolute bottom--24 flex="~ items-center justify-center gap-8" text="f-2xs red-1100" inset-x-0 mx-auto f-px-sm>
+        <div i-nimiq:alert op-80 scale-80 />
+        <p>
+          The current epoch {{ range.snapshotEpoch }} has ended<br> but not yet been processed.
+        </p>
       </span>
     </div>
     <Epoch

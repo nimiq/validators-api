@@ -48,7 +48,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
     const dominanceRatioViaSlots = likelihood / SLOTS
     const balance = -1
     const dominanceRatioViaBalance = -1
-    epochActivity[validator] = { address: validator, likelihood, missed: 0, rewarded: 0, dominanceRatioViaBalance, dominanceRatioViaSlots, balance, selected: true }
+    epochActivity[validator] = { address: validator, likelihood, missed: 0, rewarded: 0, dominanceRatioViaBalance, dominanceRatioViaSlots, balance, selected: true, stakers: 0 } as SelectedValidator
   }
 
   const maxBatchSize = 120
@@ -146,7 +146,7 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
   }
 }
 
-interface FetchCurrentEpochOptions extends Pick<BaseAlbatrossPolicyOptions, 'network'> {}
+interface FetchCurrentEpochOptions extends Pick<BaseAlbatrossPolicyOptions, 'network'> { }
 
 /**
  * This function returns the validators information for the current epoch.
@@ -199,12 +199,12 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient, options: FetchCu
     const isSelected = slotsDistribution[address] !== undefined
     let data: SelectedValidator | UnselectedValidator
     if (!isSelected) {
-      const defaultValues: Pick<UnselectedValidator, 'missed' | 'rewarded' | 'dominanceRatioViaSlots' | 'likelihood'> = { missed: -1, rewarded: -1, dominanceRatioViaSlots: -1, likelihood: -1 }
+      const defaultValues: Pick<UnselectedValidator, 'missed' | 'rewarded' | 'dominanceRatioViaSlots' | 'likelihood' | 'stakers'> = { missed: -1, rewarded: -1, dominanceRatioViaSlots: -1, likelihood: -1, stakers: 0 }
       data = { address, balance: account.balance, selected: false, dominanceRatioViaBalance, ...defaultValues } satisfies UnselectedValidator
     }
     else {
       const dominanceRatioViaSlots = isSelected ? slotsDistribution[address]! / SLOTS : -1
-      const unknownParametersAtm: Pick<SelectedValidator, 'missed' | 'rewarded'> = { missed: -1, rewarded: -1 }
+      const unknownParametersAtm: Pick<SelectedValidator, 'missed' | 'rewarded' | 'stakers'> = { missed: -1, rewarded: -1, stakers: 0 }
       const likelihood = slotsDistribution[address]! / SLOTS
       data = { address, balance: account.balance, selected: true, dominanceRatioViaBalance, dominanceRatioViaSlots, ...unknownParametersAtm, likelihood } satisfies SelectedValidator
     }
@@ -219,6 +219,21 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient, options: FetchCu
   const validators = result.map(v => v[2]).filter(v => !!v) as CurrentEpoch['validators']
   const totalBalance = validators.reduce((acc, v) => acc + (v.balance ?? 0), 0)
   validators.forEach(v => v.dominanceRatioViaBalance = v.balance / totalBalance)
+
+  const batchSize = 3
+  for (let i = 0; i < validators.length; i += batchSize) {
+    const batch = validators.slice(i, i + batchSize)
+    await Promise.all(batch.map(async ({ address }) => {
+      const { data: stakers, error: errorStakers } = await client.blockchain.getStakersByValidatorAddress(address)
+      if (errorStakers || !stakers)
+        return [false, JSON.stringify({ error: errorStakers, address }), undefined]
+      const stakersCount = stakers.length
+      const validator = validators.find(v => v.address === address)
+      if (!validator)
+        return [false, JSON.stringify({ message: 'Validator not found', stakersCount, address }), undefined]
+      validator.stakers = stakersCount
+    }))
+  }
 
   return [true, undefined, { epochNumber: currentEpochNumber, validators }]
 }

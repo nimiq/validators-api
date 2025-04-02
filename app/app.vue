@@ -74,7 +74,7 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
               API synced
             </template>
             <template v-else>
-              <div i-nimiq:alert f-text-xl />
+              <div i-nimiq:alert op-70 f-text-xs />
               API out of sync
             </template>
           </div>

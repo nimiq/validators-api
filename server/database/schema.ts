@@ -54,6 +54,7 @@ export const activity = sqliteTable('activity', {
   dominanceRatioViaBalance: integer('dominance_ratio_via_balance').notNull(),
   dominanceRatioViaSlots: integer('dominance_ratio_via_slots').notNull(),
   balance: real('balance').notNull().default(-1),
+  stakers: integer('stakers').notNull().default(0),
 }, table => [
   index('idx_election_block').on(table.epochNumber),
   primaryKey({ columns: [table.validatorId, table.epochNumber] }),

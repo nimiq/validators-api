@@ -50,7 +50,7 @@ interface StoreActivityParams {
   epochNumber: number
 }
 
-const defaultActivity: SelectedValidator = { likelihood: -1, balance: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, missed: -1, rewarded: -1, address: '', selected: true }
+const defaultActivity: SelectedValidator = { likelihood: -1, balance: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, missed: -1, rewarded: -1, address: '', selected: true, stakers: 0 }
 
 async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
@@ -58,7 +58,7 @@ async function storeSingleActivity({ address, activity, epochNumber }: StoreActi
     return
   // If we ever move out of cloudflare we could use transactions to avoid inconsistencies and improve performance
   // Cloudflare D1 does not support transactions: https://github.com/cloudflare/workerd/blob/e78561270004797ff008f17790dae7cfe4a39629/src/workerd/api/sql-test.js#L252-L253
-  const { dominanceRatioViaBalance: _dominanceRatioViaBalance, dominanceRatioViaSlots: _dominanceRatioViaSlots, balance: _balance } = await useDrizzle()
+  const stored = await useDrizzle()
     .select({
       likelihood: tables.activity.likelihood,
       rewarded: tables.activity.rewarded,
@@ -66,6 +66,7 @@ async function storeSingleActivity({ address, activity, epochNumber }: StoreActi
       dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
       dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
       balance: tables.activity.balance,
+      stakers: tables.activity.stakers,
     })
     .from(tables.activity)
     .where(and(
@@ -74,15 +75,16 @@ async function storeSingleActivity({ address, activity, epochNumber }: StoreActi
     ))
     .get() || defaultActivity
 
-  const dominanceRatioViaSlots = (_dominanceRatioViaSlots === -1 ? activity?.dominanceRatioViaSlots : _dominanceRatioViaSlots) || -1
-  const dominanceRatioViaBalance = (_dominanceRatioViaBalance === -1 ? activity?.dominanceRatioViaBalance : _dominanceRatioViaBalance) || -1
-  const balance = (_balance === -1 ? activity?.balance : _balance) || -1
+  const dominanceRatioViaSlots = (stored.dominanceRatioViaSlots === -1 ? activity?.dominanceRatioViaSlots : stored.dominanceRatioViaSlots) || -1
+  const dominanceRatioViaBalance = (stored.dominanceRatioViaBalance === -1 ? activity?.dominanceRatioViaBalance : stored.dominanceRatioViaBalance) || -1
+  const balance = (stored.balance === -1 ? activity?.balance : stored.balance) || -1
+  const stakers = (stored.stakers === 0 ? activity?.stakers : stored.stakers) || -1
 
   await useDrizzle().delete(tables.activity).where(and(
     eq(tables.activity.epochNumber, epochNumber),
     eq(tables.activity.validatorId, validatorId),
   ))
-  const activityDb: NewActivity = { ...activity!, epochNumber, validatorId, dominanceRatioViaSlots, dominanceRatioViaBalance, balance }
+  const activityDb: NewActivity = { ...activity!, epochNumber, validatorId, dominanceRatioViaSlots, dominanceRatioViaBalance, balance, stakers }
   await useDrizzle().insert(tables.activity).values(activityDb)
 }
 

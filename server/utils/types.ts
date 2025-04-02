@@ -1,4 +1,5 @@
 import type { SelectedValidator, UnselectedValidator } from 'nimiq-validator-trustscore/types'
+import type { Activity, Score } from './drizzle'
 
 export enum PayoutType {
   Restake = 'restake',
@@ -19,10 +20,12 @@ export interface CurrentEpochValidators {
   untrackedValidators: (SelectedValidator | UnselectedValidator)[]
 }
 
-export type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
+type Nullable<T> = {
+  [K in keyof T]: T[K] | null
+}
+export type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & Pick<Activity, 'balance' | 'stakers'> & {
   logo?: string
-  score: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
+  score: Nullable<Pick<Score, 'total' | 'availability' | 'reliability' | 'dominance'>>
   dominanceRatio: number | null
-  balance: number
   activeInEpoch: boolean
 }

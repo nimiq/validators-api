@@ -1,0 +1,1 @@
+ALTER TABLE `activity` ADD `stakers` integer DEFAULT 0 NOT NULL;
