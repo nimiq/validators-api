@@ -113,10 +113,10 @@ function useStats() {
         </Stat>
         <Stat label="Validators" :padding-xs="true" col-span-3>
           <span>
-            <span :title="`${status?.validators?.selectedValidators?.length} selected validators`" text-blue>
-              {{ status?.validators?.selectedValidators?.length }}
+            <span :title="`${status?.validators?.electedValidators?.length} elected validators in the current epoch`" text-blue>
+              {{ status?.validators?.electedValidators?.length }}
             </span>
-            <span text="neutral-600 f-sm" :title="`${status?.validators?.unselectedValidators?.length} tracked validators`"> / {{ status?.validators?.unselectedValidators?.length }}</span>
+            <span text="neutral-600 f-sm" :title="`${status?.validators?.unelectedValidators?.length} tracked validators`"> / {{ status?.validators?.unelectedValidators?.length }}</span>
           </span>
         </Stat>
         <Stat :value="decimalsFormatter.format(averageScore * 100)" col-span-3 label="Avg. Score" color="purple" :padding-xs="true" />

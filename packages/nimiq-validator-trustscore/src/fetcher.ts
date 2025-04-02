@@ -1,6 +1,6 @@
 import type { BaseAlbatrossPolicyOptions } from '@nimiq/utils/albatross-policy'
 import type { ElectionMacroBlock, NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { CurrentEpoch, EpochActivity, Result, ResultSync, SelectedValidator, UnselectedValidator } from './types'
+import type { CurrentEpoch, ElectedValidator, EpochActivity, Result, ResultSync, UnelectedValidator } from './types'
 import { BATCHES_PER_EPOCH, electionBlockOf, isElectionBlockAt, SLOTS } from '@nimiq/utils/albatross-policy'
 import { InherentType } from 'nimiq-rpc-client-ts'
 
@@ -48,7 +48,7 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
     const dominanceRatioViaSlots = likelihood / SLOTS
     const balance = -1
     const dominanceRatioViaBalance = -1
-    epochActivity[validator] = { address: validator, likelihood, missed: 0, rewarded: 0, dominanceRatioViaBalance, dominanceRatioViaSlots, balance, selected: true, stakers: 0 } as SelectedValidator
+    epochActivity[validator] = { address: validator, likelihood, missed: 0, rewarded: 0, dominanceRatioViaBalance, dominanceRatioViaSlots, balance, elected: true, stakers: 0 } as ElectedValidator
   }
 
   const maxBatchSize = 120
@@ -66,8 +66,8 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
       for (const { type, validatorAddress } of inherents) {
         const isStakingAddress = validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000'
         const validatorsExists = !!epochActivity[validatorAddress]
-        const validatorIsSelected = validatorsExists && epochActivity[validatorAddress]?.selected
-        if (isStakingAddress || !validatorIsSelected || !validatorsExists)
+        const validatorIsElected = validatorsExists && epochActivity[validatorAddress]?.elected
+        if (isStakingAddress || !validatorIsElected || !validatorsExists)
           continue
 
         const activity = epochActivity[validatorAddress]
@@ -151,7 +151,7 @@ interface FetchCurrentEpochOptions extends Pick<BaseAlbatrossPolicyOptions, 'net
 /**
  * This function returns the validators information for the current epoch.
  *
- *    ┌────────────► Selected validators in the epoch
+ *    ┌────────────► Elected validators in the epoch
  *    │          ┌─► Active validators
  * ┌──┼──────────┴──────┐
  * │┌─┴─────────────┐   │
@@ -196,17 +196,17 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient, options: FetchCu
       return [false, JSON.stringify({ error, address }), undefined]
 
     const dominanceRatioViaBalance = -1 // We update the value later once we have the total balance
-    const isSelected = slotsDistribution[address] !== undefined
-    let data: SelectedValidator | UnselectedValidator
-    if (!isSelected) {
-      const defaultValues: Pick<UnselectedValidator, 'missed' | 'rewarded' | 'dominanceRatioViaSlots' | 'likelihood' | 'stakers'> = { missed: -1, rewarded: -1, dominanceRatioViaSlots: -1, likelihood: -1, stakers: 0 }
-      data = { address, balance: account.balance, selected: false, dominanceRatioViaBalance, ...defaultValues } satisfies UnselectedValidator
+    const isElected = slotsDistribution[address] !== undefined
+    let data: ElectedValidator | UnelectedValidator
+    if (!isElected) {
+      const defaultValues: Pick<UnelectedValidator, 'missed' | 'rewarded' | 'dominanceRatioViaSlots' | 'likelihood' | 'stakers'> = { missed: -1, rewarded: -1, dominanceRatioViaSlots: -1, likelihood: -1, stakers: 0 }
+      data = { address, balance: account.balance, elected: false, dominanceRatioViaBalance, ...defaultValues } satisfies UnelectedValidator
     }
     else {
-      const dominanceRatioViaSlots = isSelected ? slotsDistribution[address]! / SLOTS : -1
-      const unknownParametersAtm: Pick<SelectedValidator, 'missed' | 'rewarded' | 'stakers'> = { missed: -1, rewarded: -1, stakers: 0 }
+      const dominanceRatioViaSlots = isElected ? slotsDistribution[address]! / SLOTS : -1
+      const unknownParametersAtm: Pick<ElectedValidator, 'missed' | 'rewarded' | 'stakers'> = { missed: -1, rewarded: -1, stakers: 0 }
       const likelihood = slotsDistribution[address]! / SLOTS
-      data = { address, balance: account.balance, selected: true, dominanceRatioViaBalance, dominanceRatioViaSlots, ...unknownParametersAtm, likelihood } satisfies SelectedValidator
+      data = { address, balance: account.balance, elected: true, dominanceRatioViaBalance, dominanceRatioViaSlots, ...unknownParametersAtm, likelihood } satisfies ElectedValidator
     }
     return [true, undefined, data]
   },

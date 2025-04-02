@@ -77,15 +77,15 @@ export interface BaseValidator {
   stakers: number
 }
 
-export interface SelectedValidator extends BaseValidator {
-  selected: true
+export interface ElectedValidator extends BaseValidator {
+  elected: true
   missed: number
   rewarded: number
   likelihood: number
 }
 
-export interface UnselectedValidator extends BaseValidator {
-  selected: false
+export interface UnelectedValidator extends BaseValidator {
+  elected: false
   missed: -1
   rewarded: -1
   likelihood: -1
@@ -93,14 +93,14 @@ export interface UnselectedValidator extends BaseValidator {
 
 export interface CurrentEpoch {
   epochNumber: number
-  validators: (UnselectedValidator | SelectedValidator)[]
+  validators: (UnelectedValidator | ElectedValidator)[]
 }
 
 // A map of validator addresses to their activities in a single epoch
-export type EpochActivity<T = SelectedValidator | UnselectedValidator> = Record<string, T>
+export type EpochActivity<T = ElectedValidator | UnelectedValidator> = Record<string, T>
 
 // A map of validator addresses to their activities across multiple epochs
-export type EpochsActivities<T = SelectedValidator | UnselectedValidator> = Record<number /* election block */, EpochActivity<T>>
+export type EpochsActivities<T = ElectedValidator | UnelectedValidator> = Record<number /* election block */, EpochActivity<T>>
 
 export interface ScoreValues { availability: number, reliability: number, dominance: number, total: number }
 

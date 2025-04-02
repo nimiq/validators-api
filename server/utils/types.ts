@@ -1,4 +1,4 @@
-import type { SelectedValidator, UnselectedValidator } from 'nimiq-validator-trustscore/types'
+import type { ElectedValidator, UnelectedValidator } from 'nimiq-validator-trustscore/types'
 import type { Activity, Score } from './drizzle'
 
 export enum PayoutType {
@@ -9,15 +9,15 @@ export enum PayoutType {
 
 export interface CurrentEpochValidators {
   epochNumber: number
-  selectedValidators: (SelectedValidator | UnselectedValidator)[]
-  unselectedValidators: (SelectedValidator | UnselectedValidator)[]
+  electedValidators: (ElectedValidator | UnelectedValidator)[]
+  unelectedValidators: (ElectedValidator | UnelectedValidator)[]
 
   /**
    * Validators that are not tracked by the database. The untracked validators are
-   * also part of the `selectedValidators` and `unselectedValidators` arrays, but they are
+   * also part of the `electedValidators` and `unelectedValidators` arrays, but they are
    * not stored in the database yet.
    */
-  untrackedValidators: (SelectedValidator | UnselectedValidator)[]
+  untrackedValidators: (ElectedValidator | UnelectedValidator)[]
 }
 
 type Nullable<T> = {

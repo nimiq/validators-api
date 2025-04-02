@@ -1,4 +1,4 @@
-import type { EpochActivity, EpochsActivities, Range, Result, SelectedValidator, UnselectedValidator } from 'nimiq-validator-trustscore/types'
+import type { ElectedValidator, EpochActivity, EpochsActivities, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
 import type { NewActivity } from './drizzle'
 import type { CurrentEpochValidators } from './types'
 import { consola } from 'consola'
@@ -46,11 +46,11 @@ async function storeActivities(epochs: EpochsActivities) {
 
 interface StoreActivityParams {
   address: string
-  activity: SelectedValidator | UnselectedValidator | null
+  activity: ElectedValidator | UnelectedValidator | null
   epochNumber: number
 }
 
-const defaultActivity: SelectedValidator = { likelihood: -1, balance: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, missed: -1, rewarded: -1, address: '', selected: true, stakers: 0 }
+const defaultActivity: ElectedValidator = { likelihood: -1, balance: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, missed: -1, rewarded: -1, address: '', elected: true, stakers: 0 }
 
 async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
@@ -160,9 +160,9 @@ export async function fetchActiveEpoch(): Result<CurrentEpochValidators> {
   // Now we transform the data so we can use the same functions as if the epoch was finished
   // The following fields are the ones that cannot be computed at the moment, and we will compute them later
   const activity: EpochActivity = {}
-  for (const { address, ...rest } of data.selectedValidators)
+  for (const { address, ...rest } of data.electedValidators)
     activity[address] = { address, ...rest }
-  for (const { address, ...rest } of data.unselectedValidators)
+  for (const { address, ...rest } of data.unelectedValidators)
     activity[address] = { address, ...rest }
   consola.info(`Fetched active epoch: ${data.epochNumber} ()`)
   const epochActivity: EpochsActivities = { [data.epochNumber]: activity }

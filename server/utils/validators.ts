@@ -1,6 +1,6 @@
 import type { SQLWrapper } from 'drizzle-orm'
 import type { H3Event } from 'h3'
-import type { Result, SelectedValidator, UnselectedValidator } from 'nimiq-validator-trustscore/types'
+import type { ElectedValidator, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
 import type { ValidatorJSON } from './schemas'
 import type { CurrentEpochValidators, FetchedValidator } from './types'
 import { readdir, readFile } from 'node:fs/promises'
@@ -177,7 +177,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
 }
 
 export const cachedFetchValidators = defineCachedFunction((_event: H3Event, params: FetchValidatorsOptions) => fetchValidators(_event, params), {
-  maxAge: import.meta.dev ? 0 : 10 * 60, // 10 minutes
+  maxAge: import.meta.dev ? 0.01 : 10 * 60, // 10 minutes
   name: 'validators',
   getKey: (_event, p) => `validators:${p['only-known']}:${p['with-identicons']}:${p['payout-type']}:${p.epochNumber}`,
 })
@@ -262,10 +262,10 @@ export async function importValidators(source: 'filesystem' | 'github'): Result<
 
 /**
  * Gets the validators in the current epoch and categorizes them into:
- * - selectedTrackedValidators: selected validators that are tracked in the database
- * - unselectedTrackedValidators: unselected validators that are tracked in the database
- * - selectedUntrackedValidators: selected validators that are not tracked in the database
- * - unselectedUntrackedValidators: unselected validators that are not tracked in the database
+ * - electedTrackedValidators: elected validators that are tracked in the database
+ * - unelectedTrackedValidators: unelected validators that are tracked in the database
+ * - electedUntrackedValidators: elected validators that are not tracked in the database
+ * - unelectedUntrackedValidators: unelected validators that are not tracked in the database
  *
  * Untracked validators are not the same as anonymous validators:
  * - anonymous validators are the ones that didn't submit any information, but we do track them
@@ -279,14 +279,14 @@ export async function categorizeValidatorsCurrentEpoch(): Result<CurrentEpochVal
     return [false, error, undefined]
 
   const dbAddresses = await getStoredValidatorsAddress()
-  const selectedValidators = epoch.validators.filter(v => v.selected) as SelectedValidator[]
-  const unselectedValidators = epoch.validators.filter(v => !v.selected) as UnselectedValidator[]
-  const untrackedValidators = selectedValidators.filter(v => !dbAddresses.includes(v.address)) as (SelectedValidator & UnselectedValidator)[]
+  const electedValidators = epoch.validators.filter(v => v.elected) as ElectedValidator[]
+  const unelectedValidators = epoch.validators.filter(v => !v.elected) as UnelectedValidator[]
+  const untrackedValidators = electedValidators.filter(v => !dbAddresses.includes(v.address)) as (ElectedValidator & UnelectedValidator)[]
 
   return [true, undefined, {
     epochNumber: epoch.epochNumber,
-    selectedValidators,
-    unselectedValidators,
+    electedValidators,
+    unelectedValidators,
     untrackedValidators,
   }]
 }

@@ -19,8 +19,8 @@ export default defineEventHandler(async () => {
   const [fetchActiveEpochSuccess, fetchActiveEpochError, fetchActiveEpochData] = await fetchActiveEpoch()
   if (!fetchActiveEpochSuccess || !fetchActiveEpochData)
     throw createError({ statusCode: 500, statusMessage: fetchActiveEpochError })
-  const { selectedValidators, unselectedValidators } = fetchActiveEpochData
-  consola.success(`Fetched active epoch: ${fetchActiveEpochData.epochNumber} with ${selectedValidators.length} selected and ${unselectedValidators.length} unselected validators`)
+  const { electedValidators, unelectedValidators } = fetchActiveEpochData
+  consola.success(`Fetched active epoch: ${fetchActiveEpochData.epochNumber} with ${electedValidators.length} elected and ${unelectedValidators.length} unelected validators`)
 
   const [scoresSuccess, errorScores, scores] = await upsertScoresCurrentEpoch()
   if (!scoresSuccess || !scores)
