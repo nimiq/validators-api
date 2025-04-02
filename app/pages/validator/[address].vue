@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
-const validator = undefined as any
+const { data: validator } = await useFetch(`/api/v1/validators/${route.params.address}`)
 </script>
 
 <template>
@@ -25,31 +25,24 @@ const validator = undefined as any
         <span>Maintained by Nimiq</span>
       </div>
       <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill-sm ml-auto self-start nq-arrow nq-pill-tertiary>
-        {{
-          validator.website?.replace(/https?:\/\//, '') }}
+        {{ validator.website?.replace(/https?:\/\//, '') }}
       </NuxtLink>
     </div>
-    <!-- <p v-if="validator.description" mt-8 ml-80 text-neutral-800>{{ validator.description }}</p> -->
+    <p v-if="validator.description" f-mt-xs ml-80 text="neutral-800 f-sm">
+      {{ validator.description }}
+    </p>
 
     <div flex="~ col items-center justify-center" mt-96>
       <h3 text="center neutral-900" mb-0 font-bold>
         {{ validator.name }}'s score is
       </h3>
       <ScorePie
-        mx-auto mt-32 size-128 text-40 :score="validator.total"
+        mx-auto mt-32 size-128 text-40 :score="validator.score.total || 0"
         :style="{ 'view-transition-name': `score-${validator.id}` }"
       />
 
       <ScorePies :validator mt-64 text-28 />
-      <!-- <div self-stretch  w-2 bg-neutral-300 mx-48 /> -->
-      <details>
-        <summary text-neutral-900 font-semibold mt-32 w-full>
-          Reasons for the score
-        </summary>
-        <code nq-prose mt-32 block max-w-700 text-neutral-900>
-          {{ JSON.stringify(validator.reason, null, 2) }}
-        </code>
-      </details>
+
       <details>
         <summary text-neutral-900 font-semibold mt-32 w-full>
           More details

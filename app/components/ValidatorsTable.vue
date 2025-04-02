@@ -6,7 +6,7 @@ defineProps<{ validators: FetchedValidator[] }>()
 
 <template>
   <div
-    v-if="validators.length > 0" grid="~ gap-x-32" style="grid-template-columns: 56px max-content 1fr max-content"
+    v-if="validators.length > 0" grid="~ gap-x-32" style="grid-template-columns: 56px max-content 1fr max-content max-content max-content max-content"
     of-x-auto mx--32 px-32
   >
     <div />
@@ -15,6 +15,16 @@ defineProps<{ validators: FetchedValidator[] }>()
     </div>
     <div nq-label font-bold text="11 neutral-700" py-2>
       Address
+    </div>
+    <div nq-label font-bold text="11 neutral-700" py-2 flex="~ items-center justify-end gap-8">
+      <div i-nimiq:logos-nimiq-mono />
+      NIM
+    </div>
+    <div nq-label font-bold text="11 neutral-700" py-2 text-right>
+      Fee
+    </div>
+    <div nq-label font-bold text="11 neutral-700" py-2 text-right>
+      Stakers
     </div>
     <div nq-label font-bold text="11 neutral-700" py-2 text-center>
       Score
@@ -40,6 +50,18 @@ defineProps<{ validators: FetchedValidator[] }>()
       </div>
 
       <Copyable :content="validator.address" :style="{ 'view-transition-name': `address-${validator.id}` }" />
+
+      <span font-semibold text="right neutral-700 f-xs">
+        {{ nimFormatter.format(validator.balance) }}
+      </span>
+
+      <span font-semibold text="right neutral-700/80 f-xs">
+        {{ validator.fee ? percentageFormatter.format(validator.fee) : 'N/A' }}
+      </span>
+
+      <span font-semibold text="right neutral-700 f-xs">
+        {{ validator.stakers }}
+      </span>
 
       <ScorePie
         size-32 text-12 mx-auto :score="validator.score.total!" :decimals="0"

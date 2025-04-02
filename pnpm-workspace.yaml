@@ -29,7 +29,7 @@ catalog:
   drizzle-zod: ^0.7.0
   eslint: ^9.23.0
   eslint-plugin-format: ^1.0.1
-  identicons-esm: ^0.2.6
+  identicons-esm: ^1.0.0-beta.5
   lint-staged: ^15.5.0
   nimiq-css: ^1.0.0-beta.16
   nimiq-rpc-client-ts: ^1.0.0-beta.9

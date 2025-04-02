@@ -6,7 +6,6 @@ import { getIdenticonsParams } from 'identicons-esm/core'
 import { optimize } from 'svgo'
 
 function getDefaultBranding(address: string) {
-  consola.info({ address })
   const { colors: { background: accentColor } } = getIdenticonsParams(address)
   const logo = createIdenticon(address)
   return { logo, accentColor, hasDefaultLogo: true }

@@ -1,8 +1,6 @@
-import type { FetchValidatorsOptions } from '~~/server/utils/validators'
 import { getRange } from '~~/packages/nimiq-validator-trustscore/src/range'
-import { cachedFetchValidators, fetchValidators } from '~~/server/utils/validators'
 
-export default defineCachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const queryParams = await getValidatedQuery(event, mainQuerySchema.parse)
   const { nimiqNetwork: network } = useRuntimeConfig().public
 

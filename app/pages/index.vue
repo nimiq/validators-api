@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { calculateStakingRewards } from '@nimiq/utils/rewards-calculator'
+import { formatTimeAgo } from '@vueuse/core'
 
 const { data: status, status: statusFetch, error: statusError } = await useFetch('/api/v1/status')
 const { data: validators, status: validatorsStatus, error: validatorsError } = await useFetch('/api/v1/validators')
 const { data: distribution } = await useFetch('/api/v1/distribution')
-const { averageAPY, averageScore, averageStakeSize, totalPools, totalRegistered, totalStakers, averageFee } = useStats()
+const { averageAPY, averageScore, averageStakeSize, totalPools, totalRegistered, totalStakers, averageFee, windowSizeMonths } = useStats()
 
 const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, label: string, color?: string, paddingXs?: boolean }>()
 
@@ -25,6 +26,14 @@ function useStats() {
   const totalPools = computed(() => pools.value.length)
   const totalRegistered = computed(() => validators.value?.reduce((acc, validator) => acc + (validator.name !== 'Unknown validator' ? 1 : 0), 0) || 0)
 
+  const windowSizeMonths = computed(() => {
+    if (!status.value?.range)
+      return 0
+    const { fromTimestamp } = status.value.range
+    const ago = formatTimeAgo(new Date(fromTimestamp))
+    return ago.replace(' ago', '')
+  })
+
   const averageFee = computed(() => pools.value.reduce((acc, pool) => acc + (pool.fee || 0), 0) / pools.value.length)
   const averageAPY = computed(() => {
     if (!distribution.value?.stakedRatio)
@@ -34,6 +43,7 @@ function useStats() {
 
   return {
     averageScore,
+    windowSizeMonths,
     totalStakers,
     averageStakeSize,
     totalPools,
@@ -47,7 +57,7 @@ function useStats() {
 <template>
   <div>
     <DefineStat v-slot="{ label, value, color, $slots, paddingXs }">
-      <div flex="~ col" outline="~ 1.5 neutral/6" rounded-8 of-hidden :class="paddingXs ? 'f-p-xs gap-4' : 'f-p-md gap-12'" shadow relative z-1 bg-neutral-0>
+      <div flex="~ col" outline="~ 1.5 neutral/6" rounded-8 :class="paddingXs ? 'f-p-xs gap-4' : 'f-p-md gap-12'" shadow relative z-1 bg-neutral-0>
         <span nq-label text="11 neutral-800">
           {{ label }}
         </span>
@@ -108,8 +118,16 @@ function useStats() {
             </div>
           </div>
         </Stat>
-        <Stat label="Score epoch window" col-span-10 z-20 row-span-2>
-          <Window v-if="status?.range" :range="status.range" />
+        <Stat label="Score epoch window" col-span-10 z-20 row-span-2 group relative>
+          <div flex="~ col" w-full>
+            <Window v-if="status?.range" :range="status.range" />
+            <div flex="~ items-center gap-8" absolute bottom--20 op="0 group-hocus:100" transition>
+              <div text="10 neutral-700" i-nimiq:info />
+              <p text="f-2xs neutral-800 " font-400>
+                The score is based on epochs {{ status?.range?.fromEpoch }}–{{ status?.range?.toEpoch }}, covering the past {{ windowSizeMonths }} (current epoch {{ status?.range?.currentEpoch }}).
+              </p>
+            </div>
+          </div>
         </Stat>
         <Stat label="Validators" :padding-xs="true" col-span-3>
           <span>

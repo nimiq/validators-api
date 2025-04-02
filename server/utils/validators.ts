@@ -1,12 +1,13 @@
 import type { SQLWrapper } from 'drizzle-orm'
 import type { H3Event } from 'h3'
-import type { ElectedValidator, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
+import type { ElectedValidator, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
+import type { Activity, Score } from './drizzle'
 import type { ValidatorJSON } from './schemas'
 import type { CurrentEpochValidators, FetchedValidator } from './types'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { fetchCurrentEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
@@ -103,12 +104,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
         scores: {
           where: eq(tables.scores.epochNumber, epochNumber),
           limit: 1,
-          columns: {
-            total: true,
-            availability: true,
-            dominance: true,
-            reliability: true,
-          },
+          columns: { total: true, availability: true, dominance: true, reliability: true },
           // Currently not able to order by nested key. Let's wait for this issues to be fixed:
           // - https://github.com/drizzle-team/drizzle-orm/issues/2650
           // - https://github.com/drizzle-team/drizzle-orm/discussions/2639
@@ -116,12 +112,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
         },
         activity: {
           where: eq(tables.scores.epochNumber, epochNumber + 1),
-          columns: {
-            dominanceRatioViaBalance: true,
-            dominanceRatioViaSlots: true,
-            balance: true,
-            stakers: true,
-          },
+          columns: { dominanceRatioViaBalance: true, dominanceRatioViaSlots: true, balance: true, stakers: true, missed: true, rewarded: true },
           limit: 1,
         },
       },
@@ -141,7 +132,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
         // Gracefully handle the case where the validator has no activity for the next epoch
         // But, if this happens there is a bug
         consola.warn(`Validator ${validator.address} has no activity for epoch ${epochNumber}`)
-        activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0 })
+        activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, missed: -1, rewarded: -1 })
       }
 
       const score: FetchedValidator['score'] = {
@@ -151,7 +142,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
         total: !Object.values(scores[0]!).includes(-1) ? scores[0]!.total : null,
       }
 
-      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1, balance = -1, stakers = 0 } = activity[0]!
+      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1, balance = -1, stakers = 0, missed = -1, rewarded = -1 } = activity[0]!
 
       return {
         ...rest,
@@ -161,7 +152,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
         dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
         balance,
         stakers,
-        activeInEpoch: !!(dominanceRatioViaBalance || dominanceRatioViaSlots),
+        activeInEpoch: missed !== -1 && rewarded !== -1,
       } satisfies FetchedValidator
     })
 
@@ -180,6 +171,55 @@ export const cachedFetchValidators = defineCachedFunction((_event: H3Event, para
   maxAge: import.meta.dev ? 0.01 : 10 * 60, // 10 minutes
   name: 'validators',
   getKey: (_event, p) => `validators:${p['only-known']}:${p['with-identicons']}:${p['payout-type']}:${p.epochNumber}`,
+})
+
+export interface FetchValidatorOptions { address: string, range: Range }
+export type FetchedValidatorDetails = FetchedValidator & { activity: Activity[], scores: Score[] }
+
+export async function fetchValidator(_event: H3Event, params: FetchValidatorOptions): Result<FetchedValidatorDetails> {
+  const { address, range: { fromEpoch, toEpoch, snapshotEpoch } } = params
+
+  try {
+    const validator = await useDrizzle().query.validators.findFirst({
+      where: eq(tables.validators.address, address),
+      with: {
+        // Returns all the scores in the range to visualize
+        scores: {
+          where: ({ validatorId: id }) => and(eq(tables.scores.validatorId, id), gte(tables.scores.epochNumber, fromEpoch), lte(tables.scores.epochNumber, toEpoch)),
+        },
+
+        // Returns all the activity in the range to visualize
+        activity: { where: ({ validatorId: id }) =>
+          and(eq(tables.activity.validatorId, id), gte(tables.activity.epochNumber, fromEpoch), lte(tables.activity.epochNumber, toEpoch)) },
+      },
+    })
+
+    if (!validator)
+      return [false, `Validator with address ${address} not found`, undefined]
+    const score = validator?.scores?.sort((a, b) => a.epochNumber < b.epochNumber ? 1 : -1)[0]
+
+    const emptyActivity = { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, missed: -1, rewarded: -1 }
+    const { balance, dominanceRatioViaBalance, dominanceRatioViaSlots, stakers, missed, rewarded } = validator?.activity?.find(a => a.epochNumber === snapshotEpoch) || emptyActivity
+    const v: FetchedValidatorDetails = {
+      ...validator,
+      score,
+      activeInEpoch: (missed !== -1 && rewarded !== -1),
+      balance,
+      stakers,
+      dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
+    }
+    return [true, undefined, v]
+  }
+  catch (error) {
+    consola.error(`Error fetching validator ${address}: ${error}`)
+    return [false, JSON.stringify(error), undefined]
+  }
+}
+
+export const cachedFetchValidator = defineCachedFunction((_event: H3Event, params: FetchValidatorOptions) => fetchValidator(_event, params), {
+  maxAge: import.meta.dev ? 0.01 : 10 * 60, // 10 minutes
+  name: 'validator',
+  getKey: (_event, p) => `validator:${p.address}:${p.range.fromEpoch}:${p.range.toEpoch}`,
 })
 
 /**
