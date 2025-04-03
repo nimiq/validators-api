@@ -34,7 +34,8 @@ function generateExpectedRange({
   const { migrationBlock } = getMigrationBlockInfo({ network: testnet ? 'testnet' : 'main-albatross' })
   const headEpoch = Math.floor((head - migrationBlock + BLOCKS_PER_EPOCH - 1) / BLOCKS_PER_EPOCH)
   const toEpoch = toEpochIndex !== undefined ? toEpochIndex : headEpoch - 1
-  const epochsCount = Math.ceil(durationMs / (BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH))
+  const epochDurationMs = BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH - BLOCK_SEPARATION_TIME * BATCHES_PER_EPOCH
+  const epochsCount = Math.ceil(durationMs / epochDurationMs)
   const fromEpoch = Math.max(1, toEpoch - epochsCount + 1)
   const epochCount = toEpoch - fromEpoch + 1
   const fromBlockNumber = migrationBlock + (fromEpoch - 1) * BLOCKS_PER_EPOCH
@@ -43,7 +44,6 @@ function generateExpectedRange({
   // Calculate new fields
   const snapshotEpoch = toEpoch + 1
   const snapshotBlock = toBlockNumber + BLOCKS_PER_EPOCH
-  const epochDurationMs = BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH - BLOCK_SEPARATION_TIME * BATCHES_PER_EPOCH
 
   // Mock timestamps for testing purposes
   const fromTimestamp = 0
@@ -271,9 +271,9 @@ describe('get range without mocking', () => {
   })
 
   it('should handle custom duration parameter', async () => {
-    // Use a custom duration of 2 weeks
-    const twoWeeksMs = 1000 * 60 * 60 * 24 * 14
-    const [rangeOk, error, range] = await getRange(client, { network, durationMs: twoWeeksMs })
+    // Use a custom duration of 3 weeks
+    const threeWeeksMs = 1000 * 60 * 60 * 24 * 21
+    const [rangeOk, error, range] = await getRange(client, { network, durationMs: threeWeeksMs })
     expect(rangeOk).toBe(true)
     expect(error).toBeUndefined()
     expect(range).toBeDefined()
@@ -284,8 +284,8 @@ describe('get range without mocking', () => {
       expect(range.snapshotEpoch).toBe(range.toEpoch + 1)
       expect(range.snapshotBlock).toBe(range.toBlockNumber + BLOCKS_PER_EPOCH)
       expect(range.snapshotTimestamp).toBe(range.toTimestamp + range.epochDurationMs)
-      const epochsIn2Weeks = Math.ceil(twoWeeksMs / (BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH))
-      expect(range.epochCount).toBeLessThanOrEqual(epochsIn2Weeks)
+      const epochsIn3Weeks = Math.ceil(threeWeeksMs / range.epochDurationMs)
+      expect(range.epochCount).toBeLessThanOrEqual(epochsIn3Weeks)
     }
   })
 
