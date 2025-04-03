@@ -73,6 +73,7 @@
     "vite-plugin-top-level-await": "catalog:",
     "vite-plugin-wasm": "catalog:",
     "vitest": "catalog:",
+    "vue-tsc": "catalog:",
     "wrangler": "catalog:"
   },
   "simple-git-hooks": {

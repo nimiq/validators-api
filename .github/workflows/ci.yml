@@ -39,4 +39,5 @@ jobs:
       - name: Test
         run: pnpm run test
         env:
-          RPC_URL: ${{ secrets.RPC_URL_TESTNET }}
+          NUXT_RPC_URL: ${{ secrets.RPC_URL_TESTNET }}
+          NUXT_PUBLIC_NIMIQ_NETWORK: test-albatross

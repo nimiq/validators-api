@@ -24,9 +24,6 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - name: Set .env file
-        run: echo "NUXT_PUBLIC_NIMIQ_NETWORK=test-albatross" > .env
-
       - name: Install dependencies
         run: pnpm install
 

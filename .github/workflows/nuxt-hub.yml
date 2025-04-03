@@ -31,12 +31,8 @@ jobs:
         uses: nuxt-hub/action@v1
         with:
           project-key: ${{ secrets.NUXT_PROJECT_TESTNET_KEY }}
-        env:
-          RPC_URL: ${{ secrets.RPC_URL_TESTNET }}
 
       - name: Deploy to NuxtHub Mainnet
         uses: nuxt-hub/action@v1
         with:
           project-key: ${{ secrets.NUXT_PROJECT_MAINNET_KEY }}
-        env:
-          RPC_URL: ${{ secrets.RPC_URL_MAINNET }}
