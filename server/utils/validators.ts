@@ -1,7 +1,7 @@
 import type { SQLWrapper } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import type { ElectedValidator, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
-import type { Activity, Score } from './drizzle'
+import type { Activity, Score, Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
 import type { CurrentEpochValidators, FetchedValidator } from './types'
 import { readdir, readFile } from 'node:fs/promises'
@@ -98,21 +98,32 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
+    // Fixed subqueries to correctly reference the validator_id column
+    const maxScoreEpochSubquery = sql`(
+      SELECT MAX(s.epoch_number) 
+      FROM scores s 
+      WHERE s.validator_id = validators.id 
+      AND s.epoch_number <= ${epochNumber}
+    )`
+
+    const maxActivityEpochSubquery = sql`(
+      SELECT MAX(a.epoch_number) 
+      FROM activity a 
+      WHERE a.validator_id = validators.id 
+      AND a.epoch_number <= ${epochNumber + 1}
+    )`
+
     const dbValidators = await useDrizzle().query.validators.findMany({
       where: and(...filters),
       with: {
         scores: {
-          where: eq(tables.scores.epochNumber, epochNumber),
+          where: eq(tables.scores.epochNumber, maxScoreEpochSubquery),
+          columns: { total: true, availability: true, dominance: true, reliability: true, epochNumber: true },
           limit: 1,
-          columns: { total: true, availability: true, dominance: true, reliability: true },
-          // Currently not able to order by nested key. Let's wait for this issues to be fixed:
-          // - https://github.com/drizzle-team/drizzle-orm/issues/2650
-          // - https://github.com/drizzle-team/drizzle-orm/discussions/2639
-          // orderBy: (scores, { desc }) => [desc(scores.total)],
         },
         activity: {
-          where: eq(tables.scores.epochNumber, epochNumber + 1),
-          columns: { dominanceRatioViaBalance: true, dominanceRatioViaSlots: true, balance: true, stakers: true, missed: true, rewarded: true },
+          where: eq(tables.activity.epochNumber, maxActivityEpochSubquery),
+          columns: { dominanceRatioViaBalance: true, dominanceRatioViaSlots: true, balance: true, stakers: true, epochNumber: true },
           limit: 1,
         },
       },
@@ -122,27 +133,25 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
       const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
 
       if (scores.length === 0) {
-        // Gracefully handle the case where the validator has no score for the current epoch
-        // But, if this happens there is a bug
-        consola.warn(`Validator ${validator.address} has no score for epoch ${epochNumber}`)
-        scores.push({ availability: -1, dominance: -1, reliability: -1, total: -1 })
+        // Gracefully handle the case where the validator has no score equal or lower than the requested epoch
+        consola.warn(`Validator ${validator.address} has no score for epoch ${epochNumber} or earlier`)
+        scores.push({ availability: -1, dominance: -1, reliability: -1, total: -1, epochNumber: -1 })
       }
 
       if (activity.length === 0) {
-        // Gracefully handle the case where the validator has no activity for the next epoch
-        // But, if this happens there is a bug
-        consola.warn(`Validator ${validator.address} has no activity for epoch ${epochNumber}`)
-        activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, missed: -1, rewarded: -1 })
+        // Gracefully handle the case where the validator has no activity equal or lower than the requested next epoch
+        consola.warn(`Validator ${validator.address} has no activity for epoch ${epochNumber + 1} or earlier`)
+        activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, epochNumber: -1 })
       }
 
+      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1, balance = -1, stakers = 0 } = activity[0]!
       const score: FetchedValidator['score'] = {
         availability: scores[0]!.availability === -1 ? null : scores[0]!.availability,
         reliability: scores[0]!.reliability === -1 ? null : scores[0]!.reliability,
         dominance: scores[0]!.dominance === -1 ? null : scores[0]!.dominance,
         total: !Object.values(scores[0]!).includes(-1) ? scores[0]!.total : null,
+        epochNumber: scores[0]!.epochNumber,
       }
-
-      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1, balance = -1, stakers = 0, missed = -1, rewarded = -1 } = activity[0]!
 
       return {
         ...rest,
@@ -152,7 +161,6 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
         dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
         balance,
         stakers,
-        activeInEpoch: missed !== -1 && rewarded !== -1,
       } satisfies FetchedValidator
     })
 
@@ -174,10 +182,10 @@ export const cachedFetchValidators = defineCachedFunction((_event: H3Event, para
 })
 
 export interface FetchValidatorOptions { address: string, range: Range }
-export type FetchedValidatorDetails = FetchedValidator & { activity: Activity[], scores: Score[] }
+export type FetchedValidatorDetails = Validator & { activity: Activity[], scores: Score[], score: Score }
 
 export async function fetchValidator(_event: H3Event, params: FetchValidatorOptions): Result<FetchedValidatorDetails> {
-  const { address, range: { fromEpoch, toEpoch, snapshotEpoch } } = params
+  const { address, range: { fromEpoch, toEpoch } } = params
 
   try {
     const validator = await useDrizzle().query.validators.findFirst({
@@ -187,28 +195,18 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
         scores: {
           where: ({ validatorId: id }) => and(eq(tables.scores.validatorId, id), gte(tables.scores.epochNumber, fromEpoch), lte(tables.scores.epochNumber, toEpoch)),
         },
-
         // Returns all the activity in the range to visualize
-        activity: { where: ({ validatorId: id }) =>
-          and(eq(tables.activity.validatorId, id), gte(tables.activity.epochNumber, fromEpoch), lte(tables.activity.epochNumber, toEpoch)) },
+        activity: {
+          where: ({ validatorId: id }) =>
+            and(eq(tables.activity.validatorId, id), gte(tables.activity.epochNumber, fromEpoch), lte(tables.activity.epochNumber, toEpoch)),
+        },
       },
     })
 
     if (!validator)
       return [false, `Validator with address ${address} not found`, undefined]
     const score = validator?.scores?.sort((a, b) => a.epochNumber < b.epochNumber ? 1 : -1)[0]
-
-    const emptyActivity = { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, missed: -1, rewarded: -1 }
-    const { balance, dominanceRatioViaBalance, dominanceRatioViaSlots, stakers, missed, rewarded } = validator?.activity?.find(a => a.epochNumber === snapshotEpoch) || emptyActivity
-    const v: FetchedValidatorDetails = {
-      ...validator,
-      score,
-      activeInEpoch: (missed !== -1 && rewarded !== -1),
-      balance,
-      stakers,
-      dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
-    }
-    return [true, undefined, v]
+    return [true, undefined, { ...validator, score }]
   }
   catch (error) {
     consola.error(`Error fetching validator ${address}: ${error}`)
