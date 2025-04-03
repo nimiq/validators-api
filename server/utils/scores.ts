@@ -1,6 +1,6 @@
 import type { Range, Result, ScoreParams } from 'nimiq-validator-trustscore/types'
 import type { NewScore } from './drizzle'
-import { and, desc, eq, gte, lte, or } from 'drizzle-orm'
+import { and, count, desc, eq, gte, lte, or } from 'drizzle-orm'
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { computeScore } from 'nimiq-validator-trustscore/score'
 import { activity } from '../database/schema'
@@ -114,4 +114,14 @@ export async function upsertScoresCurrentEpoch(): Result<CalculateScoreResult> {
   }
 
   return [true, undefined, { scores, range }]
+}
+
+export async function isMissingScore(range: Range): Promise<boolean> {
+  const scoreCount = await useDrizzle()
+    .select({ count: count(tables.scores.epochNumber) })
+    .from(tables.scores)
+    .where(eq(tables.scores.epochNumber, range.toEpoch))
+    .get()
+    .then(res => res?.count || 0)
+  return scoreCount === 0
 }

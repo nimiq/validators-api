@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { data: status, status: statusRequest } = await useFetch('/api/v1/status', { server: true, lazy: false })
+const { execute: syncData, status: statusSync } = useFetch('/api/v1/sync', { lazy: true, immediate: false, onResponse: () => refreshNuxtData() })
 const colorMode = useColorMode()
 const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
 
@@ -8,7 +9,9 @@ const validatorDetail = computed(() => !!route.params.address)
 // TOD Add window size stat
 // TODO add clock to next epoch
 
-const isHealthy = computed(() => Boolean(status.value?.missingEpochs?.length === 0))
+const isActivitySync = computed(() => Boolean(status.value?.missingEpochs?.length === 0))
+const isScoreSync = computed(() => status.value?.missingScore === false)
+const isSynced = computed(() => isActivitySync.value && isScoreSync.value)
 
 const { gitBranch, nimiqNetwork } = useRuntimeConfig().public
 
@@ -50,7 +53,7 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
         Go back
       </NuxtLink>
       <div ml-auto>
-        <div flex="~ items-center gap-8" outline="~ 1.5" :class="statusRequest === 'pending' ? 'outline-neutral/10 text-neutral-800' : isHealthy ? 'outline-green-400 text-green-1100' : 'outline-red-1100 text-red-900'" rounded-6 f-text-2xs font-semibold of-clip>
+        <div flex="~ items-center gap-8" outline="~ 1.5" :class="statusRequest === 'pending' ? 'outline-neutral/10 text-neutral-800' : isSynced ? 'outline-green-500 text-green-1100' : 'outline-red-500 text-red-1100'" rounded-6 f-text-2xs font-semibold of-clip>
           <CollapsibleRoot w-full>
             <CollapsibleTrigger bg-transparent w-full relative group rounded="6 reka-open:b-0" transition-border-radius of-clip>
               <EnvItem :item="currentEnvItem" component="div" />
@@ -64,18 +67,29 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
             </CollapsibleContent>
           </CollapsibleRoot>
 
-          <div flex="~ items-center gap-8" f-px-2xs py-6 whitespace-nowrap :title="`Status for git+${gitBranch}@nimiq+${nimiqNetwork}`" :class="statusRequest === 'pending' ? 'bg-neutral-400' : isHealthy ? 'bg-green-400' : 'bg-red-400'">
+          <div flex="~ items-center gap-8" f-px-2xs py-6 whitespace-nowrap :title="`Status for git+${gitBranch}@nimiq+${nimiqNetwork}`" :class="statusRequest === 'pending' ? 'bg-neutral-400' : isSynced ? 'bg-green-400' : 'bg-red-400'">
             <template v-if="statusRequest === 'pending'">
               <div i-nimiq:spinner />
               Getting health
             </template>
-            <template v-else-if="isHealthy">
+            <template v-else-if="isSynced">
               <div i-nimiq:duotone-fluctuations f-text-xl />
               API synced
             </template>
             <template v-else>
               <div i-nimiq:alert op-70 f-text-xs />
-              API out of sync
+              <template v-if="!isActivitySync">
+                Activity out of sync
+              </template>
+              <template v-else-if="!isScoreSync">
+                Score not computed
+              </template>
+              <button nq-pill-secondary ml-12 bg="red-500 hocus:red-600" text="red-1100/80 f-2xs" outline="~ 1.5 offset--1.5 red-1100/40" :disabled="statusSync === 'loading'" @click="() => syncData()">
+                <div mr-4 :class="statusSync === 'loading' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" />
+                <span w-8ch>
+                  {{ statusSync === 'loading' ? 'Loading' : 'Sync now' }}
+                </span>
+              </button>
             </template>
           </div>
         </div>

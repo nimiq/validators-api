@@ -1,5 +1,6 @@
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { findMissingEpochs } from '~~/server/utils/activities'
+import { isMissingScore } from '~~/server/utils/scores'
 import { categorizeValidatorsCurrentEpoch } from '~~/server/utils/validators'
 
 /**
@@ -37,12 +38,15 @@ export default defineCachedEventHandler(async () => {
   const { data: headBlockNumber, error: errorHeadBlockNumber } = await client.blockchain.getBlockNumber()
   if (errorHeadBlockNumber || !headBlockNumber)
     throw createError(errorHeadBlockNumber || 'No head block number')
+
   const missingEpochs = await findMissingEpochs(range)
+  const missingScore = await isMissingScore(range)
 
   return {
     range,
     validators: validatorsEpoch,
     missingEpochs,
+    missingScore,
     blockchain: { network, headBlockNumber },
   }
 })

@@ -25,7 +25,6 @@ type Nullable<T> = {
 }
 export type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & Pick<Activity, 'balance' | 'stakers'> & {
   logo?: string
-  score: Nullable<Pick<Score, 'total' | 'availability' | 'reliability' | 'dominance'>>
+  score: Nullable<Pick<Score, 'total' | 'availability' | 'reliability' | 'dominance' | 'epochNumber'>>
   dominanceRatio: number | null
-  activeInEpoch: boolean
 }
