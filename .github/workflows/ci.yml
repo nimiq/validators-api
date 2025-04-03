@@ -9,7 +9,7 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    environment: Tesnet
+    environment: Testnet
     steps:
       - uses: actions/checkout@v4
 
