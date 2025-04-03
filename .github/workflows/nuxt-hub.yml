@@ -2,9 +2,12 @@ name: Deploy to NuxtHub
 on: push
 
 jobs:
-  deploy:
-    name: Deploy to NuxtHub
+  deploy-testnet:
+    name: Deploy to NuxtHub Testnet
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      url: ${{ steps.deploy-testnet.outputs.deployment-url }}
     permissions:
       contents: read
       id-token: write
@@ -24,15 +27,45 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build site
+      - name: Build application
         run: pnpm run build
 
       - name: Deploy to NuxtHub Testnet
         uses: nuxt-hub/action@v1
+        id: deploy-testnet
         with:
-          project-key: ${{ secrets.NUXT_PROJECT_TESTNET_KEY }}
+          project-key: ${{ secrets.NUXT_HUB_PROJECT_KEY }}
+
+  deploy-mainnet:
+    name: Deploy to NuxtHub Mainnet
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      url: ${{ steps.deploy-mainnet.outputs.deployment-url }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build application
+        run: pnpm run build
 
       - name: Deploy to NuxtHub Mainnet
         uses: nuxt-hub/action@v1
+        id: deploy-mainnet
         with:
-          project-key: ${{ secrets.NUXT_PROJECT_MAINNET_KEY }}
+          project-key: ${{ secrets.NUXT_HUB_PROJECT_KEY }}
