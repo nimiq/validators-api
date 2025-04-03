@@ -1,12 +1,26 @@
-  <a id="README" href="#README" href="https://github.com/nimiq/core-rs-albatross/blob/albatross/README.md">
-    <img src="https://raw.githubusercontent.com/nimiq/developer-center/refs/heads/main/assets/images/logos/validators-API.svg" alt="Nimiq PoS Albatross Repository" width="600" />
+<p align="center">
+  <a href="https://tailwindcss.com" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nimiq/validators-API/HEAD/.github/logo-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/nimiq/validators-API/HEAD/.github/logo-light.svg">
+      <img alt="Nimiq Validators API" src="https://raw.githubusercontent.com/nimiq/validators-API/HEAD/.github/logo-light.svg" width="350" height="70" style="max-width: 100%;">
+    </picture>
   </a>
-</br>
-</br>
+</p>
 
-[![Sync Mainnet](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml) [![Sync Testnet](https://github.com/nimiq/validators-api/actions/workflows/sync-testnet.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/sync-testnet.yml)
+<p align="center">
+  An API for integrating validators and pools with the Nimiq Wallet and other apps, helping stakers choose where to stake.
+</p>
 
-The Nimiq Validators API enables staking pools, based on single validators, to integrate with the Nimiq Wallet and other applications. This helps stakers make informed decisions when choosing where to stake their funds.
+<p align="center">
+<a href="https://github.com/nimiq/validators-api/actions/workflows/sync.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/sync.yml/badge.svg" /></a>&nbsp; &nbsp; &nbsp;
+<a href="https://validators-api-mainnet.pages.dev" target="_blank">Dashboard</a>&nbsp; &nbsp; &nbsp;
+<a href="https://validators-api-testnet.pages.dev" target="_blank">Dashboard (testnet)</a>
+</p>
+
+<br />
+
+<br />
 
 **Validators and Staking Pools**:
 A validator can operate as a staking pool, allowing multiple users to stake. Pools must provide detailed information such as fees, payout schedules, and contact details to ensure trust and transparency.

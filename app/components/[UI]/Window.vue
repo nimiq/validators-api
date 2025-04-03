@@ -18,9 +18,10 @@ const currentEpochProgress = computed(() =>
 
 const snapshotTimestamp = new Date(range.snapshotTimestamp)
 const countdown = computed(() => {
-  const hoursLeft = String(Math.floor((snapshotTimestamp.getTime() - now.value.getTime()) / 3_600_000)).padStart(2, '0')
-  const minutesLeft = String(Math.floor((snapshotTimestamp.getTime() - now.value.getTime()) / 60_000) % 60).padStart(2, '0')
-  const secondsLeft = String(Math.floor((snapshotTimestamp.getTime() - now.value.getTime()) / 1_000) % 60).padStart(2, '0')
+  const timeLeft = snapshotTimestamp.getTime() - now.value.getTime()
+  const hoursLeft = String(Math.floor(timeLeft / 3_600_000)).padStart(2, '0')
+  const minutesLeft = String(Math.floor((timeLeft / 60_000) % 60)).padStart(2, '0')
+  const secondsLeft = String(Math.floor((timeLeft / 1_000) % 60)).padStart(2, '0')
   return `ends in ~${hoursLeft}:${minutesLeft}:${secondsLeft}`
 })
 const snapshotInThePast = computed(() => {
@@ -92,9 +93,6 @@ const snapshotInThePast = computed(() => {
 
 .progress-indicator {
   --uno: 'block relative  bg-blue size-full h-16 translate-x-$offset-x rounded-r-2';
-  transition: transform 0.3s ease-in-out;
-  /*       class="indicator rounded-full block relative w-full h-full bg-grass9 transition-transform overflow-hidden duration-[660ms] ease-[cubic-bezier(0.65, 0, 0.35, 1)] after:animate-progress after:content-[''] after:absolute after:inset-0  after:bg-[linear-gradient(-45deg,_rgba(255,255,255,0.2)_25%,_transparent_25%,_transparent_50%,_rgba(255,255,255,0.2)_50%,_rgba(255,255,255,0.2)_75%,_transparent_75%,_transparent)] after:bg-[length:30px_30px]" */
-
   transition: transform 660ms cubic-bezier(0.65, 0, 0.35, 1);
 
   &::after {
