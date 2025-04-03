@@ -1,8 +1,12 @@
 name: Deploy to NuxtHub
-on: push
+on:
+  push:
+    branches:
+      - '*'
 
 jobs:
   deploy-testnet:
+    needs: [ci]
     name: Deploy to NuxtHub Testnet
     runs-on: ubuntu-latest
     environment:
@@ -37,6 +41,7 @@ jobs:
           project-key: ${{ secrets.NUXT_HUB_PROJECT_KEY }}
 
   deploy-mainnet:
+    needs: [ci]
     name: Deploy to NuxtHub Mainnet
     runs-on: ubuntu-latest
     environment:
@@ -69,3 +74,6 @@ jobs:
         id: deploy-mainnet
         with:
           project-key: ${{ secrets.NUXT_HUB_PROJECT_KEY }}
+
+  ci:
+    uses: ./.github/workflows/ci.yml
