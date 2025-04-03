@@ -5,15 +5,15 @@
 - Deleted `/api/v1/epochs/<number>`
 - Deleted `/api/v1/epochs/missing` 
 - Deleted `/api/v1/score/health`
-- Deleted `/api/v1/score/`
+- Deleted `/api/v1/score`
 - Deleted `/api/v1/validators/balance`
 - Deleted `/api/v1/validators/import`
+- Removed `only-active` query param from `/api/v1/validators`. 
 
 ## Features
 
 - `/api/v1/validator/<address>`: Get whole validator information including the social media and website links.
 - New endpoint /validators/[epochs]
-- Removed `only-active` query param from `/validators`. 
 - Store activity for every validator in the database, not only active ones
 - Return score for every validator in the database, not only active ones
 - `/api/v1/sync`: Syncronize the database. Internal.
