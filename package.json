@@ -22,7 +22,8 @@
     "test": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:delete": "drizzle-kit drop",
-    "release": "bumpp -r && pnpm -r publish"
+    "release": "bumpp -r && pnpm -r publish",
+    "validate:json-files": "tsx scripts/validate-json-files.ts"
   },
   "dependencies": {
     "@nimiq/core": "catalog:",
@@ -65,7 +66,9 @@
     "eslint-plugin-format": "catalog:",
     "lint-staged": "catalog:",
     "nimiq-css": "catalog:",
+    "pathe": "catalog:",
     "simple-git-hooks": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "unocss": "catalog:",
     "unocss-preset-onmax": "catalog:",

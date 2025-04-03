@@ -11,15 +11,16 @@
 
 ## Features
 
+- `/api/v1/validator/<address>`: Get whole validator information including the social media and website links.
 - New endpoint /validators/[epochs]
 - Removed `only-active` query param from `/validators`. 
 - Store activity for every validator in the database, not only active ones
 - Return score for every validator in the database, not only active ones
 - `/api/v1/sync`: Syncronize the database. Internal.
-- `/api/v1/validator/<address>`: Get whole validator information.
 - `/api/v1/status`: Get the status of the database and sync process. Internal.
 - Updated dashboard with more stats
 - Updated `activity` table to include `stakers` count for each validator in each epoch.
+- Improved CI.
 
 # v0.0.1
 

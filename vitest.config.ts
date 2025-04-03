@@ -1,5 +1,5 @@
-import { join } from 'node:path'
 import { config } from 'dotenv'
+import { join } from 'pathe'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({

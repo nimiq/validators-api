@@ -36,6 +36,9 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
 
+      - name: Validate JSON files
+        run: pnpm run validate:json-files
+
       - name: Test
         run: pnpm run test
         env:
