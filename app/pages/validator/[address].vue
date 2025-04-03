@@ -1,6 +1,12 @@
 <script setup lang="ts">
 const route = useRoute()
 const { data: validator } = await useFetch(`/api/v1/validators/${route.params.address}`)
+
+const scores = computed<[number, number][]>(() => {
+  if (!validator.value?.scores)
+    return []
+  return validator.value.scores.map(({ total, epochNumber }) => [total, epochNumber])
+})
 </script>
 
 <template>
@@ -41,7 +47,11 @@ const { data: validator } = await useFetch(`/api/v1/validators/${route.params.ad
         :style="{ 'view-transition-name': `score-${validator.id}` }"
       />
 
-      <ScorePies :validator mt-64 text-28 />
+      <ScorePies v-bind="validator.score" f-mt-md text-28 />
+
+      <ChartLine :data="scores" f-mt-md />
+
+      <Batches :activity="validator.activity" f-mt-md />
 
       <details>
         <summary text-neutral-900 font-semibold mt-32 w-full>

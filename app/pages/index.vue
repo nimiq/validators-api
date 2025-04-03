@@ -3,7 +3,9 @@ import { calculateStakingRewards } from '@nimiq/utils/rewards-calculator'
 import { formatTimeAgo } from '@vueuse/core'
 
 const { data: status, status: statusFetch, error: statusError } = await useFetch('/api/v1/status')
-const { data: validators, status: validatorsStatus, error: validatorsError } = await useFetch('/api/v1/validators')
+const { data: validators, status: validatorsStatus, error: validatorsError } = await useFetch('/api/v1/validators', {
+  query: { 'only-known': false },
+})
 const { data: distribution } = await useFetch('/api/v1/distribution')
 const { averageAPY, averageScore, averageStakeSize, totalPools, totalRegistered, totalStakers, averageFee, windowSizeMonths } = useStats()
 

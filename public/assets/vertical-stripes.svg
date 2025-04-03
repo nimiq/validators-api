@@ -1,0 +1,8 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="vertical-stripes" width="10" height="10" patternUnits="userSpaceOnUse">
+        <rect width="10" height="10" fill="white" />
+        <line x1="5" y1="0" x2="5" y2="10" stroke="#e4e4e9" stroke-width="1" />
+    </pattern>
+  </defs>
+</svg>
