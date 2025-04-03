@@ -9,6 +9,7 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    environment: Tesnet
     steps:
       - uses: actions/checkout@v4
 
@@ -20,9 +21,6 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-
-      - name: Set .env file
-        run: echo "NUXT_PUBLIC_NIMIQ_NETWORK=test-albatross" > .env
 
       - name: Install
         run: pnpm install --frozen-lockfile
@@ -39,5 +37,5 @@ jobs:
       - name: Test
         run: pnpm run test
         env:
-          NUXT_RPC_URL: ${{ secrets.RPC_URL_TESTNET }}
-          NUXT_PUBLIC_NIMIQ_NETWORK: test-albatross
+          NUXT_RPC_URL: ${{ secrets.RPC_URL }}
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
