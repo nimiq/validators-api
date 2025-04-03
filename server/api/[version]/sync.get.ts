@@ -22,7 +22,7 @@ export default defineEventHandler(async () => {
   const { electedValidators, unelectedValidators } = fetchActiveEpochData
   consola.success(`Fetched active epoch: ${fetchActiveEpochData.epochNumber} with ${electedValidators.length} elected and ${unelectedValidators.length} unelected validators`)
 
-  const [scoresSuccess, errorScores, scores] = await upsertScoresCurrentEpoch()
+  const [scoresSuccess, errorScores, scores] = await upsertScoresSnapshotEpoch()
   if (!scoresSuccess || !scores)
     throw createError({ statusCode: 500, statusMessage: errorScores || 'Unable to fetch scores' })
 

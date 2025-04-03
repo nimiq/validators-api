@@ -1,6 +1,6 @@
 import type { ElectedValidator, EpochActivity, EpochsActivities, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
 import type { NewActivity } from './drizzle'
-import type { CurrentEpochValidators } from './types'
+import type { SnapshotEpochValidators } from './types'
 import { consola } from 'consola'
 import { eq, gte, lte, not } from 'drizzle-orm'
 import { fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
@@ -147,8 +147,8 @@ export async function fetchMissingEpochs(): Result<number[]> {
   return [true, undefined, missingEpochs]
 }
 
-export async function fetchActiveEpoch(): Result<CurrentEpochValidators> {
-  const [success, error, data] = await categorizeValidatorsCurrentEpoch()
+export async function fetchActiveEpoch(): Result<SnapshotEpochValidators> {
+  const [success, error, data] = await categorizeValidatorsSnapshotEpoch()
   if (!success || !data)
     return [false, error || 'No active epoch', undefined]
 

@@ -82,7 +82,7 @@ async function calculateScore(range: Range, validatorId: number): Result<Calcula
 /**
  * Given a range of epochs, it will compute the score for each validator entry found in the activity table.
  */
-export async function upsertScoresCurrentEpoch(): Result<CalculateScoreResult> {
+export async function upsertScoresSnapshotEpoch(): Result<CalculateScoreResult> {
   const { nimiqNetwork: network } = useRuntimeConfig().public
   const [rangeSuccess, errorRange, range] = await getRange(getRpcClient(), { network })
   if (!rangeSuccess || !range)

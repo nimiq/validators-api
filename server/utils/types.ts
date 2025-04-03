@@ -7,10 +7,11 @@ export enum PayoutType {
   None = 'none',
 }
 
-export interface CurrentEpochValidators {
+export interface SnapshotEpochValidators {
   epochNumber: number
   electedValidators: (ElectedValidator | UnelectedValidator)[]
   unelectedValidators: (ElectedValidator | UnelectedValidator)[]
+  deletedValidators: string[]
 
   /**
    * Validators that are not tracked by the database. The untracked validators are

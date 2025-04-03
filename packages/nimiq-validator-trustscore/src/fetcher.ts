@@ -1,6 +1,6 @@
 import type { BaseAlbatrossPolicyOptions } from '@nimiq/utils/albatross-policy'
 import type { ElectionMacroBlock, NimiqRPCClient } from 'nimiq-rpc-client-ts'
-import type { CurrentEpoch, ElectedValidator, EpochActivity, Result, ResultSync, UnelectedValidator } from './types'
+import type { ElectedValidator, EpochActivity, Result, ResultSync, SnapshotEpoch, UnelectedValidator } from './types'
 import { BATCHES_PER_EPOCH, electionBlockOf, isElectionBlockAt, SLOTS } from '@nimiq/utils/albatross-policy'
 import { InherentType } from 'nimiq-rpc-client-ts'
 
@@ -28,12 +28,12 @@ export async function fetchActivity(client: NimiqRPCClient, epochIndex: number, 
   if (!('isElectionBlock' in block))
     return [false, JSON.stringify({ message: 'Block is not election block', epochIndex, block }), undefined]
 
-  const { data: currentEpoch, error: errorEpochNumber } = await client.blockchain.getEpochNumber()
-  if (errorEpochNumber || !currentEpoch)
-    return [false, `There was an error fetching current epoch: ${JSON.stringify({ epochIndex, error: errorEpochNumber, currentEpoch })}`, undefined]
+  const { data: currentEpochNumber, error: errorEpochNumber } = await client.blockchain.getEpochNumber()
+  if (errorEpochNumber || !currentEpochNumber)
+    return [false, `There was an error fetching current epoch: ${JSON.stringify({ epochIndex, error: errorEpochNumber, currentEpoch: currentEpochNumber })}`, undefined]
 
-  if (epochIndex >= currentEpoch)
-    return [false, `You tried to fetch an epoch that is not finished yet: ${JSON.stringify({ epochIndex, currentEpoch })}`, undefined]
+  if (epochIndex >= currentEpochNumber)
+    return [false, `You tried to fetch an epoch that is not finished yet: ${JSON.stringify({ epochIndex, currentEpoch: currentEpochNumber })}`, undefined]
 
   // The election block will be the first block of the epoch, since we only fetch finished epochs, we can assume that all the batches in this epoch can be fetched
   // First, we need to know in which batch this block is. Batches start at 1
@@ -146,7 +146,7 @@ export async function* fetchEpochs(client: NimiqRPCClient, epochsIndexes: number
   }
 }
 
-interface FetchCurrentEpochOptions extends Pick<BaseAlbatrossPolicyOptions, 'network'> { }
+interface FetchSnapshotEpochOptions extends Pick<BaseAlbatrossPolicyOptions, 'network'> { }
 
 /**
  * This function returns the validators information for the current epoch.
@@ -165,7 +165,7 @@ interface FetchCurrentEpochOptions extends Pick<BaseAlbatrossPolicyOptions, 'net
  * └────────────────────┘
  *
  */
-export async function fetchCurrentEpoch(client: NimiqRPCClient, options: FetchCurrentEpochOptions = {}): Result<CurrentEpoch> {
+export async function fetchSnapshotEpoch(client: NimiqRPCClient, options: FetchSnapshotEpochOptions = {}): Result<SnapshotEpoch> {
   const { network = 'mainnet' } = options
   const { data: validatorsStakingContract, error: errorValidators } = await client.blockchain.getValidators()
   if (errorValidators || !validatorsStakingContract)
@@ -190,7 +190,7 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient, options: FetchCu
     return [false, JSON.stringify({ message: `${electionBlockPreviousEpoch} is not an election block`, epochNumber: previousEpochNumber, electionBlock }), undefined]
   const slotsDistribution = Object.fromEntries((electionBlock as ElectionMacroBlock).slots.map(({ validator, numSlots }) => [validator, numSlots]))
 
-  const result: ResultSync<CurrentEpoch['validators'][number]>[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
+  const result: ResultSync<SnapshotEpoch['validators'][number]>[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
     const { data: account, error } = await client.blockchain.getAccountByAddress(address)
     if (error || account === undefined)
       return [false, JSON.stringify({ error, address }), undefined]
@@ -216,7 +216,7 @@ export async function fetchCurrentEpoch(client: NimiqRPCClient, options: FetchCu
   if (errors.length > 0)
     return [false, `Failed to fetch validators: ${JSON.stringify(errors)}`, undefined]
 
-  const validators = result.map(v => v[2]).filter(v => !!v) as CurrentEpoch['validators']
+  const validators = result.map(v => v[2]).filter(v => !!v) as SnapshotEpoch['validators']
   const totalBalance = validators.reduce((acc, v) => acc + (v.balance ?? 0), 0)
   validators.forEach(v => v.dominanceRatioViaBalance = v.balance / totalBalance)
 

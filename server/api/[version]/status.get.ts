@@ -1,7 +1,7 @@
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { findMissingEpochs } from '~~/server/utils/activities'
 import { isMissingScore } from '~~/server/utils/scores'
-import { categorizeValidatorsCurrentEpoch } from '~~/server/utils/validators'
+import { categorizeValidatorsSnapshotEpoch } from '~~/server/utils/validators'
 
 /**
  * This endpoint returns the status of the API:
@@ -31,7 +31,7 @@ export default defineCachedEventHandler(async () => {
   if (!rangeSuccess || !range)
     throw createError(errorRange || 'No range')
 
-  const [validatorsSuccess, error, validatorsEpoch] = await categorizeValidatorsCurrentEpoch()
+  const [validatorsSuccess, error, validatorsEpoch] = await categorizeValidatorsSnapshotEpoch()
   if (!validatorsSuccess || !validatorsEpoch)
     throw createError(error || 'No data')
 

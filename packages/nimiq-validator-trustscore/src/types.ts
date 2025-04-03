@@ -91,7 +91,7 @@ export interface UnelectedValidator extends BaseValidator {
   likelihood: -1
 }
 
-export interface CurrentEpoch {
+export interface SnapshotEpoch {
   epochNumber: number
   validators: (UnelectedValidator | ElectedValidator)[]
 }

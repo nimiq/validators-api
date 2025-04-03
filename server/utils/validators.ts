@@ -3,10 +3,10 @@ import type { H3Event } from 'h3'
 import type { ElectedValidator, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
 import type { Activity, Score, Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
-import type { CurrentEpochValidators, FetchedValidator } from './types'
+import type { FetchedValidator, SnapshotEpochValidators } from './types'
 import { consola } from 'consola'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
-import { fetchCurrentEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
+import { fetchSnapshotEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON } from './schemas'
@@ -229,10 +229,12 @@ export const cachedFetchValidator = defineCachedFunction((_event: H3Event, param
  * - anonymous validators are the ones that didn't submit any information, but we do track them
  * - untracked validators are the ones that are not in the database, because they were recently added. Having
  *   untracked validators is a rare exception since, we rarely have new validators.
+ *
+ * Deleted validators are the ones that are not in the staking contract anymore, but are still in the database.
  */
-export async function categorizeValidatorsCurrentEpoch(): Result<CurrentEpochValidators> {
+export async function categorizeValidatorsSnapshotEpoch(): Result<SnapshotEpochValidators> {
   const { nimiqNetwork: network } = useRuntimeConfig().public
-  const [epochOk, error, epoch] = await fetchCurrentEpoch(getRpcClient(), { network })
+  const [epochOk, error, epoch] = await fetchSnapshotEpoch(getRpcClient(), { network })
   if (!epochOk)
     return [false, error, undefined]
 
@@ -240,11 +242,13 @@ export async function categorizeValidatorsCurrentEpoch(): Result<CurrentEpochVal
   const electedValidators = epoch.validators.filter(v => v.elected) as ElectedValidator[]
   const unelectedValidators = epoch.validators.filter(v => !v.elected) as UnelectedValidator[]
   const untrackedValidators = electedValidators.filter(v => !dbAddresses.includes(v.address)) as (ElectedValidator & UnelectedValidator)[]
+  const deletedValidators = dbAddresses.filter(dbAddress => !epoch.validators.map(v => v.address).includes(dbAddress))
 
   return [true, undefined, {
     epochNumber: epoch.epochNumber,
     electedValidators,
     unelectedValidators,
     untrackedValidators,
+    deletedValidators,
   }]
 }
