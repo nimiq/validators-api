@@ -1,16 +1,5 @@
-import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from 'nimiq-validator-trustscore/range'
 import { z } from 'zod'
 import { PayoutType } from './types'
-
-export const rangeQuerySchema = z.object({
-  epoch: z.literal('latest').or(z.number().min(1)).default('latest'),
-  epochsCount: z.number().min(1).default(DEFAULT_WINDOW_IN_DAYS),
-  durationWindowMs: z.number().min(1).default(DEFAULT_WINDOW_IN_MS),
-}).refine(({ epochsCount, durationWindowMs }) => {
-  const defaultCounts = epochsCount === DEFAULT_WINDOW_IN_DAYS
-  const defaultWindow = durationWindowMs === DEFAULT_WINDOW_IN_MS
-  return (!epochsCount || !durationWindowMs) || (defaultCounts && defaultWindow) || (!defaultCounts && !defaultWindow)
-})
 
 export const logoFormatRe = /^data:image\/(png|svg\+xml|webp)(?:;base64)?,/
 export const validatorSchema = z.object({
