@@ -3,7 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@10.6.5",
+  "packageManager": "pnpm@10.7.1",
+  "description": "An API for integrating validators and pools with the Nimiq Wallet and other apps, helping stakers choose where to stake.",
   "scripts": {
     "dev:mainnet": "pnpm run dev:packages && nuxi dev --remote --dotenv .env.mainnet",
     "dev:mainnet:prod": "pnpm run dev:packages && nuxi dev --remote=production --dotenv .env.mainnet",

@@ -5,6 +5,7 @@ import { consola } from 'consola'
 import { colorize } from 'consola/utils'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
+import { description, name, version } from './package.json'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -126,6 +127,16 @@ export default defineNuxtConfig({
 
   colorMode: {
     classSuffix: '',
+  },
+
+  nitro: {
+    experimental: {
+      openAPI: true,
+    },
+    openAPI: {
+      meta: { title: name, description, version },
+      production: 'runtime',
+    },
   },
 
   compatibilityDate: '2025-02-10',

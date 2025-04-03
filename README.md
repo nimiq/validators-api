@@ -109,6 +109,7 @@ The Validators API provides endpoints to retrieve validator information for inte
 | Endpoint | Description |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [/api/v1/validators](https://validators-api-mainnet.pages.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
+| [/api/v1/validators/<address>](https://validators-api-mainnet.pages.dev/api/v1/validators/<address>) | Retrieves the validator information |
 
 ## Validators Dashboard
 

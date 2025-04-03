@@ -6,16 +6,16 @@ catalog:
   '@antfu/eslint-config': ^4.11.0
   '@antfu/ni': ^24.3.0
   '@iconify-json/tabler': ^1.2.17
-  '@nimiq/core': ^2.0.8
+  '@nimiq/core': ^2.0.9
   '@nimiq/utils': ^0.12.3
-  '@nuxt/eslint': ^1.2.0
+  '@nuxt/eslint': ^1.3.0
   '@nuxt/image': ^1.10.0
-  '@nuxthub/core': ^0.8.21
+  '@nuxthub/core': ^0.8.23
   '@nuxtjs/color-mode': ^3.5.2
-  '@types/node': ^22.13.13
-  '@unocss/eslint-config': ^66.1.0-beta.7
-  '@unocss/nuxt': ^66.1.0-beta.7
-  '@unocss/reset': ^66.1.0-beta.7
+  '@types/node': ^22.14.0
+  '@unocss/eslint-config': ^66.1.0-beta.8
+  '@unocss/nuxt': ^66.1.0-beta.8
+  '@unocss/reset': ^66.1.0-beta.8
   '@unovis/ts': ^1.5.1
   '@unovis/vue': ^1.5.1
   '@vueuse/core': ^13.0.0
@@ -24,34 +24,34 @@ catalog:
   consola: ^3.4.2
   defu: ^6.1.4
   dotenv: ^16.4.7
-  drizzle-kit: ^0.30.5
+  drizzle-kit: ^0.30.6
   drizzle-orm: ^0.41.0
-  drizzle-zod: ^0.7.0
+  drizzle-zod: ^0.7.1
   eslint: ^9.23.0
   eslint-plugin-format: ^1.0.1
   identicons-esm: ^1.0.0-beta.5
   lint-staged: ^15.5.0
   nimiq-css: ^1.0.0-beta.16
   nimiq-rpc-client-ts: ^1.0.0-beta.9
-  nuxt: ^3.16.1
+  nuxt: ^3.16.2
   nuxt-time: 1.0.3
   pathe: ^2.0.3
-  reka-ui: ^2.1.1
+  reka-ui: ^2.2.0
   simple-git-hooks: ^2.12.1
   svgo: ^3.3.2
   tsx: ^4.19.3
   typescript: ^5.8.2
   unbuild: ^3.5.0
-  unocss: ^66.1.0-beta.7
+  unocss: ^66.1.0-beta.8
   unocss-preset-onmax: 1.0.0-beta.15
   unocss-preset-scale-px: ^1.0.0-beta.15
   vite-plugin-top-level-await: ^1.5.0
   vite-plugin-wasm: ^3.4.1
-  vitest: ^3.0.9
+  vitest: ^3.1.1
   vue: ^3.5.13
   vue-router: ^4.5.0
   vue-tsc: ^2.2.8
-  wrangler: ^4.4.1
+  wrangler: ^4.7.0
   zod: ^3.24.2
 onlyBuiltDependencies:
   - '@parcel/watcher'
