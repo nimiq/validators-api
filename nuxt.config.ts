@@ -2,7 +2,6 @@ import { execSync } from 'node:child_process'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
-import { colorize } from 'consola/utils'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
 import { description, name, version } from './package.json'
@@ -78,12 +77,12 @@ export default defineNuxtConfig({
       if (!validNimiqNetworks.includes(nimiqNetwork)) {
         consola.warn(`Invalid nimiqNetwork: ${nimiqNetwork}. Please make sure it is one of: ${validNimiqNetworks.join(', ')}`)
       }
-      consola.info(`Nimiq network: ${colorize('bgMagenta', nimiqNetwork)}`)
+      consola.info(`Nimiq network: \`${nimiqNetwork}\``)
 
-      consola.info(`Git branch: ${colorize('bgMagenta', gitBranch)}`)
+      consola.info(`Git branch: \`${gitBranch}\``)
 
       const { projectUrl, env } = nuxt.options.runtimeConfig.hub
-      consola.info(`Remote NuxtHub: ${colorize('bgMagenta', `${projectUrl || 'local'}@${env}`)}`)
+      consola.info(`Remote NuxtHub: \`${projectUrl || 'local'}@${env}\``)
     },
   },
 
