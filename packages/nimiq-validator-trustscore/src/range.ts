@@ -32,10 +32,10 @@ export async function getRange(client: NimiqRPCClient, options: GetRangeOptions 
   const { data: head, error: headError } = await client.blockchain.getBlockNumber()
   if (headError || head === undefined)
     return [false, headError?.message || 'No block number', undefined]
-  const currentEpoch = epochAt(head, { network })
+  const headEpoch = epochAt(head, { network })
 
   // Only consider fully ended epochs.
-  const toEpoch = options?.toEpochIndex ?? currentEpoch - 1
+  const toEpoch = options?.toEpochIndex ?? headEpoch - 1
   const fromEpoch = Math.max(1, toEpoch - epochsCount + 1)
   const epochCount = toEpoch - fromEpoch + 1
 
@@ -52,7 +52,7 @@ export async function getRange(client: NimiqRPCClient, options: GetRangeOptions 
   if (fromEpoch < 1)
     return [false, `Invalid epoch range: [${fromEpoch}, ${toEpoch}]. The range should start from epoch 1`, undefined]
   if (toBlockNumber >= head)
-    return [false, `Invalid epoch range: [${fromBlockNumber}/${fromEpoch}, ${toBlockNumber}/${toEpoch}]. The current head is ${head}/${currentEpoch}.`, undefined]
+    return [false, `Invalid epoch range: [${fromBlockNumber}/${fromEpoch}, ${toBlockNumber}/${toEpoch}]. The current head is ${head}/${headEpoch}.`, undefined]
 
   // Get block data to determine timestamps
   const { data: fromBlock, error: errorFromBlock } = await client.blockchain.getBlockByNumber(fromBlockNumber)
@@ -72,7 +72,7 @@ export async function getRange(client: NimiqRPCClient, options: GetRangeOptions 
 
   return [true, undefined, {
     head,
-    currentEpoch,
+    headEpoch,
     fromEpoch,
     fromBlockNumber,
     toEpoch,

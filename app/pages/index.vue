@@ -126,7 +126,7 @@ function useStats() {
             <div flex="~ items-center gap-8" absolute bottom--20 op="0 group-hocus:100" transition>
               <div text="10 neutral-700" i-nimiq:info />
               <p text="f-2xs neutral-800 " font-400>
-                The score is based on epochs {{ status?.range?.fromEpoch }}–{{ status?.range?.toEpoch }}, covering the past {{ windowSizeMonths }} (current epoch {{ status?.range?.currentEpoch }}).
+                The score is based on epochs {{ status?.range?.fromEpoch }}–{{ status?.range?.toEpoch }}, covering the past {{ windowSizeMonths }} (snapshot epoch {{ status?.range?.snapshotEpoch }}).
               </p>
             </div>
           </div>

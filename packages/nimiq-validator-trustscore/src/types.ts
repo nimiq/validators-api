@@ -105,36 +105,69 @@ export type EpochsActivities<T = ElectedValidator | UnelectedValidator> = Record
 export interface ScoreValues { availability: number, reliability: number, dominance: number, total: number }
 
 export interface Range {
-  // The head number when the range was created
+  /**
+   * The head number when the range was created.
+   * By default this head will be:
+   *   - The epoch after `epochTo`
+   *   - Should be `fromBlockNumber < head && toBlockNumber < head && head < toBlockNumber`
+   */
   head: number
 
-  // The current epoch index
-  currentEpoch: number
+  /**
+   * The epoch number for the head.
+   * By default this head is same as `snapshotEpoch`.
+   */
+  headEpoch: number
 
-  // The first epoch index that we will consider
-  fromEpoch: number
-
-  // The first block number that we will consider
-  fromBlockNumber: number
-
-  // The last epoch index that we will consider
-  toEpoch: number
-
-  // The last block number that we will consider
-  toBlockNumber: number
-
-  // The amount of epochs in the range
+  /**
+   * The amount of epochs in the range.
+   * Equals to `toEpoch - fromEpoch + 1`.
+   */
   epochCount: number
 
-  // The timestamp of the first block in the range
+  /**
+   * The duration of the epoch in milliseconds.
+   * This is the time it takes to produce a single epoch.
+   * Is calculated as:
+   * - BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH - BLOCK_SEPARATION_TIME * BATCHES_PER_EPOCH
+   */
+  epochDurationMs: number
+
+  /**
+   * The first epoch number of the range.
+   */
+  fromEpoch: number
+
+  /**
+   * The first block number of the range.
+   * We consider the election block of the `fromEpoch - 1` as the first block of the range.
+   */
+  fromBlockNumber: number
+
+  /**
+   * The timestamp of the first block in the range.
+   */
   fromTimestamp: number
 
-  // The timestamp of the last block in the range
+  /**
+   * The last epoch number of the range.
+   * By default, this is the current epoch - 1.
+   */
+  toEpoch: number
+
+  /**
+   * The block number of the election block of `toEpoch`.
+   */
+  toBlockNumber: number
+
+  /**
+   * The timestamp of the last block in the range.
+   */
   toTimestamp: number
 
   /**
    * The epoch used for network size/balance snapshot measurements.
-   * This is the epoch immediately following the analysis window (toEpoch + 1).
+   * By default, this is the epoch immediately following the analysis window (toEpoch + 1).
    * Used to determine validators' stake sizes and network dominance at the end of the analysis period.
    */
   snapshotEpoch: number
@@ -150,13 +183,6 @@ export interface Range {
    */
   snapshotTimestamp: number
 
-  /**
-   * The duration of the epoch in milliseconds.
-   * This is the time it takes to produce a single epoch.
-   * Is calculated as:
-   * - BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH - BLOCK_SEPARATION_TIME * BATCHES_PER_EPOCH
-   */
-  epochDurationMs: number
 }
 
 export type ResultSync<T> = [true, undefined, T] | [false, string, undefined]

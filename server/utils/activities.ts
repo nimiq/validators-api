@@ -102,7 +102,7 @@ export async function fetchMissingEpochs(): Result<number[]> {
   if (!rangeSuccess || !range)
     return [false, errorRange || 'No range', undefined]
 
-  consola.info(`Fetching data for range: [${range.fromBlockNumber}/${range.fromEpoch} - ${range.toBlockNumber}/${range.toEpoch}] (${range.epochCount} epochs). Now at ${range.head}/${range.currentEpoch}.`)
+  consola.info(`Fetching data for range: [${range.fromBlockNumber}/${range.fromEpoch} - ${range.toBlockNumber}/${range.toEpoch}] (${range.epochCount} epochs). Now at ${range.head}/${range.headEpoch}.`)
   // Only fetch the missing epochs that are not in the database
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length === 0)

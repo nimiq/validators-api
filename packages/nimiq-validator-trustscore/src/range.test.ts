@@ -32,8 +32,8 @@ function generateExpectedRange({
   testnet?: boolean
 }) {
   const { migrationBlock } = getMigrationBlockInfo({ network: testnet ? 'testnet' : 'main-albatross' })
-  const currentEpoch = Math.floor((head - migrationBlock + BLOCKS_PER_EPOCH - 1) / BLOCKS_PER_EPOCH)
-  const toEpoch = toEpochIndex !== undefined ? toEpochIndex : currentEpoch - 1
+  const headEpoch = Math.floor((head - migrationBlock + BLOCKS_PER_EPOCH - 1) / BLOCKS_PER_EPOCH)
+  const toEpoch = toEpochIndex !== undefined ? toEpochIndex : headEpoch - 1
   const epochsCount = Math.ceil(durationMs / (BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH))
   const fromEpoch = Math.max(1, toEpoch - epochsCount + 1)
   const epochCount = toEpoch - fromEpoch + 1
@@ -56,7 +56,7 @@ function generateExpectedRange({
     snapshotTimestamp,
 
     head,
-    currentEpoch,
+    headEpoch,
     fromEpoch,
     fromBlockNumber,
     toEpoch,
