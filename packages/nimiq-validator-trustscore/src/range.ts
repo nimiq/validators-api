@@ -24,7 +24,8 @@ export const DEFAULT_WINDOW_IN_MS = DEFAULT_WINDOW_IN_DAYS * 24 * 60 * 60 * 1000
 export async function getRange(client: NimiqRPCClient, options: GetRangeOptions = {}): Result<Range> {
   const { network = 'mainnet' } = options
   const durationMs = options?.durationMs || DEFAULT_WINDOW_IN_MS
-  const epochsCount = Math.ceil(durationMs / (BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH))
+  const epochDurationMs = BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH - BLOCK_SEPARATION_TIME * BATCHES_PER_EPOCH
+  const epochsCount = Math.ceil(durationMs / epochDurationMs)
 
   if (options?.toEpochIndex && options.toEpochIndex < 1)
     return [false, `Invalid epoch range. The range should start from epoch 1`, undefined]
@@ -67,7 +68,6 @@ export async function getRange(client: NimiqRPCClient, options: GetRangeOptions 
   const toTimestamp = toBlock!.timestamp
 
   const snapshotBlock = toBlockNumber + BLOCKS_PER_EPOCH
-  const epochDurationMs = BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH - BLOCK_SEPARATION_TIME * BATCHES_PER_EPOCH
   const snapshotTimestamp = toTimestamp + epochDurationMs
 
   return [true, undefined, {
