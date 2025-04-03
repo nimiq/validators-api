@@ -110,10 +110,11 @@ The Validators API provides endpoints to retrieve validator information for inte
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [/api/v1/validators](https://validators-api-mainnet.pages.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
 | [/api/v1/validators/validator_address](https://validators-api-mainnet.pages.dev/api/v1/validators/validator_address) | Retrieves the validator information |
+| [/api/v1/distribution](https://validators-api-mainnet.pages.dev/api/v1/distribution) | Retrieves stats about NIM and staking |
 
 ## Validators Dashboard
 
-The Validators Dashboard is a simple Nuxt application that displays all validators along with their trust scores. You can access the dashboard here: https://validators-api-mainnet.pages.dev/
+The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-mainnet.pages.dev/
 
 ## Development
 
@@ -122,13 +123,65 @@ pnpm install
 pnpm dev
 ```
 
-### Score Calculation with Nitro Tasks
+## How the API works
 
-To calculate the score, we need to run two processes: the fetcher and the score calculator. We do this using a Nitro Task, which is currently an experimental feature of Nitro. Nitro Task is a feature that allows you to trigger an action in the server programmatically or manually from the Nuxt Dev Center (go to tasks page). Read more about the process of computing the score in the [nimiq-validator-trustscore](./packages/nimiq-validator-trustscore/README.md) package.
+The API has different endpoints to retrieve information about validators and staking metrics. In the following sections we will focus on how the validators scores are calculated and how the data is stored.
 
-### Database
+### Range
 
-As well as storing the [Validator Details](#validator-details), we also store the data produced by the fetcher in a sqlite database. This data is then used in the score calculator to compute the score. You can see the file [schema.ts](./server/database/schema.ts).
+We fetch the data from the last ~9 months to calculate the score. In order to do this, we have a function to calculate the window of epochs to fetch.
+
+- `fromXXX`: The information for the first block/epoch we consider (~9 months). We have: `fromEpoch`, `fromBlockNumber`, `fromTimestamp`
+- `toXXX`: The information for the last block/epoch we consider. We have: `toEpoch`, `toBlockNumber`, `toTimestamp`
+- `snapshotXXX`: The information for current epoch. (It is not called `currentEpoch` as this could be missleading when talking about a range that is in the past). We have: `snapshotEpoch`, `snapshotBlockNumber`, `snapshotTimestamp`. If you have a better name, please suggest it.
+
+We also do have an UI component to visualize the range, check the status, and debug.
+
+### Fetcher
+
+The fetcher is a process that retrieves data from the Nimiq network and stores it in a D1 database. The fetcher runs every hour and collects data about the validators in two different ways:
+
+#### Ended epochs
+
+It fetches the data from epochs already ended and stores it in the database the following variables:
+
+- `epoch`: The epoch number.
+- `validatorAddress`: The address of the validator.
+- `missed`: The number of batches where at least a slot was missed.
+- `rewarded`: The number of batches rewarded.
+- `likelihood`: The probability of being selected to produce a block, calculated by `numSlots / SLOTS`.
+- `dominanceViaSlots`: Same as `likelihood`
+- `dominanceViaBalance`: The dominance ratio of the validator, calculated by `validatorBalance / totalBalance`. Might be -1 if the `balance` was not fetched when the epoch was active.
+
+#### Current epoch
+
+It fetches the data from the current active epoch and stores it in the database the following variables:
+
+- `epoch`: The epoch number.
+- `validatorAddress`: The address of the validator.
+- `balance`: The balance of the validator.
+- `stakers`: The amount of stakers in the validator.
+
+It will also set empty values for `missed`, `rewarded`, `likelihood`, and `dominanceViaBalance` for the current epoch. This is because the epoch is still active and the data is not available yet. Those fields will be updated once the epoch ends and only if the validator was selected to produce a block, otherwise they will remain untouched.
+
+#### Types of validators
+
+| Kind                          | Elected | Tracked |
+| ----------------------------- | ------- | ------- |
+| `ElectedTrackedValidator`     | ✅      | ✅      |
+| `ElectedUntrackedValidator`   | ✅      | ❌      |
+| `UnelectedTrackedValidator`   | ❌      | ✅      |
+| `UnelectedUntrackedValidator` | ❌      | ❌      |
+
+> [!NOTE]
+> Having a `UnelectedUntrackedValidator` should only be when the validator has been selected for the first time in history.
+
+### Score calculator
+
+To learn more about the algorithm the calculation of the score, check:
+
+- [Documentation](./packages/nimiq-validator-trustscore/README.md).
+- [`nimiq-validator-trustscore`](https://www.nimiq.com/developers/learn/validator-trustscore) package.
 
 #### Development
 
