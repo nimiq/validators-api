@@ -84,10 +84,10 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
               <template v-else-if="!isScoreSync">
                 Score not computed
               </template>
-              <button nq-pill-secondary ml-12 bg="red-500 hocus:red-600" text="red-1100/80 f-2xs" outline="~ 1.5 offset--1.5 red-1100/40" :disabled="statusSync === 'loading'" @click="() => syncData()">
-                <div mr-4 :class="statusSync === 'loading' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" />
+              <button nq-pill-secondary ml-12 bg="red-500 hocus:red-600" text="red-1100/80 f-2xs" outline="~ 1.5 offset--1.5 red-1100/40" :disabled="statusSync === 'pending'" @click="() => syncData()">
+                <div mr-4 :class="statusSync === 'pending' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" />
                 <span w-8ch>
-                  {{ statusSync === 'loading' ? 'Loading' : 'Sync now' }}
+                  {{ statusSync === 'pending' ? 'pending' : 'Sync now' }}
                 </span>
               </button>
             </template>

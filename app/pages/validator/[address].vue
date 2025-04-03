@@ -13,7 +13,8 @@ const scores = computed<[number, number][]>(() => {
   <div v-if="validator">
     <div flex="~ gap-16 items-center">
       <Identicon
-        :validator size-64 shrink-0 object-contain
+        v-bind="validator"
+        size-64 shrink-0 object-contain
         :style="{ 'view-transition-name': `logo-${validator.id}` }"
       />
       <div flex="~ col gap-12" relative>
@@ -43,11 +44,11 @@ const scores = computed<[number, number][]>(() => {
         {{ validator.name }}'s score is
       </h3>
       <ScorePie
-        mx-auto mt-32 size-128 text-40 :score="validator.score.total || 0"
+        mx-auto mt-32 size-128 text-40 :score="validator.score?.total || 0"
         :style="{ 'view-transition-name': `score-${validator.id}` }"
       />
 
-      <ScorePies v-bind="validator.score" f-mt-md text-28 />
+      <ScorePies v-if="validator.score" v-bind="validator.score" f-mt-md text-28 />
 
       <ChartLine :data="scores" f-mt-md />
 

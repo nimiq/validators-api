@@ -182,7 +182,7 @@ export const cachedFetchValidators = defineCachedFunction((_event: H3Event, para
 })
 
 export interface FetchValidatorOptions { address: string, range: Range }
-export type FetchedValidatorDetails = Validator & { activity: Activity[], scores: Score[], score: Score }
+export type FetchedValidatorDetails = Validator & { activity: Activity[], scores: Score[], score?: Score }
 
 export async function fetchValidator(_event: H3Event, params: FetchValidatorOptions): Result<FetchedValidatorDetails> {
   const { address, range: { fromEpoch, toEpoch } } = params
@@ -205,7 +205,7 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
 
     if (!validator)
       return [false, `Validator with address ${address} not found`, undefined]
-    const score = validator?.scores?.sort((a, b) => a.epochNumber < b.epochNumber ? 1 : -1)[0]
+    const score = validator?.scores?.sort((a, b) => a.epochNumber < b.epochNumber ? 1 : -1).at(0)
     return [true, undefined, { ...validator, score }]
   }
   catch (error) {

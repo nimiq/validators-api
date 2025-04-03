@@ -1,10 +1,10 @@
-<script setup lang="ts" generic="T extends { logo: string | null, address: string, name: string }">
+<script setup lang="ts">
 import { createIdenticon } from 'identicons-esm'
 
-const { validator } = defineProps<{ validator: T }>()
-const logo = computed(() => validator.logo || createIdenticon(validator.address, { format: 'image/svg+xml' }))
+const { address, logo: _logo, name } = defineProps<{ logo?: string | undefined, address: string, name: string }>()
+const logo = computed(() => _logo || createIdenticon(address, { format: 'image/svg+xml' }))
 </script>
 
 <template>
-  <NuxtImg :src="logo" object-contain :alt="validator.name" />
+  <NuxtImg :src="logo" object-contain :alt="name" />
 </template>

@@ -95,7 +95,7 @@ function useStats() {
                 <ScrollAreaViewport size-full>
                   <ul f-p-xs flex="~ col gap-12">
                     <li v-for="validator in validators" :key="validator.id" f-text-xs flex="~ justify-between items-center gap-8" f-text-sm>
-                      <Identicon :validator f-size-md />
+                      <Identicon v-bind="validator" f-size-md />
                       <div flex="~ col" flex-1>
                         <div flex="~ justify-between gap-32 items-baseline">
                           <span text-ellipsis>
