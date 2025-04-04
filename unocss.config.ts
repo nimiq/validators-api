@@ -1,19 +1,21 @@
-import { presetRemToPx } from '@unocss/preset-rem-to-px'
 import { presetNimiq } from 'nimiq-css'
-import { defineConfig, presetAttributify, presetUno } from 'unocss'
+import { defineConfig, presetIcons, presetWind3 } from 'unocss'
+import { presetOnmax } from 'unocss-preset-onmax'
+import { presetScalePx } from 'unocss-preset-scale-px'
 
 export default defineConfig({
   presets: [
-    presetUno({ attributifyPseudo: true }),
+    presetWind3({ attributifyPseudo: true }),
+    presetOnmax({ presets: { wind4: false } }),
     presetNimiq({
       utilities: true,
-      typography: true,
       attributifyUtilities: true,
+      typography: true,
     }),
-    presetRemToPx({ baseFontSize: 4 }),
-    presetAttributify(),
+    presetScalePx(),
+    presetIcons(),
   ],
   rules: [
-    [/^view-transition-([\w-]+)$/, ([, name]: [string, string]) => ({ 'view-transition-name': name })],
+    [/^view-transition-([\w-]+)$/, ([, name]) => ({ 'view-transition-name': name })],
   ],
 })

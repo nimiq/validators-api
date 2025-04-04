@@ -1,12 +1,14 @@
-import { importValidatorsFromFiles } from '../utils/validators'
+import consola from 'consola'
 
 export default defineNitroPlugin(async () => {
   if (!import.meta.dev)
     return
 
   hubHooks.hookOnce('database:migrations:done', async () => {
-    const { nimiqNetwork } = useRuntimeConfig().public
-    await importValidatorsFromFiles(`./public/validators/${nimiqNetwork}/`)
-    await runTask('fetch')
+    consola.info('Running migrations...')
+    const [ok, error, validators] = await importValidators('filesystem')
+    if (!ok)
+      throw new Error(`Error importing validators: ${error}`)
+    consola.success(`${validators.length} validators imported successfully`)
   })
 })

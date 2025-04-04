@@ -1,0 +1,50 @@
+{
+  "name": "nimiq-validator-trustscore",
+  "type": "module",
+  "version": "0.0.1",
+  "packageManager": "pnpm@9.9.0",
+  "description": "The algorithm to compute the Nimiq's Validator Trustscore",
+  "license": "MIT",
+  "homepage": "https://github.com/nimiq/validators-api#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nimiq/validators-api.git"
+  },
+  "bugs": "https://github.com/nimiq/validators-api/issues",
+  "keywords": [],
+  "sideEffects": false,
+  "exports": {
+    "./fetcher": {
+      "types": "./dist/fetcher.d.mts",
+      "import": "./dist/fetcher.mjs"
+    },
+    "./score": {
+      "types": "./dist/score.d.mts",
+      "import": "./dist/score.mjs"
+    },
+    "./types": {
+      "types": "./dist/types.d.mts",
+      "import": "./dist/types.mjs"
+    },
+    "./range": {
+      "types": "./dist/range.d.mts",
+      "import": "./dist/range.mjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "prepublishOnly": "nr build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nimiq/utils": "catalog:",
+    "defu": "catalog:",
+    "nimiq-rpc-client-ts": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "unbuild": "catalog:"
+  }
+}
