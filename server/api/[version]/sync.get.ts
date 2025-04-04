@@ -1,11 +1,12 @@
 import { createConsola } from 'consola'
+import { isDevelopment } from 'std-env'
 import { fetchActiveEpoch, fetchMissingEpochs } from '~~/server/utils/activities'
 
 const consola = createConsola({ defaults: { tag: 'sync' } })
 
 export default defineEventHandler(async () => {
   consola.info('Starting syncing...')
-  const [importSuccess, errorImport, importData] = await importValidators('github')
+  const [importSuccess, errorImport, importData] = await importValidators(isDevelopment ? 'filesystem' : 'github')
   if (!importSuccess || !importData)
     throw createError({ statusCode: 500, statusMessage: errorImport || 'Unable to import from GitHub' })
 

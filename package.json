@@ -69,6 +69,7 @@
     "nimiq-css": "catalog:",
     "pathe": "catalog:",
     "simple-git-hooks": "catalog:",
+    "std-env": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "unocss": "catalog:",
