@@ -129,6 +129,7 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    preset: 'cloudflare_module',
     experimental: {
       openAPI: true,
     },
@@ -138,7 +139,7 @@ export default defineNuxtConfig({
     },
   },
 
-  compatibilityDate: '2025-02-10',
+  compatibilityDate: '2025-03-21',
   future: {
     compatibilityVersion: 4,
   },

@@ -32,7 +32,7 @@ catalog:
   identicons-esm: ^1.0.0-beta.5
   lint-staged: ^15.5.0
   nimiq-css: ^1.0.0-beta.16
-  nimiq-rpc-client-ts: ^1.0.0-beta.9
+  nimiq-rpc-client-ts: 0.5.5
   nuxt: ^3.16.2
   nuxt-time: 1.0.3
   pathe: ^2.0.3
