@@ -6,9 +6,8 @@ on:
 
 jobs:
   build:
-    needs: [ci]
     runs-on: ubuntu-latest
-
+    environment: preview-testnet
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,6 +26,3 @@ jobs:
         run: pnpm build
 
       - run: pnpx pkg-pr-new publish './packages/*'
-
-  ci:
-    uses: ./.github/workflows/ci.yml

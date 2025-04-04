@@ -6,11 +6,10 @@ on:
 
 jobs:
   deploy-testnet:
-    needs: [ci]
     name: Deploy to NuxtHub Testnet
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      name: ${{ github.ref == 'refs/heads/main' && 'production-testnet' || 'preview-testnet' }}
       url: ${{ steps.deploy-testnet.outputs.deployment-url }}
     permissions:
       contents: read
@@ -30,22 +29,27 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        env:
+          NUXT_RPC_URL: ${{ secrets.NUXT_RPC_URL }}
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
 
       - name: Build application
         run: pnpm run build
+        env:
+          NUXT_RPC_URL: ${{ secrets.NUXT_RPC_URL }}
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
 
-      - name: Deploy to NuxtHub Testnet
+      - name: Deploy to NuxtHub ${{ vars.NUXT_HUB_ENV }} Testnet
         uses: nuxt-hub/action@v1
         id: deploy-testnet
         with:
-          project-key: ${{ secrets.NUXT_HUB_PROJECT_KEY }}
+          project-key: ${{ vars.NUXT_HUB_PROJECT_KEY }}
 
   deploy-mainnet:
-    needs: [ci]
     name: Deploy to NuxtHub Mainnet
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      name: ${{ github.ref == 'refs/heads/main' && 'production-mainnet' || 'preview-mainnet' }}
       url: ${{ steps.deploy-mainnet.outputs.deployment-url }}
     permissions:
       contents: read
@@ -65,15 +69,18 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        env:
+          NUXT_RPC_URL: ${{ secrets.NUXT_RPC_URL }}
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
 
       - name: Build application
         run: pnpm run build
+        env:
+          NUXT_RPC_URL: ${{ secrets.NUXT_RPC_URL }}
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
 
-      - name: Deploy to NuxtHub Mainnet
+      - name: Deploy to NuxtHub ${{ vars.NUXT_HUB_ENV }} Mainnet
         uses: nuxt-hub/action@v1
         id: deploy-mainnet
         with:
-          project-key: ${{ secrets.NUXT_HUB_PROJECT_KEY }}
-
-  ci:
-    uses: ./.github/workflows/ci.yml
+          project-key: ${{ vars.NUXT_HUB_PROJECT_KEY }}
