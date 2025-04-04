@@ -6,7 +6,7 @@ import { categorizeValidatorsSnapshotEpoch } from '~~/server/utils/validators'
 /**
  * This endpoint returns the status of the API:
  *   Range information:
- *   - Range information
+ *   - Range object
  *   - Missing epochs within the range
  *
  *   Validator information:

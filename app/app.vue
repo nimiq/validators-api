@@ -6,9 +6,6 @@ const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' 
 
 const route = useRoute()
 const validatorDetail = computed(() => !!route.params.address)
-// TOD Add window size stat
-// TODO add clock to next epoch
-
 const isActivitySync = computed(() => Boolean(status.value?.missingEpochs?.length === 0))
 const isScoreSync = computed(() => status.value?.missingScore === false)
 const isSynced = computed(() => isActivitySync.value && isScoreSync.value)

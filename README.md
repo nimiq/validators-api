@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://tailwindcss.com" target="_blank">
+  <a href="https://github.com/nimiq/validators-api" target="_blank">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nimiq/validators-API/HEAD/.github/logo-dark.svg">
       <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/nimiq/validators-API/HEAD/.github/logo-light.svg">
@@ -76,7 +76,7 @@ Use the following schema to create your validator information file. You can star
   - `restake`: Rewards are automatically restaked.
   - `direct`: Rewards are paid directly into the staker's wallet and are not automatically restaked. Requires:
     - `payoutAddress`: Provide address you will payout from.
-    - `payoutSchedule`: Specifiy the frequency of payouts using the [cron job format](https://crontab.guru/). Example: `0 */6 * * *` for payouts every 6 hours.
+    - `payoutSchedule`: Specify the frequency of payouts using the [cron job format](https://crontab.guru/). Example: `0 */6 * * *` for payouts every 6 hours.
   - `none`: No rewards will be paid out.
   - `custom`: Custom payout scheme. Requires:
     - `payoutScheme`: A description of the custom payout method (e.g., "Pays 50% of rewards every 1st of the month").
@@ -101,7 +101,7 @@ The VTS is a metric designed to help stakers evaluate the performance and reliab
 The VTS is displayed in the Nimiq Wallet, allowing stakers to compare validators and select the one that best meets their needs.
 
 - [Read the docs](https://nimiq.com/developers/learn/validator-trustscore)
-- [See implementation](./packages/nimiq-validator-trustscore/)
+- Checkout the [pnpm package](./packages/nimiq-validator-trustscore/)
 
 ## Validators API
 
@@ -116,12 +116,8 @@ The Validators API provides endpoints to retrieve validator information for inte
 
 The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-mainnet.pages.dev/
 
-## Development
-
-```bash
-pnpm install
-pnpm dev
-```
+> [!TIP]
+> Check also the [deployment](#deployment) section to learn how to access to the `testnet` and `preview` environments.
 
 ## How the API works
 
@@ -166,7 +162,7 @@ It will also set empty values for `missed`, `rewarded`, `likelihood`, and `domin
 
 #### Types of validators
 
-| Kind                          | Elected | Tracked |
+| Type                          | Elected | Tracked |
 | ----------------------------- | ------- | ------- |
 | `ElectedTrackedValidator`     | ✅      | ✅      |
 | `ElectedUntrackedValidator`   | ✅      | ❌      |
@@ -174,16 +170,9 @@ It will also set empty values for `missed`, `rewarded`, `likelihood`, and `domin
 | `UnelectedUntrackedValidator` | ❌      | ❌      |
 
 > [!NOTE]
-> Having a `UnelectedUntrackedValidator` should only be when the validator has been selected for the first time in history.
+> Having a `UnelectedUntrackedValidator` should only happen when the validator has been selected for the first time in history.
 
-### Score calculator
-
-To learn more about the algorithm the calculation of the score, check:
-
-- [Documentation](./packages/nimiq-validator-trustscore/README.md).
-- [`nimiq-validator-trustscore`](https://www.nimiq.com/developers/learn/validator-trustscore) package.
-
-#### Development
+## Development
 
 Once it is cloned and installed the dependencies, you must run:
 
@@ -191,3 +180,20 @@ Once it is cloned and installed the dependencies, you must run:
 pnpm db:generate
 pnpm dev # or pnpm dev:local to use the local database
 ```
+
+## Deployment
+
+The deployment is handled by [`NuxtHub Action`](./.github/workflows/nuxt-hub.yml).
+
+There are 4 different environments:
+
+| Nuxt Hub Env | GitHub Env           | Dashboard URL                                                              | Trigger                       |
+| ------------ | -------------------- | -------------------------------------------------------------------------- | ----------------------------- |
+| `production` | `production-mainnet` | [Validators API Mainnet](https://validators-api-mainnet.pages.dev)         | Push to `main` branch         |
+| `production` | `production-testnet` | [Validators API Testnet](https://validators-api-testnet.pages.dev)         | Push to `main` branch         |
+| `preview`    | `preview-mainnet`    | [Validators API Mainnet Preview](https://validators-api-preview.pages.dev) | Push any commit to any branch |
+| `preview`    | `preview-testnet`    | [Validators API Testnet Preview](https://validators-api-preview.pages.dev) | Push any commit to any branch |
+
+Each Nuxt Hub environment has its own database, so effectively we have 4 different databases and there 4 tasks in the [`sync.yml`](./.github/workflows/sync.yml) workflow that are responsible for syncing the data from the Nimiq network to the database.
+
+**Write operations to `main` are restricted**, only via PR.
