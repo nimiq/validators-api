@@ -1,7 +1,7 @@
 import type { BaseAlbatrossPolicyOptions } from '@nimiq/utils/albatross-policy'
-import type { NimiqRPCClient } from 'nimiq-rpc-client-ts'
 import type { Range, Result } from './types'
 import { BATCHES_PER_EPOCH, BLOCK_SEPARATION_TIME, BLOCKS_PER_EPOCH, electionBlockOf, epochAt } from '@nimiq/utils/albatross-policy'
+import { getBlockByNumber, getBlockNumber } from 'nimiq-rpc-client-ts/http'
 
 interface GetRangeOptions extends Pick<BaseAlbatrossPolicyOptions, 'network'> {
   /**
@@ -21,7 +21,7 @@ export const DEFAULT_WINDOW_IN_MS = DEFAULT_WINDOW_IN_DAYS * 24 * 60 * 60 * 1000
 /**
  * Returns the epoch range (with corresponding block numbers) to consider.
  */
-export async function getRange(client: NimiqRPCClient, options: GetRangeOptions = {}): Result<Range> {
+export async function getRange(options: GetRangeOptions = {}): Result<Range> {
   const { network = 'mainnet' } = options
   const durationMs = options?.durationMs || DEFAULT_WINDOW_IN_MS
   const epochDurationMs = BLOCK_SEPARATION_TIME * BLOCKS_PER_EPOCH - BLOCK_SEPARATION_TIME * BATCHES_PER_EPOCH
@@ -30,9 +30,9 @@ export async function getRange(client: NimiqRPCClient, options: GetRangeOptions 
   if (options?.toEpochIndex && options.toEpochIndex < 1)
     return [false, `Invalid epoch range. The range should start from epoch 1`, undefined]
 
-  const { data: head, error: headError } = await client.blockchain.getBlockNumber()
-  if (headError || head === undefined)
-    return [false, headError?.message || 'No block number', undefined]
+  const [headOk, headError, head] = await getBlockNumber()
+  if (!headOk)
+    return [false, headError, undefined]
   const headEpoch = epochAt(head, { network })
 
   // Only consider fully ended epochs.
@@ -56,13 +56,12 @@ export async function getRange(client: NimiqRPCClient, options: GetRangeOptions 
     return [false, `Invalid epoch range: [${fromBlockNumber}/${fromEpoch}, ${toBlockNumber}/${toEpoch}]. The current head is ${head}/${headEpoch}.`, undefined]
 
   // Get block data to determine timestamps
-  const { data: fromBlock, error: errorFromBlock } = await client.blockchain.getBlockByNumber(fromBlockNumber)
-  const { data: toBlock, error: errorToBlock } = await client.blockchain.getBlockByNumber(toBlockNumber)
-
-  if (errorFromBlock)
-    return [false, errorFromBlock?.message || 'No block data', undefined]
-  if (errorFromBlock || errorToBlock)
-    return [false, errorToBlock?.message || 'No block data', undefined]
+  const [fromBlockOk, errorFromBlock, fromBlock] = await getBlockByNumber(fromBlockNumber)
+  if (!fromBlockOk)
+    return [false, errorFromBlock, undefined]
+  const [toBlockOk, errorToBlock, toBlock] = await getBlockByNumber(toBlockNumber)
+  if (!toBlockOk)
+    return [false, errorToBlock, undefined]
 
   const fromTimestamp = fromBlock!.timestamp
   const toTimestamp = toBlock!.timestamp

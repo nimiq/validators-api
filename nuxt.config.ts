@@ -19,7 +19,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    rpcUrl: process.env.NUXT_RPC_URL || '',
+    rpcUrl: process.env.ALBATROSS_RPC_NODE_URL || '',
     public: {
       gitBranch: 'dev', // Modified in the build hook
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',

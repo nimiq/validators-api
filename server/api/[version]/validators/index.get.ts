@@ -4,8 +4,7 @@ export default defineEventHandler(async (event) => {
   const queryParams = await getValidatedQuery(event, mainQuerySchema.parse)
   const { nimiqNetwork: network } = useRuntimeConfig().public
 
-  const client = getRpcClient()
-  const [rangeSuccess, errorRange, range] = await getRange(client, { network })
+  const [rangeSuccess, errorRange, range] = await getRange({ network })
   if (!rangeSuccess || !range)
     throw createError({ statusCode: 404, statusMessage: errorRange })
 

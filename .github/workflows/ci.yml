@@ -38,5 +38,5 @@ jobs:
       - name: Test
         run: pnpm run test
         env:
-          NUXT_RPC_URL: ${{ secrets.NUXT_RPC_URL }}
+          ALBATROSS_RPC_NODE_URL: ${{ secrets.ALBATROSS_RPC_NODE_URL }}
           NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}

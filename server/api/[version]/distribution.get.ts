@@ -1,6 +1,6 @@
 import { posSupplyAt } from '@nimiq/utils/supply-calculator'
 import { not, sql } from 'drizzle-orm'
-import { getRpcClient } from '~~/server/utils/client'
+import { getLatestBlock } from 'nimiq-rpc-client-ts/http'
 
 export default defineCachedEventHandler(async () => {
   const db = useDrizzle()
@@ -23,9 +23,9 @@ export default defineCachedEventHandler(async () => {
 
   const staked = (result?.totalStaked ?? 0) / 1e5
 
-  const { data: latestBlock, error } = await getRpcClient().blockchain.getLatestBlock()
-  if (error)
-    throw createError(error)
+  const [latestBlockOk, latestBlockError, latestBlock] = await getLatestBlock()
+  if (!latestBlockOk)
+    throw createError(latestBlockError)
 
   const network = useRuntimeConfig().public.nimiqNetwork as 'test-albatross' | 'main-albatross'
   const circulating = posSupplyAt(latestBlock.timestamp, { network })
