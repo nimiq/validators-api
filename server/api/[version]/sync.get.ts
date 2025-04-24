@@ -1,6 +1,5 @@
 import { createConsola } from 'consola'
 import { isDevelopment } from 'std-env'
-import { fetchActiveEpoch, fetchMissingEpochs } from '~~/server/utils/activities'
 
 const consola = createConsola({ defaults: { tag: 'sync' } })
 

@@ -1,8 +1,5 @@
 import { getBlockNumber } from 'nimiq-rpc-client-ts/http'
 import { getRange } from 'nimiq-validator-trustscore/range'
-import { findMissingEpochs } from '~~/server/utils/activities'
-import { isMissingScore } from '~~/server/utils/scores'
-import { categorizeValidatorsSnapshotEpoch } from '~~/server/utils/validators'
 
 /**
  * This endpoint returns the status of the API:
