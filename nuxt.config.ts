@@ -139,21 +139,9 @@ export default defineNuxtConfig({
       production: 'runtime',
     },
 
-    // https://github.com/csstree/csstree/issues/314
     externals: {
-      // Add data directory to externals to ensure JSON files are included
-      // inline: ['./data'],
       external: ['ws'],
     },
-    // https://github.com/csstree/csstree/issues/314
-    // publicAssets: [
-    //   // Make data files accessible as public assets
-    //   {
-    //     dir: 'data',
-    //     baseURL: '/data',
-    //     maxAge: 60 * 60 * 24 * 7, // 1 week
-    //   },
-    // ],
   },
 
   compatibilityDate: '2025-03-21',
