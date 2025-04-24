@@ -1,4 +1,4 @@
-name: Sync Workflow
+name: Sync Matrix
 
 on:
   push:
