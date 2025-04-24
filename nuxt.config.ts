@@ -13,6 +13,7 @@ export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-time'],
 
   hub: {
+    workers: true,
     database: true,
     blob: true,
     cache: true,
@@ -129,7 +130,6 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: 'cloudflare_module',
     experimental: {
       openAPI: true,
     },
