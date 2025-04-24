@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
   schedule:
     - cron: '0 * * * *' # Runs hourly
   workflow_dispatch: # Allows manual triggering of the workflow
@@ -13,13 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        endpoint:
-          - https://validators-api-mainnet.nuxt.dev
-          - https://validators-api-testnet.nuxt.dev
-          - https://dev.validators-api-mainnet.nuxt.dev
-          - https://dev.validators-api-testnet.nuxt.dev
+        endpoint: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          ['https://validators-api-mainnet.nuxt.dev', 'https://validators-api-testnet.nuxt.dev'] ||
+          github.event_name == 'push' && github.ref == 'refs/heads/dev' &&
+          ['https://dev.validators-api-mainnet.nuxt.dev', 'https://dev.validators-api-testnet.nuxt.dev'] ||
+          github.event_name != 'push' &&
+          ['https://validators-api-mainnet.nuxt.dev', 'https://validators-api-testnet.nuxt.dev', 'https://dev.validators-api-mainnet.nuxt.dev', 'https://dev.validators-api-testnet.nuxt.dev'] ||
+          [] }}
     steps:
-      - run: |
+      - if: matrix.endpoint != ''
+        run: |
           RESULT=$(curl -fsS "${{ matrix.endpoint }}/api/v1/sync") || {
             echo "Sync request failed for ${{ matrix.endpoint }}"
             exit 1
