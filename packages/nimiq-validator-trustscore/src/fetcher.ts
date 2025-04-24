@@ -191,8 +191,7 @@ export async function fetchSnapshotEpoch(client: NimiqRPCClient, options: FetchS
   const slotsDistribution = Object.fromEntries((electionBlock as ElectionMacroBlock).slots.map(({ validator, numSlots }) => [validator, numSlots]))
 
   const result: ResultSync<SnapshotEpoch['validators'][number]>[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
-    // TODO Remove { withMetadata: false } once the API is fixed
-    const { data: account, error } = await client.blockchain.getAccountByAddress(address, { withMetadata: false })
+    const { data: account, error } = await client.blockchain.getAccountByAddress(address)
     if (error || account === undefined)
       return [false, JSON.stringify({ error, address }), undefined]
 
