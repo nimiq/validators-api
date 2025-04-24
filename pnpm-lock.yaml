@@ -114,9 +114,6 @@ catalogs:
     std-env:
       specifier: ^3.9.0
       version: 3.9.0
-    svgo:
-      specifier: ^3.3.2
-      version: 3.3.2
     tsx:
       specifier: ^4.19.3
       version: 4.19.3
@@ -214,9 +211,6 @@ importers:
       reka-ui:
         specifier: 'catalog:'
         version: 2.2.0(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
-      svgo:
-        specifier: 'catalog:'
-        version: 3.3.2
       vue:
         specifier: 'catalog:'
         version: 3.5.13(typescript@5.8.3)

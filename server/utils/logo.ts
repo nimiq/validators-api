@@ -3,7 +3,7 @@ import { Buffer } from 'node:buffer'
 import { consola } from 'consola'
 import { createIdenticon } from 'identicons-esm'
 import { getIdenticonsParams } from 'identicons-esm/core'
-import { optimize } from 'svgo'
+// import { optimize } from 'svgo'
 
 function getDefaultBranding(address: string) {
   const { colors: { background: accentColor } } = getIdenticonsParams(address)
@@ -50,22 +50,22 @@ export async function handleValidatorLogo(address: string, { logo: _logo, accent
     }
 
     // Optimize with error handling
-    let optimizedSvg: string
+    // let optimizedSvg: string
 
-    try {
-      optimizedSvg = optimize(svgContent, {
-        plugins: [{ name: 'preset-default' }],
-        js2svg: { pretty: false, indent: 2 },
-      }).data
-    }
-    catch (error) {
-      consola.error(`Error optimizing SVG for ${address}: ${error}`)
-      return { logo: _logo, accentColor: accentColor!, hasDefaultLogo: false }
-    }
+    // try {
+    //   optimizedSvg = optimize(svgContent, {
+    //      plugins: [{ name: 'preset-default' }],
+    //      js2svg: { pretty: false, indent: 2 },
+    //   }).data
+    // }
+    // catch (error) {
+    //   consola.error(`Error optimizing SVG for ${address}: ${error}`)
+    //   return { logo: _logo, accentColor: accentColor!, hasDefaultLogo: false }
+    // }
 
-    if (!optimizedSvg) {
-      consola.warn(`SVGO optimization failed for ${address}`)
-    }
+    // if (!optimizedSvg) {
+    // consola.warn(`SVGO optimization failed for ${address}`)
+    // }
 
     // logo = `data:image/svg+xml,${encodeURIComponent(optimizedSvg)}`
   }

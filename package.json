@@ -42,7 +42,6 @@
     "nuxt": "catalog:",
     "nuxt-time": "catalog:",
     "reka-ui": "catalog:",
-    "svgo": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:",
     "zod": "catalog:"
