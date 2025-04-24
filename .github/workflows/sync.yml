@@ -14,14 +14,20 @@ jobs:
     strategy:
       matrix:
         endpoint:
-          - https://validators-api-mainnet.nuxt.dev/api/v1/sync
-          - https://validators-api-testnet.nuxt.dev/api/v1/sync
-          - https://dev.validators-api-mainnet.nuxt.dev/api/v1/sync
-          - https://dev.validators-api-testnet.nuxt.dev/api/v1/sync
+          - https://validators-api-mainnet.nuxt.dev
+          - https://validators-api-testnet.nuxt.dev
+          - https://dev.validators-api-mainnet.nuxt.dev
+          - https://dev.validators-api-testnet.nuxt.dev
     steps:
       - run: |
-          RESULT=$(curl -fsS "${{ matrix.endpoint }}") || {
+          RESULT=$(curl -fsS "${{ matrix.endpoint }}/api/v1/sync") || {
             echo "Sync request failed for ${{ matrix.endpoint }}"
             exit 1
           }
           echo "Sync result for ${{ matrix.endpoint }}: $RESULT"
+          echo "========================="
+          RESULT=$(curl -fsS "${{ matrix.endpoint }}/api/v1/distribution") || {
+            echo "Distribution request failed for ${{ matrix.endpoint }}"
+            exit 1
+          }
+          echo "Distribution result for ${{ matrix.endpoint }}: $RESULT"
