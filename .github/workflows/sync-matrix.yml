@@ -1,10 +1,10 @@
 name: Sync Matrix
 
 on:
-  push:
-    branches:
-      - main
-      - dev
+  workflow_run:
+    workflows: [Deploy to NuxtHub]
+    types:
+      - completed
   schedule:
     - cron: '0 * * * *' # Runs hourly
   workflow_dispatch: # Allows manual triggering of the workflow
@@ -12,17 +12,32 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        endpoint: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-          ['https://validators-api-mainnet.nuxt.dev', 'https://validators-api-testnet.nuxt.dev'] ||
-          github.event_name == 'push' && github.ref == 'refs/heads/dev' &&
-          ['https://dev.validators-api-mainnet.nuxt.dev', 'https://dev.validators-api-testnet.nuxt.dev'] ||
-          github.event_name != 'push' &&
-          ['https://validators-api-mainnet.nuxt.dev', 'https://validators-api-testnet.nuxt.dev', 'https://dev.validators-api-mainnet.nuxt.dev', 'https://dev.validators-api-testnet.nuxt.dev'] ||
-          [] }}
+    # Only run if the triggering workflow was successful and branch is main or dev, or if not triggered by workflow_run
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'dev'))
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - if: matrix.endpoint != ''
+      - name: Set matrix endpoints
+        id: set-matrix
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_run" && "${{ github.event.workflow_run.head_branch }}" == "main" ]] || [[ "${{ github.event_name }}" != "workflow_run" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo 'matrix={"endpoint":["https://validators-api-mainnet.nuxt.dev","https://validators-api-testnet.nuxt.dev"]}' >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_run" && "${{ github.event.workflow_run.head_branch }}" == "dev" ]] || [[ "${{ github.event_name }}" != "workflow_run" && "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            echo 'matrix={"endpoint":["https://dev.validators-api-mainnet.nuxt.dev","https://dev.validators-api-testnet.nuxt.dev"]}' >> $GITHUB_OUTPUT
+          else
+            echo 'matrix={"endpoint":["https://validators-api-mainnet.nuxt.dev","https://validators-api-testnet.nuxt.dev","https://dev.validators-api-mainnet.nuxt.dev","https://dev.validators-api-testnet.nuxt.dev"]}' >> $GITHUB_OUTPUT
+          fi
+
+  call-endpoints:
+    needs: sync
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.sync.outputs.matrix) }}
+    steps:
+      - name: Call API endpoints
         run: |
           RESULT=$(curl -fsS "${{ matrix.endpoint }}/api/v1/sync") || {
             echo "Sync request failed for ${{ matrix.endpoint }}"
