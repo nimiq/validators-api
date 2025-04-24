@@ -94,8 +94,8 @@ catalogs:
       specifier: ^1.0.0-beta.20
       version: 1.0.0-beta.20
     nimiq-rpc-client-ts:
-      specifier: 0.5.5
-      version: 0.5.5
+      specifier: 1.0.0-beta.10
+      version: 1.0.0-beta.10
     nuxt:
       specifier: ^3.16.2
       version: 3.16.2
@@ -198,7 +198,7 @@ importers:
         version: 1.0.0-beta.5
       nimiq-rpc-client-ts:
         specifier: 'catalog:'
-        version: 0.5.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        version: 1.0.0-beta.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       nimiq-validator-trustscore:
         specifier: workspace:*
         version: link:packages/nimiq-validator-trustscore
@@ -328,7 +328,7 @@ importers:
         version: 6.1.4
       nimiq-rpc-client-ts:
         specifier: 'catalog:'
-        version: 0.5.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        version: 1.0.0-beta.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     devDependencies:
       typescript:
         specifier: 'catalog:'
@@ -1840,6 +1840,9 @@ packages:
 
   '@nuxtjs/color-mode@3.5.2':
     resolution: {integrity: sha512-cC6RfgZh3guHBMLLjrBB2Uti5eUoGM9KyauOaYS9ETmxNWBMTvpgjvSiSJp1OFljIXPIqVTJ3xtJpSNZiO3ZaA==}
+
+  '@open-rpc/client-js@1.8.1':
+    resolution: {integrity: sha512-vV+Hetl688nY/oWI9IFY0iKDrWuLdYhf7OIKI6U1DcnJV7r4gAgwRJjEr1QVYszUc0gjkHoQJzqevmXMGLyA0g==}
 
   '@oxc-parser/binding-darwin-arm64@0.56.5':
     resolution: {integrity: sha512-rj4WZqQVJQgLnGnDu2ciIOC5SqcBPc4x11RN0NwuedSGzny5mtBdNVLwt0+8iB15lIjrOKg5pjYJ8GQVPca5HA==}
@@ -5202,6 +5205,14 @@ packages:
     resolution: {integrity: sha512-LpB/54B+/2J5hqQ7imZHfdU31OlgQqx7ZicVlkm9kzg9/w8GKLEcFfJl/t7DCEDueOyBAD6zCCwTO6Fzs0NoEQ==}
     engines: {node: '>=16'}
 
+  isomorphic-fetch@3.0.0:
+    resolution: {integrity: sha512-qvUtwJ3j6qwsF3jLxkZ72qCgjMysPzDfeV240JHiGZsANBYd+EEuu35v7dfrJ9Up0Ak07D7GGSkGhCHTqg/5wA==}
+
+  isomorphic-ws@5.0.0:
+    resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
+    peerDependencies:
+      ws: '*'
+
   jackspeak@3.4.3:
     resolution: {integrity: sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==}
 
@@ -5789,8 +5800,8 @@ packages:
   nimiq-icons@1.0.0-beta.20:
     resolution: {integrity: sha512-IuirvdIYEHquOPqwU25D5yd3HjLN6w9/oQ7cvNc/qSD/u0Uz+RN7gLDUfdjVKEmCd09D5BdYrWToyXtoku6dVA==}
 
-  nimiq-rpc-client-ts@0.5.5:
-    resolution: {integrity: sha512-RFmXTVEhow57dAiQUX44g6zV5pneulReMpNVWzDCjZaRpfm+9F7wY0Prv3c8dgIwkrPuvhNLZtTv871ppa9Yew==}
+  nimiq-rpc-client-ts@1.0.0-beta.10:
+    resolution: {integrity: sha512-WRpuMhorKFF6pmgv+TX+QgumZQh/od3rv3DCNgpe74OetnffX1CiL99RJoMkysyGv22iy1htO3oeh2eaybFc3A==}
 
   nitro-cloudflare-dev@0.2.2:
     resolution: {integrity: sha512-aZfNTVdgXPQeAmXW0Tw8hm3usAHr4qVG4Bg3WhHBGeZYuXr9OyT04Ztb+STkMzhyaXvfMHViAaPUPg06iAYqag==}
@@ -6786,6 +6797,9 @@ packages:
   streamx@2.22.0:
     resolution: {integrity: sha512-sLh1evHOzBy/iWRiR6d1zRcLao4gGZr3C1kzNz4fopCOKJb6xD9ub8Mpi9Mr1R6id5o43S+d93fI48UC5uM9aw==}
 
+  strict-event-emitter-types@2.0.0:
+    resolution: {integrity: sha512-Nk/brWYpD85WlOgzw5h173aci0Teyv8YdIAEtV+N88nDB0dLlazZyJMIsN6eo1/AR61l+p6CJTG1JIyFaoNEEA==}
+
   string-argv@0.3.2:
     resolution: {integrity: sha512-aqD2Q0144Z+/RqG52NeHEkZauTAUWJO8c6yTftGJKO3Tja5tUgIfmIl6kExvhtxSDP7fXB6DvzkfMpCd/F3G+Q==}
     engines: {node: '>=0.6.19'}
@@ -7546,6 +7560,9 @@ packages:
     resolution: {integrity: sha512-/REy6amwPZl44DDzvRCkaI1q1bIiQB0mEFQLUrhz3z2EK91cp3n72rAjUlrTP0zV22HJIUOVHQGPxhFRjxjt+Q==}
     engines: {node: '>=4.0.0'}
 
+  whatwg-fetch@3.6.20:
+    resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
+
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
 
@@ -7621,6 +7638,18 @@ packages:
   write-file-atomic@6.0.0:
     resolution: {integrity: sha512-GmqrO8WJ1NuzJ2DrziEI2o57jKAVIQNf8a18W3nCYU3H7PNWqCCVTeH6/NQE93CIllIgQS98rrmVkYgTX9fFJQ==}
     engines: {node: ^18.17.0 || >=20.5.0}
+
+  ws@7.5.10:
+    resolution: {integrity: sha512-+dbF1tHwZpXcbOJdVOkzLDxZP1ailvSxM6ZweXTegylPny803bFhA+vqBYw4s31NSAk4S2Qz+AKXK9a4wkdjcQ==}
+    engines: {node: '>=8.3.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: ^5.0.2
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
 
   ws@8.18.0:
     resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
@@ -9322,6 +9351,17 @@ snapshots:
       semver: 7.7.1
     transitivePeerDependencies:
       - magicast
+
+  '@open-rpc/client-js@1.8.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      isomorphic-fetch: 3.0.0
+      isomorphic-ws: 5.0.0(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      strict-event-emitter-types: 2.0.0
+      ws: 7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
 
   '@oxc-parser/binding-darwin-arm64@0.56.5':
     optional: true
@@ -13034,6 +13074,17 @@ snapshots:
 
   isexe@3.1.1: {}
 
+  isomorphic-fetch@3.0.0:
+    dependencies:
+      node-fetch: 2.7.0
+      whatwg-fetch: 3.6.20
+    transitivePeerDependencies:
+      - encoding
+
+  isomorphic-ws@5.0.0(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
+    dependencies:
+      ws: 7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+
   jackspeak@3.4.3:
     dependencies:
       '@isaacs/cliui': 8.0.2
@@ -13810,11 +13861,12 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  nimiq-rpc-client-ts@0.5.5(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+  nimiq-rpc-client-ts@1.0.0-beta.10(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
-      ws: 8.18.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@open-rpc/client-js': 1.8.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
+      - encoding
       - utf-8-validate
 
   nitro-cloudflare-dev@0.2.2:
@@ -15094,6 +15146,8 @@ snapshots:
     optionalDependencies:
       bare-events: 2.5.4
 
+  strict-event-emitter-types@2.0.0: {}
+
   string-argv@0.3.2: {}
 
   string-width@4.2.3:
@@ -16030,6 +16084,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  whatwg-fetch@3.6.20: {}
+
   whatwg-url@5.0.0:
     dependencies:
       tr46: 0.0.3
@@ -16133,6 +16189,11 @@ snapshots:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 4.1.0
+
+  ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+    optionalDependencies:
+      bufferutil: 4.0.9
+      utf-8-validate: 5.0.10
 
   ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     optionalDependencies:
