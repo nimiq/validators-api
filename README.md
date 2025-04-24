@@ -183,7 +183,7 @@ pnpm dev # or pnpm dev:local to use the local database
 
 ## Deployment
 
-The deployment is handled by [`NuxtHub Action`](./.github/workflows/nuxt-hub.yml).
+The deployment is handled by the [`NuxtHub Action`](./.github/workflows/nuxt-hub.yml).
 
 There are 4 different environments:
 
