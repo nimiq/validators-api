@@ -84,7 +84,7 @@ async function calculateScore(range: Range, validatorId: number): Result<Calcula
  */
 export async function upsertScoresSnapshotEpoch(): Result<CalculateScoreResult> {
   const { nimiqNetwork: network } = useRuntimeConfig().public
-  const [rangeSuccess, errorRange, range] = await getRange(getRpcClient(), { network })
+  const [rangeSuccess, errorRange, range] = await getRange({ network })
   if (!rangeSuccess || !range)
     return [false, errorRange || 'No range', undefined]
 

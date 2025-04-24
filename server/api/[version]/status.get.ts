@@ -1,3 +1,4 @@
+import { getBlockNumber } from 'nimiq-rpc-client-ts/http'
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { findMissingEpochs } from '~~/server/utils/activities'
 import { isMissingScore } from '~~/server/utils/scores'
@@ -26,8 +27,7 @@ export default defineCachedEventHandler(async () => {
   const { nimiqNetwork: network } = useRuntimeConfig().public
 
   // We get a "window" whose size is determined by the range
-  const client = getRpcClient()
-  const [rangeSuccess, errorRange, range] = await getRange(client, { network })
+  const [rangeSuccess, errorRange, range] = await getRange({ network })
   if (!rangeSuccess || !range)
     throw createError(errorRange || 'No range')
 
@@ -35,8 +35,8 @@ export default defineCachedEventHandler(async () => {
   if (!validatorsSuccess || !validatorsEpoch)
     throw createError(error || 'No data')
 
-  const { data: headBlockNumber, error: errorHeadBlockNumber } = await client.blockchain.getBlockNumber()
-  if (errorHeadBlockNumber || !headBlockNumber)
+  const [headBlockOk, errorHeadBlockNumber, headBlockNumber] = await getBlockNumber()
+  if (!headBlockOk)
     throw createError(errorHeadBlockNumber || 'No head block number')
 
   const missingEpochs = await findMissingEpochs(range)

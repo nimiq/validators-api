@@ -234,7 +234,7 @@ export const cachedFetchValidator = defineCachedFunction((_event: H3Event, param
  */
 export async function categorizeValidatorsSnapshotEpoch(): Result<SnapshotEpochValidators> {
   const { nimiqNetwork: network } = useRuntimeConfig().public
-  const [epochOk, error, epoch] = await fetchSnapshotEpoch(getRpcClient(), { network })
+  const [epochOk, error, epoch] = await fetchSnapshotEpoch({ network })
   if (!epochOk)
     return [false, error, undefined]
 

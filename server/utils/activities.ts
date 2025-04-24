@@ -94,11 +94,10 @@ const EPOCHS_IN_PARALLEL = 3
  * Fetches the activities of the epochs that have finished and are missing in the database.
  */
 export async function fetchMissingEpochs(): Result<number[]> {
-  const client = getRpcClient()
   const { nimiqNetwork: network } = useRuntimeConfig().public
 
   // The range that we will consider
-  const [rangeSuccess, errorRange, range] = await getRange(client, { network })
+  const [rangeSuccess, errorRange, range] = await getRange({ network })
   if (!rangeSuccess || !range)
     return [false, errorRange || 'No range', undefined]
 
@@ -110,7 +109,7 @@ export async function fetchMissingEpochs(): Result<number[]> {
 
   consola.info(`Fetching missing epochs...`)
   const fetchedEpochs = []
-  const epochGenerator = fetchEpochs(client, missingEpochs)
+  const epochGenerator = fetchEpochs(missingEpochs)
 
   while (true) {
     const epochsActivities: EpochsActivities = {}
