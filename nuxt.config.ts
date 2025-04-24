@@ -54,6 +54,8 @@ export default defineNuxtConfig({
     resolve: {
       alias: {
         'nimiq-validator-trustscore': './packages/nimiq-validator-trustscore/src/index.ts',
+        // Add alias for data files
+        'css-tree': 'css-tree/dist/csstree.esm.js',
       },
     },
   },
@@ -136,6 +138,21 @@ export default defineNuxtConfig({
       meta: { title: name, description, version },
       production: 'runtime',
     },
+
+    // https://github.com/csstree/csstree/issues/314
+    externals: {
+      // Add data directory to externals to ensure JSON files are included
+      inline: ['./data'],
+    },
+    // https://github.com/csstree/csstree/issues/314
+    publicAssets: [
+      // Make data files accessible as public assets
+      {
+        dir: 'data',
+        baseURL: '/data',
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+      },
+    ],
   },
 
   compatibilityDate: '2025-03-21',
