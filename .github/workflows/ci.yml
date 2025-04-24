@@ -29,9 +29,8 @@ jobs:
 
       - name: Typecheck
         run: pnpm run typecheck
-        with:
-          env:
-            NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
+        env:
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
 
       - name: Validate JSON files
         run: pnpm run validate:json-files
