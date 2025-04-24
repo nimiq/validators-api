@@ -128,7 +128,6 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
  * This function is an asynchronous generator. It yields each activity one by one,
  * allowing the caller to decide when to fetch the next activity.
  *
- * @param client - The client instance to use for fetching validator activities.
  * @param epochsIndexes - An array of epoch block numbers to fetch the activities for.
  * @returns An asynchronous generator yielding objects containing the address, epoch block number, and activity.
  */
