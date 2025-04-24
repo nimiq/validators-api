@@ -1,4 +1,5 @@
 import { ValidationUtils } from '@nimiq/utils/validation-utils'
+import { initRpcClient } from 'nimiq-rpc-client-ts/config'
 import { z } from 'zod'
 import { getRange } from '~~/packages/nimiq-validator-trustscore/src/range'
 
@@ -7,6 +8,9 @@ const paramsSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
+  if (!useRuntimeConfig().albatrossRpcNodeUrl)
+    throw createError('No Albatross RPC Node URL')
+  initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
   const { address } = await getValidatedRouterParams(event, paramsSchema.parse)
   const isValid = ValidationUtils.isValidAddress(address)
   if (!isValid)

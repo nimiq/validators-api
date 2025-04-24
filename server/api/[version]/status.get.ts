@@ -1,3 +1,4 @@
+import { initRpcClient } from 'nimiq-rpc-client-ts/config'
 import { getBlockNumber } from 'nimiq-rpc-client-ts/http'
 import { getRange } from 'nimiq-validator-trustscore/range'
 
@@ -21,6 +22,10 @@ import { getRange } from 'nimiq-validator-trustscore/range'
  */
 
 export default defineCachedEventHandler(async () => {
+  if (!useRuntimeConfig().albatrossRpcNodeUrl)
+    throw createError('No Albatross RPC Node URL')
+  initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
+
   const { nimiqNetwork: network } = useRuntimeConfig().public
 
   // We get a "window" whose size is determined by the range

@@ -1,9 +1,13 @@
 import { createConsola } from 'consola'
+import { initRpcClient } from 'nimiq-rpc-client-ts/config'
 import { isDevelopment } from 'std-env'
 
 const consola = createConsola({ defaults: { tag: 'sync' } })
 
 export default defineEventHandler(async () => {
+  if (!useRuntimeConfig().albatrossRpcNodeUrl)
+    throw createError('No Albatross RPC Node URL')
+  initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
   consola.info('Starting syncing...')
   const [importSuccess, errorImport, importData] = await importValidators(isDevelopment ? 'filesystem' : 'github')
   if (!importSuccess || !importData)
