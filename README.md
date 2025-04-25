@@ -109,7 +109,7 @@ The Validators API provides endpoints to retrieve validator information for inte
 | Endpoint | Description |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [/api/v1/validators](https://validators-api-mainnet.pages.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
-| [/api/v1/validators/validator_address](https://validators-api-mainnet.pages.dev/api/v1/validators/validator_address) | Retrieves the validator information |
+| [/api/v1/validators/:validator_address](https://validators-api-mainnet.pages.dev/api/v1/validators/NQ7700000000000000000000000000000001) | Retrieves the validator information |
 | [/api/v1/distribution](https://validators-api-mainnet.pages.dev/api/v1/distribution) | Retrieves stats about NIM and staking |
 
 ## Validators Dashboard
@@ -187,12 +187,12 @@ The deployment is handled by the [`NuxtHub Action`](./.github/workflows/nuxt-hub
 
 There are 4 different environments:
 
-| Nuxt Hub Env | GitHub Env           | Dashboard URL                                                              | Trigger                       |
-| ------------ | -------------------- | -------------------------------------------------------------------------- | ----------------------------- |
-| `production` | `production-mainnet` | [Validators API Mainnet](https://validators-api-mainnet.pages.dev)         | Push to `main` branch         |
-| `production` | `production-testnet` | [Validators API Testnet](https://validators-api-testnet.pages.dev)         | Push to `main` branch         |
-| `preview`    | `preview-mainnet`    | [Validators API Mainnet Preview](https://validators-api-preview.pages.dev) | Push any commit to any branch |
-| `preview`    | `preview-testnet`    | [Validators API Testnet Preview](https://validators-api-preview.pages.dev) | Push any commit to any branch |
+| Nuxt Hub Env | GitHub Env           | Dashboard URL                                                                  | Trigger                       |
+| ------------ | -------------------- | ------------------------------------------------------------------------------ | ----------------------------- |
+| `production` | `production-mainnet` | [Validators API Mainnet](https://validators-api-mainnet.pages.dev)             | Push to `main` branch         |
+| `production` | `production-testnet` | [Validators API Testnet](https://validators-api-testnet.pages.dev)             | Push to `main` branch         |
+| `preview`    | `preview-mainnet`    | [Validators API Mainnet Preview](https://dev.validators-api-preview.pages.dev) | Push any commit to any branch |
+| `preview`    | `preview-testnet`    | [Validators API Testnet Preview](https://dev.validators-api-preview.pages.dev) | Push any commit to any branch |
 
 Each Nuxt Hub environment has its own database, so effectively we have 4 different databases and there 4 tasks in the [`sync.yml`](./.github/workflows/sync.yml) workflow that are responsible for syncing the data from the Nimiq network to the database.
 
