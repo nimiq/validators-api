@@ -123,26 +123,31 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
   }
 }
 
+type FetchFunctionResult = AsyncGenerator<ResultSync<{
+  address: string
+  epochIndex: number
+  activity: EpochActivity[string]
+}>, void, unknown>
+
 /**
  * Fetches the activity for the given block numbers.
  * This function is an asynchronous generator. It yields each activity one by one,
  * allowing the caller to decide when to fetch the next activity.
  *
  * @param epochsIndexes - An array of epoch block numbers to fetch the activities for.
- * @returns An asynchronous generator yielding objects containing the address, epoch block number, and activity.
+ * @returns An asynchronous generator yielding objects containing the address, epoch index, and activity.
  */
-export async function* fetchEpochs(epochsIndexes: number[]) {
+export async function* fetchEpochs(epochsIndexes: number[]): FetchFunctionResult {
   for (const epochIndex of epochsIndexes) {
-    const [activityOk, _activityError, activities] = await fetchActivity(epochIndex)
+    const [activityOk, activityError, activities] = await fetchActivity(epochIndex)
 
-    // If there was an error or validatorActivities is empty, yield null activity
     if (!activityOk) {
-      yield { epochIndex, address: '', activity: null }
-      continue
+      yield [false, `Error fetching activity for epoch ${epochIndex}: ${activityError}`, undefined]
     }
-
-    for (const [address, activity] of Object.entries(activities)) {
-      yield { address, epochIndex, activity }
+    else {
+      for (const [address, activity] of Object.entries(activities)) {
+        yield [true, undefined, { address, epochIndex, activity }]
+      }
     }
   }
 }

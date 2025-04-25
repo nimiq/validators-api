@@ -69,7 +69,7 @@ const snapshotInThePast = computed(() => {
       <span v-else h-max absolute bottom--24 flex="~ items-center justify-center gap-8" text="f-2xs red-1100" inset-x-0 mx-auto f-px-sm>
         <div i-nimiq:alert op-80 scale-80 />
         <p>
-          The current epoch {{ range.snapshotEpoch }} has ended<br> but not yet been processed.
+          The epoch {{ range.snapshotEpoch }} has ended<br> but not yet been processed.
         </p>
       </span>
     </div>

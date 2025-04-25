@@ -1,6 +1,18 @@
 <script setup lang="ts">
-const { data: status, status: statusRequest } = await useFetch('/api/v1/status', { server: true, lazy: false })
-const { execute: syncData, status: statusSync } = useFetch('/api/v1/sync', { lazy: true, immediate: false, onResponse: () => refreshNuxtData() })
+const { data: status, status: statusRequest, refresh: refreshStatus, error } = await useFetch('/api/v1/status', { server: true, lazy: false })
+
+const debouncedRefresh = useDebounceFn(() => {
+  refreshStatus()
+  refreshNuxtData(['/api/v1/validators', '/api/v1/distribution', '/api/v1/status'])
+}, 300)
+
+const { execute: syncData, status: statusSync, error: syncError } = useFetch('/api/v1/sync', {
+  lazy: true,
+  immediate: false,
+  onResponse: () => debouncedRefresh(),
+  onResponseError: error => console.error('Sync failed:', error),
+})
+
 const colorMode = useColorMode()
 const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
 
@@ -75,18 +87,7 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
             </template>
             <template v-else>
               <div i-nimiq:alert op-70 f-text-xs />
-              <template v-if="!isActivitySync">
-                Activity out of sync
-              </template>
-              <template v-else-if="!isScoreSync">
-                Score not computed
-              </template>
-              <button nq-pill-secondary ml-12 bg="red-500 hocus:red-600" text="red-1100/80 f-2xs" outline="~ 1.5 offset--1.5 red-1100/40" :disabled="statusSync === 'pending'" @click="() => syncData()">
-                <div mr-4 :class="statusSync === 'pending' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" />
-                <span w-8ch>
-                  {{ statusSync === 'pending' ? 'pending' : 'Sync now' }}
-                </span>
-              </button>
+              Error
             </template>
           </div>
         </div>
@@ -95,6 +96,28 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
       <button i-nimiq:moon @click="() => toggleDark()" />
     </header>
     <main flex-1>
+      <div v-if="!isSynced || error || syncError" bg="red/8" outline="1.5 ~ red-600" rounded-12 f-p-md text="14 red-1100" nq-prose-compact children:max-w-none>
+        <h1 flex="~ items-center gap-12" text-red-1100 f-text-lg>
+          <div i-nimiq:alert op-70 text-0.9em m-0 />
+          <template v-if="!isActivitySync">
+            Activity out of sync
+          </template>
+          <template v-else-if="!isScoreSync">
+            Score not computed
+          </template>
+        </h1>
+        <p f-mt-2xs>
+          Try to refresh the page or click the sync button. Check the logs for more details.
+        </p>
+        <pre v-if="syncError || error" bg="red/8" text="f-2xs red-1100" outline="red/30">{{ JSON.stringify(syncError || error, null, 2) }}</pre>
+        <button mx-0 f-mt-xs nq-pill nq-pill-red bg="red-500 hocus:red-600" outline="~ 1.5 offset--1.5 red-1100/40" :disabled="statusSync === 'pending'" @click="() => syncData()">
+          <div :class="statusSync === 'pending' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" mr-6 />
+          <span>
+            {{ statusSync === 'pending' ? 'Pending' : syncError ? 'Retry' : 'Sync now' }}
+          </span>
+        </button>
+      </div>
+
       <NuxtPage />
     </main>
   </div>

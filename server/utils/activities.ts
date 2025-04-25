@@ -114,18 +114,26 @@ export async function fetchMissingEpochs(): Result<number[]> {
   while (true) {
     const epochsActivities: EpochsActivities = {}
 
-    // Fetch the activities in parallel
+    // Fetch the activities in parallel. In case of error, we throw an error and stop the process.
     for (let i = 0; i < EPOCHS_IN_PARALLEL; i++) {
-      const { value: epochActivity, done } = await epochGenerator.next()
-      if (done || !epochActivity)
+      const { value: epochActivityResult, done } = await epochGenerator.next()
+      if (done || !epochActivityResult)
         break
+
+      const [success, errorMsg, epochActivity] = epochActivityResult
+
+      if (!success)
+        throw createError(errorMsg)
+
       if (epochActivity.activity === null) {
         consola.warn(`Epoch ${epochActivity.epochIndex} is missing`, epochActivity)
         await storeSingleActivity({ address: '', activity: null, epochNumber: epochActivity.epochIndex })
         continue
       }
+
       if (!epochsActivities[`${epochActivity.epochIndex}`])
         epochsActivities[`${epochActivity.epochIndex}`] = {}
+
       const epoch = epochsActivities[`${epochActivity.epochIndex}`]!
       if (!epoch[epochActivity.address])
         epoch[epochActivity.address] = epochActivity.activity
