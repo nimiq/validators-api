@@ -6,10 +6,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_WINDOW_IN_MS, getRange } from './range'
 
 // Mock the nimiq-rpc-client-ts/http module upfront with mocked functions
-vi.mock('nimiq-rpc-client-ts/http', () => ({
-  getBlockNumber: vi.fn(),
-  getBlockByNumber: vi.fn(),
-}))
+vi.mock('nimiq-rpc-client-ts/http', async () => {
+  const original = await vi.importActual('nimiq-rpc-client-ts/http')
+  return {
+    ...original,
+    getBlockNumber: vi.fn(),
+    getBlockByNumber: vi.fn(),
+  }
+})
 
 // Mock only the constants in the albatross-policy module
 vi.mock('@nimiq/utils/albatross-policy', async () => {
