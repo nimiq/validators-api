@@ -62,11 +62,11 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
       const [inherentsOk, errorBatch, inherents] = await getInherentsByBatchNumber(firstBatchIndex + index)
       if (!inherentsOk) {
         const errorMsg = `No inherents found in batch ${firstBatchIndex + index}`
-        return [false, `${JSON.stringify({ errorMsg, firstBatchIndex, index, inherents, inherentsOk })}`, undefined]
+        throw new Error(`${JSON.stringify({ errorMsg, firstBatchIndex, index, inherents, inherentsOk })}`)
       }
       if (!inherents || inherents.length === 0) {
         const errorMsg = `Batch fetch failed: ${errorBatch}.`
-        return [false, `${JSON.stringify({ errorMsg, firstBatchIndex, index, inherents, inherentsOk })}`, undefined]
+        throw new Error(`${JSON.stringify({ errorMsg, firstBatchIndex, index, inherents, inherentsOk })}`)
       }
 
       for (const { type, validatorAddress } of inherents) {
@@ -89,7 +89,7 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
     }
     catch (error) {
       if (retryCount >= maxRetries)
-        return [false, `Max retries exceeded for batch ${firstBatchIndex + index}: ${error}`, undefined]
+        return [false, `Batch ${firstBatchIndex + index} reached ${maxRetries} attempts: ${error}`, undefined]
       const delay = Math.min(10000, 2 ** retryCount * 1000) // dynamically increase time up to 10s
       await new Promise(resolve => setTimeout(resolve, delay))
       return createPromise(index, retryCount + 1)
