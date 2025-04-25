@@ -38,7 +38,7 @@ If you operate a staking pool and want to be displayed in the Nimiq Wallet, foll
 3. Review the [Description Guidelines](#recommendations-for-your-validator-information).
 4. Learn about the [JSON Schema](#validator-json-schema).
 5. Submit a PR to this repository. A Nimiq team member will review your submission within 3 days.
-6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.nuxt.dev/api/v1) returns your information. This process may take a few minutes.
+6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.pages.dev/api/v1) returns your information. This process may take a few minutes.
 
 > [!WARNING]
 > Nimiq reserves the right to make minor adjustments to the content submitted by validator owners if necessary.
