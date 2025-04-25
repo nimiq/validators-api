@@ -20,7 +20,13 @@ jobs:
         run: |
           # --no-buffer (or -N) tells curl to flush each chunk as soon as it arrives,
           # so can see Nitro stream lines in real time.
-          curl -fsS --no-buffer "${{ matrix.endpoint }}/api/v1/sync" || {
+          curl -fsS --no-buffer "${{ matrix.endpoint }}/api/v1/sync" | tee response.txt || {
             echo "Sync request failed for ${{ matrix.endpoint }}"
             exit 1
           }
+
+          # Check for error messages in the stream response
+          if grep -q '"kind":\s*"error"' response.txt; then
+            echo "Error message detected in the stream response for ${{ matrix.endpoint }}"
+            exit 1
+          fi
