@@ -60,10 +60,8 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
   const createPromise = async (index: number, retryCount = 0): Promise<ResultSync<void>> => {
     try {
       const [inherentsOk, errorBatch, inherents] = await getInherentsByBatchNumber(firstBatchIndex + index)
-      if (!inherentsOk || inherents.length === 0) {
-        const errorMsg = inherents?.length === 0 ? `No inherents found in batch ${firstBatchIndex + index}` : `Batch fetch failed: ${errorBatch}`
-        return [false, errorMsg, undefined]
-      }
+      if (!inherentsOk)
+        return [false, errorBatch, undefined]
 
       for (const { type, validatorAddress } of inherents) {
         const isStakingAddress = validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000'
@@ -86,7 +84,8 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
     catch (error) {
       if (retryCount >= maxRetries)
         return [false, `Max retries exceeded for batch ${firstBatchIndex + index}: ${error}`, undefined]
-      await new Promise(resolve => setTimeout(resolve, 2 ** retryCount * 1000))
+      const delay = Math.min(10000, 2 ** retryCount * 1000) // dynamically increase time up to 10s
+      await new Promise(resolve => setTimeout(resolve, delay))
       return createPromise(index, retryCount + 1)
     }
   }
