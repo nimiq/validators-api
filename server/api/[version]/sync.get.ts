@@ -1,36 +1,73 @@
+import type { SyncStream } from '~~/server/utils/types'
 import { createConsola } from 'consola'
 import { initRpcClient } from 'nimiq-rpc-client-ts/config'
 import { isDevelopment } from 'std-env'
 
 const consola = createConsola({ defaults: { tag: 'sync' } })
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  const eventStream = createEventStream(event)
+  const controller = new AbortController()
+
+  // Handle client disconnection by aborting the controller
+  eventStream.onClosed(async () => {
+    consola.info('Client disconnected, aborting sync process')
+    controller.abort()
+    await eventStream.close()
+  })
+
+  function report(json: SyncStream) {
+    const method = json.kind === 'error' ? 'error' : json.kind === 'success' ? 'success' : 'log'
+    consola[method](json.message)
+    eventStream.push(JSON.stringify(json))
+    if (json.kind === 'error') {
+      eventStream.close()
+      throw createError(json.message)
+    }
+    if (controller.signal.aborted && json.message !== 'Sync process aborted') {
+      consola.warn('Sync process aborted')
+      report({ kind: 'log', message: 'Sync process aborted' })
+    }
+  }
+
   if (!useRuntimeConfig().albatrossRpcNodeUrl)
     throw createError('No Albatross RPC Node URL')
   initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
-  consola.info('Starting syncing...')
-  const [importSuccess, errorImport, importData] = await importValidators(isDevelopment ? 'filesystem' : 'github')
-  if (!importSuccess || !importData)
-    throw createError({ statusCode: 500, statusMessage: errorImport || 'Unable to import from GitHub' })
+  report({ kind: 'log', message: 'Starting syncing...' })
 
-  consola.success('Imported from GitHub')
+  // We need to return the event stream to the client first
+  setTimeout(async () => {
+    try {
+      const [importSuccess, errorImport, importData] = await importValidators(isDevelopment ? 'filesystem' : 'github')
+      if (!importSuccess || !importData)
+        return report({ kind: 'error', message: errorImport || 'Unable to import from GitHub' })
+      report({ kind: 'success', payload: importData, message: `Fetched ${importData.length} validators` })
 
-  const [fetchEpochsSuccess, fetchEpochsError, fetchEpochsData] = await fetchMissingEpochs()
-  if (!fetchEpochsSuccess || !fetchEpochsData)
-    throw createError({ statusCode: 500, statusMessage: fetchEpochsError || 'Unable to fetch missing epochs' })
-  consola.success('Fetched missing epochs:', fetchEpochsData)
+      // Pass the controller to fetchMissingEpochs for proper abort handling
+      const [fetchEpochsSuccess, fetchEpochsError, fetchEpochsData] = await fetchMissingEpochs({ report, controller })
+      if (!fetchEpochsSuccess || !fetchEpochsData)
+        return report({ kind: 'error', message: fetchEpochsError || 'Unable to fetch missing epochs' })
+      report({ kind: 'success', payload: fetchEpochsData, message: `Fetched ${fetchEpochsData.length} missing epochs` })
 
-  const [fetchActiveEpochSuccess, fetchActiveEpochError, fetchActiveEpochData] = await fetchActiveEpoch()
-  if (!fetchActiveEpochSuccess || !fetchActiveEpochData)
-    throw createError({ statusCode: 500, statusMessage: fetchActiveEpochError })
-  const { electedValidators, unelectedValidators } = fetchActiveEpochData
-  consola.success(`Fetched active epoch: ${fetchActiveEpochData.epochNumber} with ${electedValidators.length} elected and ${unelectedValidators.length} unelected validators`)
+      const [fetchActiveEpochSuccess, fetchActiveEpochError, fetchActiveEpochData] = await fetchActiveEpoch()
+      if (!fetchActiveEpochSuccess || !fetchActiveEpochData)
+        return report({ kind: 'error', message: fetchActiveEpochError || 'Unable to fetch active epoch' })
+      report({ kind: 'log', message: `Fetched active epoch: ${fetchActiveEpochData.epochNumber}`, payload: fetchActiveEpochData })
 
-  const [scoresSuccess, errorScores, scores] = await upsertScoresSnapshotEpoch()
-  if (!scoresSuccess || !scores)
-    throw createError({ statusCode: 500, statusMessage: errorScores || 'Unable to fetch scores' })
+      const [scoresSuccess, errorScores, scores] = await upsertScoresSnapshotEpoch()
+      if (!scoresSuccess || !scores)
+        return report({ kind: 'error', message: errorScores || 'Unable to fetch scores' })
+      report({ kind: 'success', payload: scores, message: `Fetched scores` })
 
-  const distributionData = await $fetch('/api/v1/distribution')
+      const distributionData = await $fetch('/api/v1/distribution')
+      report({ kind: 'success', payload: distributionData, message: 'Fetched distribution data' })
 
-  return { fetchEpochsData, fetchActiveEpochData, scores, importData, distributionData }
+      report({ kind: 'success', message: 'Sync process completed' })
+    }
+    catch (e) {
+      report({ kind: 'error', message: JSON.stringify(e) })
+    }
+  })
+
+  return eventStream.send()
 })

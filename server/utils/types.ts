@@ -29,3 +29,6 @@ export type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & Pick<Activi
   score: Nullable<Pick<Score, 'total' | 'availability' | 'reliability' | 'dominance' | 'epochNumber'>>
   dominanceRatio: number | null
 }
+
+export interface SyncStream { kind: 'success' | 'data' | 'log' | 'error', message: string, payload?: any }
+export type SyncStreamReportFn = (json: SyncStream) => void

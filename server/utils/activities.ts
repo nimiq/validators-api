@@ -1,6 +1,6 @@
 import type { ElectedValidator, EpochActivity, EpochsActivities, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
 import type { NewActivity } from './drizzle'
-import type { SnapshotEpochValidators } from './types'
+import type { SnapshotEpochValidators, SyncStreamReportFn } from './types'
 import { consola } from 'consola'
 import { eq, gte, lte, not } from 'drizzle-orm'
 import { fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
@@ -90,10 +90,16 @@ async function storeSingleActivity({ address, activity, epochNumber }: StoreActi
 
 const EPOCHS_IN_PARALLEL = 3
 
+interface FetchMissingEpochsParams {
+  report?: SyncStreamReportFn
+  // AbortController to abort the fetch process once the epoch being processed is finished
+  controller?: AbortController
+}
+
 /**
  * Fetches the activities of the epochs that have finished and are missing in the database.
  */
-export async function fetchMissingEpochs(): Result<number[]> {
+export async function fetchMissingEpochs({ report, controller }: FetchMissingEpochsParams): Result<number[]> {
   const { nimiqNetwork: network } = useRuntimeConfig().public
 
   // The range that we will consider
@@ -144,6 +150,12 @@ export async function fetchMissingEpochs(): Result<number[]> {
       processedEpochs.add(epochActivity.epochIndex)
     }
 
+    // If we've been aborted and haven't processed anything in this iteration, exit now
+    if (controller?.signal.aborted && Object.keys(epochsActivities).length === 0) {
+      consola.warn('Fetch process aborted, exiting')
+      return [true, undefined, Array.from(processedEpochs)]
+    }
+
     const epochs = Object.keys(epochsActivities).map(Number)
     if (epochs.length === 0 && (await findMissingEpochs(range)).length === 0)
       break
@@ -155,6 +167,13 @@ export async function fetchMissingEpochs(): Result<number[]> {
       // Calculate progress based on unique processed epochs rather than individual validator activities
       const percentage = ((processedEpochs.size / missingEpochs.length) * 100).toFixed(2)
       consola.info(`Processed ${processedEpochs.size}/${missingEpochs.length} epochs. ${percentage}%`)
+      report?.({ kind: 'log', message: `Processed ${processedEpochs.size}/${missingEpochs.length} epochs. ${percentage}%` })
+    }
+
+    // Check for abort after storing data
+    if (controller?.signal.aborted) {
+      consola.warn('Fetch process aborted after storing data')
+      return [true, undefined, Array.from(processedEpochs)]
     }
   }
 

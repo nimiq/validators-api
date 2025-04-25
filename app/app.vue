@@ -6,12 +6,15 @@ const debouncedRefresh = useDebounceFn(() => {
   refreshNuxtData(['/api/v1/validators', '/api/v1/distribution', '/api/v1/status'])
 }, 300)
 
-const { execute: syncData, status: statusSync, error: syncError } = useFetch('/api/v1/sync', {
-  lazy: true,
-  immediate: false,
-  onResponse: () => debouncedRefresh(),
-  onResponseError: error => console.error('Sync failed:', error),
-})
+// const { execute: syncData, status: statusSync, error: syncError } = useFetch('/api/v1/sync', {
+//   lazy: true,
+//   immediate: false,
+//   onResponse: () => debouncedRefresh(),
+//   onResponseError: error => console.error('Sync failed:', error),
+// })
+
+const { status: statusSync, data: dataSync, error: syncError, close: closeSync, open: syncData } = useEventSource('/api/v1/sync', [], { immediate: false })
+watch(() => [dataSync, syncError], debouncedRefresh)
 
 const colorMode = useColorMode()
 const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
@@ -116,6 +119,14 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
           <h2 f-mt-md text-red-1100 f-text-md flex="~ items-center gap-12">
             <div i-nimiq:duotone-fluctuations text-1em m-0 />
             Status
+            <button
+              bg-transparent rounded-full outline="1.5 ~ red-600" mx-0 text="red-1100" p-4
+              title="Refresh status"
+              :disabled="statusRequest === 'pending'"
+              @click="() => refreshStatus()"
+            >
+              <div :class="statusRequest === 'pending' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" text-12 />
+            </button>
           </h2>
           <details v-for="key in Object.keys(status)" :key="key" f-mt-sm max-w-full>
             <summary nq-label mx-0 text-red-1100>
@@ -126,16 +137,30 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
         </template>
 
         <hr f-my-sm border-red-600>
-        <button
-          mx-0 f-mt-md nq-pill nq-pill-red bg="red-500 hocus:red-600" outline="~ 1.5 offset--1.5 red-1100/40"
-          :disabled="statusSync === 'pending'"
-          @click="() => syncData()"
-        >
-          <div :class="statusSync === 'pending' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" mr-6 />
-          <span>
-            {{ statusSync === 'pending' ? 'Pending' : syncError ? 'Retry' : 'Sync now' }}
-          </span>
-        </button>
+
+        <div flex="~ items-baseline gap-8" mx-0 f-mt-md>
+          <button
+            mx-0 nq-pill nq-pill-red outline="~ 1.5 offset--1.5 red-1100/40"
+            :disabled="statusSync === 'OPEN'"
+            @click="() => syncData()"
+          >
+            <div :class="statusSync === 'OPEN' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" mr-6 />
+            <span>
+              {{ statusSync === 'OPEN' ? 'Syncing...' : 'Sync now' }}
+            </span>
+          </button>
+
+          <button v-if="statusSync === 'OPEN'" mx-0 nq-pill-tertiary @click="() => closeSync()">
+            <div i-nimiq:cross mr-6 scale-70 />
+            Cancel
+          </button>
+
+          <div flex-1 flex="~ items-center justify-end">
+            <code w-max mr-0>SSE: {{ statusSync }}</code>
+          </div>
+        </div>
+
+        <pre v-if="dataSync" bg="red/6" lh-none text="f-2xs red-1100" outline="red/30" w-inherit max-h-80vh of-auto>{{ dataSync }}</pre>
       </div>
 
       <NuxtPage />
