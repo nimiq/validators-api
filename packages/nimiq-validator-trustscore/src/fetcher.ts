@@ -90,7 +90,7 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
     catch (error) {
       if (retryCount >= maxRetries)
         return [false, `Batch ${firstBatchIndex + index} reached ${maxRetries} attempts: ${error}`, undefined]
-      const delay = Math.min(10000, 2 ** retryCount * 1000) // dynamically increase time up to 10s
+      const delay = Math.min(30_000, 2 ** retryCount * 1000) // dynamically increase time up to 30s
       await new Promise(resolve => setTimeout(resolve, delay))
       return createPromise(index, retryCount + 1)
     }
