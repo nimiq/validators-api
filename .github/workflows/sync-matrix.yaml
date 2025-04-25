@@ -11,10 +11,10 @@ jobs:
     strategy:
       matrix:
         endpoint:
-          # - https://validators-api-mainnet.nuxt.dev
-          # - https://validators-api-testnet.nuxt.dev
-          # - https://dev.validators-api-mainnet.nuxt.dev
-          - https://dev.validators-api-testnet.nuxt.dev
+          # - https://validators-api-mainnet.pages.dev
+          # - https://validators-api-testnet.pages.dev
+          # - https://dev.validators-api-mainnet.pages.dev
+          - https://dev.validators-api-testnet.pages.dev
     steps:
       - name: Stream sync API
         run: |
