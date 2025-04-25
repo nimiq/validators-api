@@ -60,8 +60,10 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
   const createPromise = async (index: number, retryCount = 0): Promise<ResultSync<void>> => {
     try {
       const [inherentsOk, errorBatch, inherents] = await getInherentsByBatchNumber(firstBatchIndex + index)
-      if (!inherentsOk)
-        return [false, errorBatch, undefined]
+      if (!inherentsOk || inherents.length === 0) {
+        const errorMsg = inherents?.length === 0 ? `No inherents found in batch ${firstBatchIndex + index}` : `Batch fetch failed: ${errorBatch}`
+        return [false, errorMsg, undefined]
+      }
 
       for (const { type, validatorAddress } of inherents) {
         const isStakingAddress = validatorAddress === 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000'

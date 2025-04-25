@@ -107,10 +107,30 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
           </template>
         </h1>
         <p f-mt-2xs>
-          Try to refresh the page or click the sync button. Check the logs for more details.
+          The database is not fully synchronized with the blockchain. The API may not return the most recent data.
         </p>
-        <pre v-if="syncError || error" bg="red/8" text="f-2xs red-1100" outline="red/30">{{ JSON.stringify(syncError || error, null, 2) }}</pre>
-        <button mx-0 f-mt-xs nq-pill nq-pill-red bg="red-500 hocus:red-600" outline="~ 1.5 offset--1.5 red-1100/40" :disabled="statusSync === 'pending'" @click="() => syncData()">
+
+        <pre v-if="syncError || error" bg="red/6" text="f-2xs red-1100" outline="red/30" w-inherit>{{ JSON.stringify(syncError || error, null, 2) }}</pre>
+
+        <template v-if="status">
+          <h2 f-mt-md text-red-1100 f-text-md flex="~ items-center gap-12">
+            <div i-nimiq:duotone-fluctuations text-1em m-0 />
+            Status
+          </h2>
+          <details v-for="key in Object.keys(status)" :key="key" f-mt-sm max-w-full>
+            <summary nq-label mx-0 text-red-1100>
+              {{ key.replaceAll(/([a-z])([A-Z])/g, '$1 $2').replaceAll(/([A-Z])([A-Z][a-z])/g, '$1 $2') }}
+            </summary>
+            <pre v-if="key in status" f-p-2xs bg="red/6" text="f-2xs red-1100" w-inherit outline="red/30" whitespace-normal>{{ (status as Record<string, any>)[key] }}</pre>
+          </details>
+        </template>
+
+        <hr f-my-sm border-red-600>
+        <button
+          mx-0 f-mt-md nq-pill nq-pill-red bg="red-500 hocus:red-600" outline="~ 1.5 offset--1.5 red-1100/40"
+          :disabled="statusSync === 'pending'"
+          @click="() => syncData()"
+        >
           <div :class="statusSync === 'pending' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" mr-6 />
           <span>
             {{ statusSync === 'pending' ? 'Pending' : syncError ? 'Retry' : 'Sync now' }}

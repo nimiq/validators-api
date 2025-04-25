@@ -102,17 +102,19 @@ export async function fetchMissingEpochs(): Result<number[]> {
     return [false, errorRange || 'No range', undefined]
 
   consola.info(`Fetching data for range: [${range.fromBlockNumber}/${range.fromEpoch} - ${range.toBlockNumber}/${range.toEpoch}] (${range.epochCount} epochs). Now at ${range.head}/${range.headEpoch}.`)
+
   // Only fetch the missing epochs that are not in the database
   const missingEpochs = await findMissingEpochs(range)
   if (missingEpochs.length === 0)
     return [true, undefined, []]
 
   consola.info(`Fetching missing epochs...`)
-  const fetchedEpochs = []
+  const processedEpochs = new Set<number>()
   const epochGenerator = fetchEpochs(missingEpochs, { network })
 
   while (true) {
     const epochsActivities: EpochsActivities = {}
+    const initialProcessedCount = processedEpochs.size
 
     // Fetch the activities in parallel. In case of error, we throw an error and stop the process.
     for (let i = 0; i < EPOCHS_IN_PARALLEL; i++) {
@@ -137,21 +139,26 @@ export async function fetchMissingEpochs(): Result<number[]> {
       const epoch = epochsActivities[`${epochActivity.epochIndex}`]!
       if (!epoch[epochActivity.address])
         epoch[epochActivity.address] = epochActivity.activity
+
+      // Mark this epoch as processed
+      processedEpochs.add(epochActivity.epochIndex)
     }
 
     const epochs = Object.keys(epochsActivities).map(Number)
-    fetchedEpochs.push(...epochs)
-    const newestEpoch = Math.max(...fetchedEpochs)
-    const percentage = Math.round((fetchedEpochs.length / missingEpochs.length) * 100).toFixed(2)
-    consola.info(`Fetched ${newestEpoch} epochs. ${percentage}%`)
-
     if (epochs.length === 0 && (await findMissingEpochs(range)).length === 0)
       break
 
     await storeActivities(epochsActivities)
+
+    // Only log progress if we've processed new epochs in this batch
+    if (processedEpochs.size > initialProcessedCount) {
+      // Calculate progress based on unique processed epochs rather than individual validator activities
+      const percentage = ((processedEpochs.size / missingEpochs.length) * 100).toFixed(2)
+      consola.info(`Processed ${processedEpochs.size}/${missingEpochs.length} epochs. ${percentage}%`)
+    }
   }
 
-  return [true, undefined, missingEpochs]
+  return [true, undefined, Array.from(processedEpochs)]
 }
 
 export async function fetchActiveEpoch(): Result<SnapshotEpochValidators> {
