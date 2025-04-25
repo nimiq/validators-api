@@ -30,5 +30,7 @@ export default defineEventHandler(async () => {
   if (!scoresSuccess || !scores)
     throw createError({ statusCode: 500, statusMessage: errorScores || 'Unable to fetch scores' })
 
-  return { fetchEpochsData, fetchActiveEpochData, scores, importData }
+  const distributionData = await $fetch('/api/v1/distribution')
+
+  return { fetchEpochsData, fetchActiveEpochData, scores, importData, distributionData }
 })

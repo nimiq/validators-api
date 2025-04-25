@@ -23,9 +23,3 @@ jobs:
             exit 1
           }
           echo "Sync result for ${{ matrix.endpoint }}: $RESULT"
-          echo "========================="
-          RESULT=$(curl -fsS "${{ matrix.endpoint }}/api/v1/distribution") || {
-            echo "Distribution request failed for ${{ matrix.endpoint }}"
-            exit 1
-          }
-          echo "Distribution result for ${{ matrix.endpoint }}: $RESULT"
