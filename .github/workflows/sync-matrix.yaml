@@ -1,0 +1,26 @@
+name: Sync Matrix
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs hourly
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  call-endpoints:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        endpoint:
+          # - https://validators-api-mainnet.nuxt.dev
+          # - https://validators-api-testnet.nuxt.dev
+          # - https://dev.validators-api-mainnet.nuxt.dev
+          - https://dev.validators-api-testnet.nuxt.dev
+    steps:
+      - name: Stream sync API
+        run: |
+          # --no-buffer (or -N) tells curl to flush each chunk as soon as it arrives,
+          # so can see Nitro stream lines in real time.
+          curl -fsS --no-buffer "${{ matrix.endpoint }}/api/v1/sync" || {
+            echo "Sync request failed for ${{ matrix.endpoint }}"
+            exit 1
+          }
