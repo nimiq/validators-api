@@ -7,9 +7,25 @@ const { data: validators, status: validatorsStatus, error: validatorsError } = a
   query: { 'only-known': false },
 })
 const { data: distribution } = await useFetch('/api/v1/distribution')
-const { averageAPY, averageScore, averageStakeSize, totalPools, totalRegistered, totalStakers, averageFee, windowSizeMonths } = useStats()
+const { averageAPY, averageScore, averageStakeSize, totalPools, totalRegistered, totalStakers, averageFee, windowSizeMonths, totalValidators, totalElected } = useStats()
 
-const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, label: string, color?: string, paddingXs?: boolean }>()
+const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, label: string, color?: string, paddingXs?: boolean, tooltip: MaybeRef<string> }>()
+
+const formatTooltipText = (text: MaybeRef<string>) => toValue(text).split('. ').map(s => `${s.trim()}.`).filter(Boolean)
+
+const tooltips = {
+  stakers: computed(() => `There are ${totalStakers.value} stakers across ${totalValidators.value} validators in the network.`),
+  averageStake: computed(() => `The average stake size is ${averageStakeSize.value} NIM`),
+  averageAPY: computed(() => `The average Annual Percentage Yield (APY) is ${averageAPY.value}%. The APY is calculated based on the staked supply ratio and the average fee of the pools. This is the return on investment for stakers`),
+  stakeDistribution: computed(() => `The stake distribution shows the percentage of the stake that is in circulation`),
+  dominanceDistribution: `The dominance distribution shows the percentage of the total stake held by each validator. The dominance of that validator's slice is proportional to the amount of stake they hold and the number of blocks they produce`,
+  scoreEpochWindow: computed(() => `The score measures the dominance, reliability and availability of a validator. It is based on the epochs ${status.value?.range?.fromEpoch} to ${status.value?.range?.toEpoch}, covering approximately the last ~${windowSizeMonths.value}. This period is called the "window". Immediately after this window closes, we have the "snapshot epoch" (${status.value?.range?.snapshotEpoch}) which contains the parameters to calculate the dominance. Internally, this data structure is called "range"`),
+  validators: computed(() => `There are ${totalElected.value} elected validators in the current epoch out of ${totalValidators.value} validators in the network`),
+  averageScore: computed(() => `The average score of the validators for epoch ${status.value?.range?.snapshotEpoch}.`),
+  pools: computed(() => `There are ${totalPools.value} pools in the network. A pool is a special kind of validator that shares their rewards with their stakers with a fee`),
+  tracked: `The total number of validators who have submitted information about themselves to our centralised system`,
+  averageFee: `The average fee of the pools in the network. The fee is the percentage of the rewards that the pool takes for itself`,
+}
 
 function useStats() {
   const network = useRuntimeConfig().public.nimiqNetwork as 'test-albatross' | 'main-albatross'
@@ -27,6 +43,8 @@ function useStats() {
   const pools = computed(() => validators.value?.filter(validator => validator.payoutType !== 'none') || [])
   const totalPools = computed(() => pools.value.length)
   const totalRegistered = computed(() => validators.value?.reduce((acc, validator) => acc + (validator.name !== 'Unknown validator' ? 1 : 0), 0) || 0)
+  const totalValidators = computed(() => Object.values(status.value?.validators || []).flat().length)
+  const totalElected = computed(() => status.value?.validators?.electedValidators?.length || 0)
 
   const windowSizeMonths = computed(() => {
     if (!status.value?.range)
@@ -44,6 +62,8 @@ function useStats() {
   })
 
   return {
+    totalElected,
+    totalValidators,
     averageScore,
     windowSizeMonths,
     totalStakers,
@@ -58,11 +78,23 @@ function useStats() {
 
 <template>
   <div>
-    <DefineStat v-slot="{ label, value, color, $slots, paddingXs }">
-      <div flex="~ col" outline="~ 1.5 neutral/6" rounded-8 :class="paddingXs ? 'f-p-xs gap-4' : 'f-p-md gap-12'" shadow relative z-1 bg-neutral-0>
-        <span nq-label text="11 neutral-800">
-          {{ label }}
-        </span>
+    <DefineStat v-slot="{ label, value, color, $slots, paddingXs, tooltip }">
+      <div flex="~ col" group outline="~ 1.5 neutral/6" rounded-8 :class="paddingXs ? 'f-p-xs gap-4' : 'f-p-md gap-12'" shadow relative z-1 bg-neutral-0>
+        <div flex="~ items-center justify-between">
+          <span nq-label text="11 neutral-800">
+            {{ label }}
+          </span>
+          <Tooltip z-10>
+            <template #trigger>
+              <div text="f-2xs neutral-600" i-nimiq:info transition-opacity op="0 group-hocus:100" />
+            </template>
+
+            <p v-for="sentence in formatTooltipText(tooltip)" :key="sentence">
+              {{ sentence }}
+            </p>
+          </Tooltip>
+        </div>
+
         <div font-semibold lh-none v-bind="$attrs" flex="~ items-center" :class="paddingXs && typeof value === 'string' && value.length > 6 ? 'f-text-xl' : 'f-text-2xl'" :style="`color: rgb(var(--nq-${color}))`" h-full>
           <component :is="$slots.default" v-if="value === undefined" />
           <span v-else justify-self-start w-max padding-xs font-semibold>
@@ -80,13 +112,13 @@ function useStats() {
     </div>
     <div v-else-if="statusFetch === 'success' && validatorsStatus === 'success' && validators" flex="~ col" pt-64 pb-128>
       <div grid="~ cols-16 gap-24" isolate-auto>
-        <Stat :value="largeNumberFormatter.format(totalStakers)" label="Stakers" color="gold" :padding-xs="true" col-span-3 />
-        <Stat :value="`${nimFormatter.format(averageStakeSize)} NIM`" label="Avg. Stake" color="green" row-start-2 col-span-3 class="!text-24" :padding-xs="true" />
-        <Stat :value="percentageFormatter.format(averageAPY)" label="Avg. APY" color="neutral" row-start-3 col-span-3 class="!text-24" :padding-xs="true" />
-        <Stat label="Stake distribution" col-span-5 row-span-3>
+        <Stat :value="largeNumberFormatter.format(totalStakers)" label="Stakers" color="gold" :padding-xs="true" col-span-3 :tooltip="tooltips.stakers.value" />
+        <Stat :value="`${nimFormatter.format(averageStakeSize)} NIM`" label="Avg. Stake" color="green" row-start-2 col-span-3 class="!text-24" :padding-xs="true" :tooltip="tooltips.averageStake.value" />
+        <Stat :value="percentageFormatter.format(averageAPY)" label="Avg. APY" color="neutral" row-start-3 col-span-3 class="!text-24" :padding-xs="true" :tooltip="tooltips.averageAPY.value" />
+        <Stat label="Stake distribution" col-span-5 row-span-3 :tooltip="tooltips.stakeDistribution.value">
           <StakingDistributionDonut />
         </Stat>
-        <Stat label="Dominance distribution" col-span-8 row-span-3 relative>
+        <Stat label="Dominance distribution" col-span-8 row-span-3 relative :tooltip="tooltips.dominanceDistribution" of-y-clip>
           <div flex="~ gap-32 items-center">
             <ValidatorDistributionDonut :validators />
             <div absolute right--0 top--0>
@@ -120,29 +152,21 @@ function useStats() {
             </div>
           </div>
         </Stat>
-        <Stat label="Score epoch window" col-span-10 z-20 row-span-2 group relative>
-          <div flex="~ col" w-full>
-            <Window v-if="status?.range" :range="status.range" />
-            <div flex="~ items-center gap-8" absolute bottom--20 op="0 group-hocus:100" transition>
-              <div text="10 neutral-700" i-nimiq:info />
-              <p text="f-2xs neutral-800 " font-400>
-                The score is based on epochs {{ status?.range?.fromEpoch }}–{{ status?.range?.toEpoch }}, covering the past {{ windowSizeMonths }} (snapshot epoch {{ status?.range?.snapshotEpoch }}).
-              </p>
-            </div>
-          </div>
+        <Stat label="Score epoch window" col-span-10 z-20 row-span-2 relative :tooltip="tooltips.scoreEpochWindow.value">
+          <Window v-if="status?.range" :range="status.range" />
         </Stat>
-        <Stat label="Validators" :padding-xs="true" col-span-3>
+        <Stat label="Validators" :padding-xs="true" col-span-3 :tooltip="tooltips.validators.value">
           <span>
-            <span :title="`${status?.validators?.electedValidators?.length} elected validators in the current epoch`" text-blue>
-              {{ status?.validators?.electedValidators?.length }}
+            <span text-blue>
+              {{ totalElected }}
             </span>
-            <span text="neutral-600 f-sm" :title="`${status?.validators?.unelectedValidators?.length} tracked validators`"> / {{ status?.validators?.unelectedValidators?.length }}</span>
+            <span text="neutral-600 f-sm"> / {{ totalValidators }}</span>
           </span>
         </Stat>
-        <Stat :value="decimalsFormatter.format(averageScore * 100)" col-span-3 label="Avg. Score" color="purple" :padding-xs="true" />
-        <Stat :value="totalPools" label="Pools" color="red" col-span-2 :padding-xs="true" />
-        <Stat :value="totalRegistered" col-span-2 label="Tracked" color="orange" :padding-xs="true" title="The total amount of validators that have submitted information about them." />
-        <Stat :value="percentageFormatter.format(averageFee)" col-span-2 label="Avg. Fee" color="blue" :padding-xs="true" />
+        <Stat :value="decimalsFormatter.format(averageScore * 100)" col-span-3 label="Avg. Score" color="purple" :padding-xs="true" :tooltip="tooltips.averageScore.value" />
+        <Stat :value="totalPools" label="Pools" color="red" col-span-2 :padding-xs="true" :tooltip="tooltips.pools.value" />
+        <Stat :value="percentageFormatter.format(averageFee)" col-span-2 label="Avg. Fee" color="orange" :padding-xs="true" :tooltip="tooltips.averageFee" />
+        <Stat :value="totalRegistered" col-span-2 label="Tracked" color="blue" :padding-xs="true" :tooltip="tooltips.tracked" />
       </div>
 
       <ValidatorsTable :validators mt-96 />
