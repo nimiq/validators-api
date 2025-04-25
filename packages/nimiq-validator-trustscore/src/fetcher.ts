@@ -137,9 +137,9 @@ type FetchFunctionResult = AsyncGenerator<ResultSync<{
  * @param epochsIndexes - An array of epoch block numbers to fetch the activities for.
  * @returns An asynchronous generator yielding objects containing the address, epoch index, and activity.
  */
-export async function* fetchEpochs(epochsIndexes: number[]): FetchFunctionResult {
+export async function* fetchEpochs(epochsIndexes: number[], options: FetchActivityOptions = {}): FetchFunctionResult {
   for (const epochIndex of epochsIndexes) {
-    const [activityOk, activityError, activities] = await fetchActivity(epochIndex)
+    const [activityOk, activityError, activities] = await fetchActivity(epochIndex, options)
 
     if (!activityOk) {
       yield [false, `Error fetching activity for epoch ${epochIndex}: ${activityError}`, undefined]

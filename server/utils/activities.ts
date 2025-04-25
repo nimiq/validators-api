@@ -109,7 +109,7 @@ export async function fetchMissingEpochs(): Result<number[]> {
 
   consola.info(`Fetching missing epochs...`)
   const fetchedEpochs = []
-  const epochGenerator = fetchEpochs(missingEpochs)
+  const epochGenerator = fetchEpochs(missingEpochs, { network })
 
   while (true) {
     const epochsActivities: EpochsActivities = {}
