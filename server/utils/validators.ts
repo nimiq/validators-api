@@ -191,7 +191,7 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
 
       return {
         ...rest,
-        // score,
+        score,
         hasDefaultLogo,
         logo: !withIdenticons && hasDefaultLogo ? undefined : logo,
         dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
