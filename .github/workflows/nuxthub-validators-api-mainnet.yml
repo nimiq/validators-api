@@ -6,7 +6,7 @@ jobs:
     name: Deploy to NuxtHub
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      name: ${{ github.ref == 'refs/heads/main' && 'production-mainnet' || 'preview-mainnet' }}
       url: ${{ steps.deploy.outputs.deployment-url }}
     permissions:
       contents: read
@@ -28,7 +28,7 @@ jobs:
         run: pnpm install
         env:
           NUXT_RPC_URL: ${{ secrets.NUXT_RPC_URL }}
-          NUXT_PUBLIC_NIMIQ_NETWORK: mainnet
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
 
       - name: Ensure NuxtHub module is installed
         run: pnpx nuxthub@latest ensure
@@ -37,10 +37,10 @@ jobs:
         run: pnpm build
         env:
           NUXT_RPC_URL: ${{ secrets.NUXT_RPC_URL }}
-          NUXT_PUBLIC_NIMIQ_NETWORK: mainnet
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
 
       - name: Deploy to NuxtHub
         uses: nuxt-hub/action@v1
         id: deploy
         with:
-          project-key: validators-api--lpbj
+          project-key: ${{ vars.NUXT_HUB_PROJECT_KEY }}
