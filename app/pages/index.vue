@@ -123,7 +123,7 @@ function useStats() {
           <div flex="~ gap-32 items-center">
             <ValidatorDistributionDonut :validators />
             <div absolute right--0 top--0>
-              <ScrollAreaRoot absolute flex-1 relative of-hidden style="--scrollbar-size: 8px" h-251>
+              <ScrollAreaRoot absolute flex-1 relative of-hidden style="--scrollbar-size: 8px" h-251 max-w-350 w-full>
                 <div absolute top-0 z-10 w-full h-16 bg-gradient-to-t from-transparent to-neutral-0 rounded-tr-8 />
                 <ScrollAreaViewport size-full>
                   <ul f-p-xs flex="~ col gap-12">
@@ -131,7 +131,7 @@ function useStats() {
                       <Identicon v-bind="validator" f-size-md />
                       <div flex="~ col" flex-1>
                         <div flex="~ justify-between gap-32 items-baseline">
-                          <span text-ellipsis>
+                          <span text-ellipsis max-w-25ch>
                             {{ validator.name }}
                           </span>
                           <span flex op-80>
