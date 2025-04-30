@@ -6,14 +6,25 @@ const debouncedRefresh = useDebounceFn(() => {
   refreshNuxtData(['/api/v1/validators', '/api/v1/distribution', '/api/v1/status'])
 }, 300)
 
-// const { execute: syncData, status: statusSync, error: syncError } = useFetch('/api/v1/sync', {
-//   lazy: true,
-//   immediate: false,
-//   onResponse: () => debouncedRefresh(),
-//   onResponseError: error => console.error('Sync failed:', error),
-// })
-
 const { status: statusSync, data: dataSync, error: syncError, close: closeSync, open: syncData } = useEventSource('/api/v1/sync', [], { immediate: false })
+
+// Check for sync success message and refresh document
+watch(() => dataSync.value, (newData) => {
+  if (newData) {
+    try {
+      const parsedData = JSON.parse(newData)
+      if (parsedData.kind === 'success' && parsedData.message === 'Sync process completed') {
+        debouncedRefresh()
+        closeSync()
+      }
+    }
+    catch (e) {
+      console.error('Failed to parse sync data:', e)
+    }
+  }
+}, { immediate: true })
+
+// Also maintain the original watch for general updates
 watch(() => [dataSync, syncError], debouncedRefresh)
 
 const colorMode = useColorMode()
