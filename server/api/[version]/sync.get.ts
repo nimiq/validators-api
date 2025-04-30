@@ -59,8 +59,8 @@ export default defineEventHandler(async (event) => {
         return report({ kind: 'error', message: errorScores || 'Unable to fetch scores' })
       report({ kind: 'success', payload: scores, message: `Fetched scores` })
 
-      const distributionData = await $fetch('/api/v1/distribution')
-      report({ kind: 'success', payload: distributionData, message: 'Fetched distribution data' })
+      const supplyData = await $fetch('/api/v1/supply')
+      report({ kind: 'success', payload: supplyData, message: 'Fetched distribution data' })
 
       report({ kind: 'success', message: 'Sync process completed' })
     }

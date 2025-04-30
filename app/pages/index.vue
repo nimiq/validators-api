@@ -6,7 +6,7 @@ const { data: status, status: statusFetch, error: statusError } = await useFetch
 const { data: validators, status: validatorsStatus, error: validatorsError } = await useFetch('/api/v1/validators', {
   query: { 'only-known': false },
 })
-const { data: distribution } = await useFetch('/api/v1/distribution')
+const { data: supply } = await useFetch('/api/v1/supply')
 const { averageAPY, averageScore, averageStakeSize, totalPools, totalRegistered, totalStakers, averageFee, windowSizeMonths, totalValidators, totalElected } = useStats()
 
 const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, label: string, color?: string, paddingXs?: boolean, tooltip: MaybeRef<string> }>()
@@ -39,7 +39,7 @@ function useStats() {
   })
 
   const totalStakers = computed(() => validators.value?.reduce((acc, validator) => acc + validator.stakers, 0) || 0)
-  const averageStakeSize = computed(() => (distribution.value?.staked || 0) / totalStakers.value)
+  const averageStakeSize = computed(() => (supply.value?.staking || 0) / totalStakers.value)
   const pools = computed(() => validators.value?.filter(validator => validator.payoutType !== 'none') || [])
   const totalPools = computed(() => pools.value.length)
   const totalRegistered = computed(() => validators.value?.reduce((acc, validator) => acc + (validator.name !== 'Unknown validator' ? 1 : 0), 0) || 0)
@@ -56,9 +56,10 @@ function useStats() {
 
   const averageFee = computed(() => pools.value.reduce((acc, pool) => acc + (pool.fee || 0), 0) / pools.value.length)
   const averageAPY = computed(() => {
-    if (!distribution.value?.stakedRatio)
+    if (!supply.value?.circulating || !supply.value?.staking)
       return 0
-    return calculateStakingRewards({ stakedSupplyRatio: distribution.value?.stakedRatio, network, fee: averageFee.value }).gainRatio
+    const stakedRatio = supply.value.staking / supply.value.circulating
+    return calculateStakingRewards({ stakedSupplyRatio: stakedRatio, network, fee: averageFee.value }).gainRatio
   })
 
   return {

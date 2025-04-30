@@ -2,9 +2,13 @@
 import type { StyleValue } from 'vue'
 import type { DonutDatum } from './Donut.client.vue'
 
-const { data: distribution, status, error } = await useFetch('/api/v1/distribution')
+const { data: supply, status, error } = await useFetch('/api/v1/supply')
 
-const stakedRatio = computed(() => distribution.value?.stakedRatio)
+const stakedRatio = computed(() => {
+  if (!supply.value?.circulating || !supply.value?.staking)
+    return 0
+  return supply.value.staking / supply.value.circulating
+})
 
 const datum = computed(() => {
   if (!stakedRatio.value)
@@ -18,8 +22,8 @@ const datum = computed(() => {
 // Center the donut chart so the staked amount center points to the right
 const startAngle = computed(() => (90 - 180 * (datum.value.at(0)?.value || 0)))
 
-const formattedCirculating = computed(() => `${nimFormatter.format(distribution.value?.circulating || 0)} NIM`)
-const formattedStakedAmount = computed(() => `${nimFormatter.format(distribution.value?.staked || 0)} NIM`)
+const formattedCirculating = computed(() => `${nimFormatter.format(supply.value?.circulating || 0)} NIM`)
+const formattedStakedAmount = computed(() => `${nimFormatter.format(supply.value?.staking || 0)} NIM`)
 </script>
 
 <template>

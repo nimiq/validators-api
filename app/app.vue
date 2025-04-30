@@ -3,7 +3,7 @@ const { data: status, status: statusRequest, refresh: refreshStatus, error } = a
 
 const debouncedRefresh = useDebounceFn(() => {
   refreshStatus()
-  refreshNuxtData(['/api/v1/validators', '/api/v1/distribution', '/api/v1/status'])
+  refreshNuxtData(['/api/v1/validators', '/api/v1/supply', '/api/v1/status'])
 }, 300)
 
 const { status: statusSync, data: dataSync, error: syncError, close: closeSync, open: syncData } = useEventSource('/api/v1/sync', [], { immediate: false })
