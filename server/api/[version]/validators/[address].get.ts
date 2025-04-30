@@ -11,11 +11,10 @@ export default defineEventHandler(async (event) => {
   if (!useRuntimeConfig().albatrossRpcNodeUrl)
     throw createError('No Albatross RPC Node URL')
   initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
-  const { address } = await getValidatedRouterParams(event, paramsSchema.parse)
+  const { address } = await getValidatedRouterParams(event, paramsSchema.parse, { decode: true })
   const isValid = ValidationUtils.isValidAddress(address)
   if (!isValid)
     throw createError({ statusCode: 400, statusMessage: 'Invalid address format' })
-
   const { nimiqNetwork: network } = useRuntimeConfig().public
 
   const [rangeSuccess, errorRange, range] = await getRange({ network })

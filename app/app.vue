@@ -99,7 +99,7 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
       <button i-nimiq:moon @click="() => toggleDark()" />
     </header>
     <main flex-1>
-      <div v-if="!isSynced || error || syncError" bg="red/8" outline="1.5 ~ red-600" rounded-12 f-p-md text="14 red-1100" nq-prose-compact children:max-w-none>
+      <div v-if="(!isSynced || error || syncError) && $route.path === '/'" bg="red/8" outline="1.5 ~ red-600" rounded-12 f-p-md text="14 red-1100" nq-prose-compact children:max-w-none f-mb-lg>
         <h1 flex="~ items-center gap-12" text-red-1100 f-text-lg>
           <div i-nimiq:alert op-70 text-0.9em m-0 />
           <template v-if="!isActivitySync">
