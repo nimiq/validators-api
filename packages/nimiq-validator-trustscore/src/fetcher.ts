@@ -1,7 +1,7 @@
 import type { BaseAlbatrossPolicyOptions } from '@nimiq/utils/albatross-policy'
 import type { ElectionMacroBlock } from 'nimiq-rpc-client-ts/types'
 import type { ElectedValidator, EpochActivity, Result, ResultSync, SnapshotEpoch, UnelectedValidator } from './types'
-import { BATCHES_PER_EPOCH, electionBlockOf, isElectionBlockAt, SLOTS } from '@nimiq/utils/albatross-policy'
+import { batchAt, BATCHES_PER_EPOCH, electionBlockOf, firstBlockOf, isElectionBlockAt, SLOTS } from '@nimiq/utils/albatross-policy'
 import { getAccountByAddress, getBlockByNumber, getEpochNumber, getInherentsByBatchNumber, getStakersByValidatorAddress, getValidators } from 'nimiq-rpc-client-ts/http'
 import { InherentType } from 'nimiq-rpc-client-ts/types'
 
@@ -39,10 +39,8 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
 
   // The election block will be the first block of the epoch, since we only fetch finished epochs, we can assume that all the batches in this epoch can be fetched
   // First, we need to know in which batch this block is. Batches start at 1
-  const firstBatchIndex = 1 + (epochIndex - 1) * BATCHES_PER_EPOCH
-  if (firstBatchIndex % 1 !== 0 || firstBatchIndex < 1)
-    // It should be an exact division since we are fetching election blocks
-    return [false, JSON.stringify({ message: 'Something happened calculating batchIndex', firstBatchIndex, electionBlock, block }), undefined]
+  const firstBatchIndexOfEpoch = (epoch: number) => batchAt(firstBlockOf(epoch, { network })!, { network })
+  const firstBatchIndex = firstBatchIndexOfEpoch(epochIndex)
 
   // Initialize the list of validators and their activity in the epoch
   const epochActivity: EpochActivity = {}
@@ -59,13 +57,14 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
 
   const createPromise = async (index: number, retryCount = 0): Promise<ResultSync<void>> => {
     try {
-      const [inherentsOk, errorBatch, inherents] = await getInherentsByBatchNumber(firstBatchIndex + index)
+      const batchIndex = firstBatchIndex + index
+      const [inherentsOk, errorBatch, inherents, request] = await getInherentsByBatchNumber(batchIndex)
       if (!inherentsOk) {
-        throw new Error(`${JSON.stringify({ errorBatch, firstBatchIndex, index, inherents, inherentsOk })}`)
+        throw new Error(`${JSON.stringify({ errorBatch, batchIndex, inherents, inherentsOk, request })}`)
       }
       if (!inherents || inherents.length === 0) {
         const errorMsg = `Batch fetch failed: ${errorBatch}.`
-        throw new Error(`${JSON.stringify({ errorMsg, firstBatchIndex, index, inherents, inherentsOk })}`)
+        throw new Error(`${JSON.stringify({ errorMsg, batchIndex, inherents, inherentsOk, request })}`)
       }
 
       for (const { type, validatorAddress } of inherents) {
