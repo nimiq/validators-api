@@ -18,8 +18,15 @@ export default defineEventHandler(async (event) => {
 
   function report(json: SyncStream) {
     const method = json.kind === 'error' ? 'error' : json.kind === 'success' ? 'success' : 'log'
+
+    if (json.message && typeof json.message === 'string')
+      json.message = json.message.replace(/\\+"/g, '"')
+    if (json.payload && typeof json.payload === 'string')
+      json.payload = json.payload.replace(/\\+"/g, '"')
+
     consola[method](json.message)
     eventStream.push(JSON.stringify(json))
+
     if (json.kind === 'error') {
       eventStream.close()
       throw createError(json.message)
