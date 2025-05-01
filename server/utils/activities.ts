@@ -88,8 +88,6 @@ async function storeSingleActivity({ address, activity, epochNumber }: StoreActi
   await useDrizzle().insert(tables.activity).values(activityDb)
 }
 
-const EPOCHS_IN_PARALLEL = 3
-
 interface FetchMissingEpochsParams {
   report?: SyncStreamReportFn
   // AbortController to abort the fetch process once the epoch being processed is finished
@@ -122,33 +120,30 @@ export async function fetchMissingEpochs({ report, controller }: FetchMissingEpo
     const epochsActivities: EpochsActivities = {}
     const initialProcessedCount = processedEpochs.size
 
-    // Fetch the activities in parallel. In case of error, we throw an error and stop the process.
-    for (let i = 0; i < EPOCHS_IN_PARALLEL; i++) {
-      const { value: epochActivityResult, done } = await epochGenerator.next()
-      if (done || !epochActivityResult)
-        break
+    // Fetch one epoch activity at a time
+    const { value: epochActivityResult, done } = await epochGenerator.next()
+    if (done || !epochActivityResult)
+      break
 
-      const [success, errorMsg, epochActivity] = epochActivityResult
+    const [success, errorMsg, epochActivity] = epochActivityResult
+    if (!success)
+      throw createError(errorMsg)
 
-      if (!success)
-        throw createError(errorMsg)
-
-      if (epochActivity.activity === null) {
-        consola.warn(`Epoch ${epochActivity.epochIndex} is missing`, epochActivity)
-        await storeSingleActivity({ address: '', activity: null, epochNumber: epochActivity.epochIndex })
-        continue
-      }
-
-      if (!epochsActivities[`${epochActivity.epochIndex}`])
-        epochsActivities[`${epochActivity.epochIndex}`] = {}
-
-      const epoch = epochsActivities[`${epochActivity.epochIndex}`]!
-      if (!epoch[epochActivity.address])
-        epoch[epochActivity.address] = epochActivity.activity
-
-      // Mark this epoch as processed
-      processedEpochs.add(epochActivity.epochIndex)
+    if (epochActivity.activity === null) {
+      consola.warn(`Epoch ${epochActivity.epochIndex} is missing`, epochActivity)
+      await storeSingleActivity({ address: '', activity: null, epochNumber: epochActivity.epochIndex })
+      continue
     }
+
+    if (!epochsActivities[`${epochActivity.epochIndex}`])
+      epochsActivities[`${epochActivity.epochIndex}`] = {}
+
+    const epoch = epochsActivities[`${epochActivity.epochIndex}`]!
+    if (!epoch[epochActivity.address])
+      epoch[epochActivity.address] = epochActivity.activity
+
+    // Mark this epoch as processed
+    processedEpochs.add(epochActivity.epochIndex)
 
     // If we've been aborted and haven't processed anything in this iteration, exit now
     if (controller?.signal.aborted && Object.keys(epochsActivities).length === 0) {
