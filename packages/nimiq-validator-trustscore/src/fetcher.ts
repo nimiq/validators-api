@@ -60,7 +60,8 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
       const batchIndex = firstBatchIndex + index
       const [inherentsOk, errorBatch, inherents] = await getInherentsByBatchNumber(batchIndex)
       if (!inherentsOk) {
-        throw new Error(`${JSON.stringify({ errorBatch, batchIndex, inherents, inherentsOk })}`)
+        const remainingBatches = BATCHES_PER_EPOCH - index
+        throw new Error(`${JSON.stringify({ errorBatch, batchIndex, inherents, inherentsOk, remainingBatches })}`)
       }
       if (!inherents || inherents.length === 0) {
         const errorMsg = `Batch fetch failed: ${errorBatch}.`

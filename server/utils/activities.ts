@@ -166,8 +166,9 @@ export async function fetchMissingEpochs({ report, controller }: FetchMissingEpo
     if (processedEpochs.size > initialProcessedCount) {
       // Calculate progress based on unique processed epochs rather than individual validator activities
       const percentage = ((processedEpochs.size / missingEpochs.length) * 100).toFixed(2)
-      consola.info(`Processed ${processedEpochs.size}/${missingEpochs.length} epochs. ${percentage}%`)
-      report?.({ kind: 'log', message: `Processed ${processedEpochs.size}/${missingEpochs.length} epochs. ${percentage}%` })
+      const msg = `Processed epochs: [${Array.from(processedEpochs).join(', ')}]. Progress: ${processedEpochs.size}/${missingEpochs.length} epochs. ${percentage}%`
+      consola.info(msg)
+      report?.({ kind: 'log', message: msg })
     }
 
     // Check for abort after storing data
