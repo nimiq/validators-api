@@ -68,6 +68,7 @@
     "eslint-plugin-format": "catalog:",
     "lint-staged": "catalog:",
     "nimiq-css": "catalog:",
+    "ofetch": "catalog:",
     "pathe": "catalog:",
     "simple-git-hooks": "catalog:",
     "std-env": "catalog:",

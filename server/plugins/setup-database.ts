@@ -6,7 +6,8 @@ export default defineNitroPlugin(async () => {
 
   hubHooks.hookOnce('database:migrations:done', async () => {
     consola.info('Running migrations...')
-    const [ok, error, validators] = await importValidators('filesystem')
+    const { nimiqNetwork, gitBranch } = useRuntimeConfig().public
+    const [ok, error, validators] = await importValidators('filesystem', { nimiqNetwork, gitBranch })
     if (!ok)
       throw new Error(`Error importing validators: ${error}`)
     consola.success(`${validators.length} validators imported successfully`)

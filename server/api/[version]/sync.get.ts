@@ -38,7 +38,9 @@ export default defineEventHandler(async (event) => {
   // We need to return the event stream to the client first
   setTimeout(async () => {
     try {
-      const [importSuccess, errorImport, importData] = await importValidators(isDevelopment ? 'filesystem' : 'github')
+      const source = isDevelopment ? 'filesystem' : 'github'
+      const { nimiqNetwork, gitBranch } = useRuntimeConfig().public
+      const [importSuccess, errorImport, importData] = await importValidators(source, { nimiqNetwork, gitBranch })
       if (!importSuccess || !importData)
         return report({ kind: 'error', message: errorImport || 'Unable to import from GitHub' })
       report({ kind: 'success', payload: importData, message: `Fetched ${importData.length} validators` })

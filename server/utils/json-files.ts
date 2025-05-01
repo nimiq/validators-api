@@ -1,10 +1,11 @@
 import type { Result } from 'nimiq-validator-trustscore/types'
 import type { ValidatorJSON } from './schemas'
 import { readdir, readFile } from 'node:fs/promises'
+import { extname } from 'node:path'
 import { consola } from 'consola'
-import { extname, join } from 'pathe'
+import { $fetch } from 'ofetch'
+import { join } from 'pathe'
 import { validatorsSchema } from './schemas'
-
 /**
  * Import validators from a folder containing .json files.
  *
@@ -33,52 +34,92 @@ export async function importValidatorsFromFiles(folderPath: string): Result<any[
 }
 
 /**
- * Import validators from GitHub. Useful since in cloudflare runtime we don't have access to the file system.
+ * Import validators from GitHub using the official GitHub REST API.
  */
-async function importValidatorsFromGitHub(path: string): Result<any[]> {
-  const { gitBranch } = useRuntimeConfig().public
-  const url = `https://ungh.cc/repos/nimiq/validators-api/files/${gitBranch}`
-  let response
+async function importValidatorsFromGitHub(path: string, { gitBranch }: Pick<ImportValidatorsFromFilesOptions, 'gitBranch'>): Result<any[]> {
+  const owner = 'nimiq'
+  const repo = 'validators-api'
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${gitBranch}`
+
+  // 1. List directory contents
+  let listing: Array<{
+    name: string
+    path: string
+    type: 'file' | 'dir'
+    download_url: string
+  }>
+
+  const headers: HeadersInit = { 'User-Agent': 'request' }
   try {
-    response = await $fetch<{ files: { path: string }[] }>(url)
+    listing = await $fetch(apiUrl, { headers })
   }
   catch (e) {
-    consola.warn(`Error fetching file: ${e}`)
+    consola.warn(`Error listing validators folder on GitHub: ${e}`)
+    return [false, `Could not list validators on GitHub ${apiUrl} | ${e}`, undefined]
   }
-  if (!response || !response.files)
-    return [false, 'No files found', undefined]
 
-  const fileUrls = response.files
-    .filter(file => file.path.startsWith(`${path}/`) && file.path.endsWith('.json') && !file.path.endsWith('.example.json'))
-  const files = await Promise.all(fileUrls.map(async (fileUrl) => {
-    const fullFileUrl = `${url}/${fileUrl.path}`
-    const file = await $fetch<{ file: { contents: string } }>(fullFileUrl)
-    if (!file) {
-      consola.warn(`File ${fileUrl.path} not found`)
-      return undefined
+  // 2. Filter only .json files (skip .example.json)
+  const jsonFiles = listing.filter(file =>
+    file.type === 'file'
+    && file.name.endsWith('.json')
+    && !file.name.endsWith('.example.json'),
+  )
+
+  // 3. Fetch each file’s raw contents
+  const rawContents = await Promise.all(jsonFiles.map(async (file) => {
+    try {
+      return await $fetch<string>(file.download_url, { headers })
     }
-    return file.file.contents
+    catch (e) {
+      consola.warn(`Failed to download ${file.path}: ${e}`)
+      return [false, `Failed to download ${file.path}: ${e}`, undefined]
+    }
   }))
-  const validatorsJson = files.filter(Boolean).map(contents => JSON.parse(contents!))
-  return [true, undefined, validatorsJson]
+
+  // 4. Parse JSON and return
+  const parsed = rawContents.filter((c): c is string => Boolean(c)).map(c => JSON.parse(c!))
+
+  return [true, undefined, parsed]
 }
 
-export async function importValidators(source: 'filesystem' | 'github'): Result<ValidatorJSON[]> {
-  const { nimiqNetwork } = useRuntimeConfig().public
-  const path = `public/validators/${nimiqNetwork}`
-  const [importOk, errorReading, validatorsData] = source === 'filesystem'
-    ? await importValidatorsFromFiles(path)
-    : await importValidatorsFromGitHub(path)
-  if (!importOk)
-    return [false, errorReading, undefined]
+interface ImportValidatorsFromFilesOptions {
+  nimiqNetwork?: string
+  gitBranch?: string
+  shouldStore?: boolean
+}
 
-  const { success, data: validators, error } = validatorsSchema.safeParse(validatorsData)
-  if (!success || !validators || error)
+/**
+ * Import validators from either the filesystem or GitHub, then validate & store.
+ */
+export async function importValidators(source: 'filesystem' | 'github', options: ImportValidatorsFromFilesOptions = {}): Result<ValidatorJSON[]> {
+  const { nimiqNetwork, shouldStore = true, gitBranch } = options
+  if (!nimiqNetwork)
+    return [false, 'Nimiq network is required', undefined]
+
+  const path = `public/validators/${nimiqNetwork}`
+
+  if (source === 'github') {
+    if (!gitBranch)
+      return [false, 'Git branch is required when using GitHub as source', undefined]
+  }
+  const [ok, readError, data] = source === 'filesystem'
+    ? await importValidatorsFromFiles(path)
+    : await importValidatorsFromGitHub(path, { gitBranch })
+
+  if (!ok)
+    return [false, readError, undefined]
+
+  const { success, data: validators, error } = validatorsSchema.safeParse(data)
+  if (!success || error)
     return [false, `Invalid validators data: ${error}`, undefined]
 
-  const res = await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
-  const errors = res.filter(r => r.status === 'rejected')
-  if (errors.length > 0)
-    return [false, `There were errors while importing the validators: ${errors.map(e => e.reason)}`, undefined]
+  if (!shouldStore)
+    return [true, undefined, validators]
+
+  const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true })))
+  const failures = results.filter(r => r.status === 'rejected')
+  if (failures.length > 0)
+    return [false, `Errors importing validators: ${failures.map((f: any) => f.reason).join(', ')}`, undefined]
+
   return [true, undefined, validators]
 }
