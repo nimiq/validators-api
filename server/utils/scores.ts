@@ -31,7 +31,9 @@ async function calculateScore(range: Range, validatorId: number): Result<Calcula
     .limit(1)
     .execute()
     .then((results) => {
-      const { dominanceViaBalance, dominanceViaSlots } = results[0]!
+      if (results.length === 0)
+        throw new Error(`No dominance ratio found for validator ${validatorId} in range ${range.fromEpoch}-${range.toEpoch}`)
+      const { dominanceViaBalance, dominanceViaSlots } = results.at(0)!
       return dominanceViaBalance >= 0 ? dominanceViaBalance : dominanceViaSlots
     })
 
