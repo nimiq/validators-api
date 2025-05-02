@@ -1,6 +1,11 @@
+import { initRpcClient } from 'nimiq-rpc-client-ts/config'
 import { isDevelopment } from 'std-env'
 
 export default defineEventHandler(async () => {
+  if (!useRuntimeConfig().albatrossRpcNodeUrl)
+    throw createError('No Albatross RPC Node URL')
+  initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
+
   const source = isDevelopment ? 'filesystem' : 'github'
   const { nimiqNetwork, gitBranch } = useRuntimeConfig().public
   const [importSuccess, errorImport, importData] = await importValidators(source, { nimiqNetwork, gitBranch })
