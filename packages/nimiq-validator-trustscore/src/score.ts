@@ -1,7 +1,7 @@
 import type { ResultSync, ScoreParams, ScoreValues } from './types'
 
 export function getDominance({ threshold = 0.15, steepness = 7.5, dominanceRatio }: ScoreParams['dominance']): ResultSync<number> {
-  if (!threshold || !steepness || !dominanceRatio)
+  if (!threshold || !steepness || dominanceRatio === undefined)
     return [false, `Dominance Ratio, threshold or steepness is not set. ${JSON.stringify({ threshold, steepness, dominanceRatio })}`, undefined]
   if (dominanceRatio < 0 || dominanceRatio > 1)
     return [false, `Invalid dominance ratio: ${dominanceRatio}`, undefined]
