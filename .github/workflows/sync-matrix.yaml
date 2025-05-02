@@ -28,43 +28,71 @@ jobs:
         env:
           ENDPOINT: ${{ matrix.endpoint }}
         run: |
-          set -euo pipefail
+          set -eo pipefail
           echo "🔄 Starting missing-epoch sync at $ENDPOINT"
-          # Loop until the endpoint reports isSynced: true
-          while true; do
-            # Use -v for verbose output but redirect to a file
-            error_file=$(mktemp)
-            resp=$(curl -v -fsS "$ENDPOINT/api/v1/sync/missing-epoch" 2>"$error_file" || {
-              echo "❌ Missing-epoch sync failed for $ENDPOINT with error:"
-              cat "$error_file"
-              exit 1
-            })
-            echo "$resp"
-            isSynced=$(echo "$resp" | jq -r '.isSynced')
-            syncedEpoch=$(echo "$resp" | jq -r '.syncedEpoch')
-            totalMissing=$(echo "$resp" | jq -r '.totalMissing')
 
-            if [[ "$isSynced" == "true" && "$syncedEpoch" == "null" ]]; then
-              echo "✅ All epochs already synced"
-              break
-            elif [[ "$isSynced" == "true" ]]; then
-              echo "✅ Synced epoch $syncedEpoch - All epochs synced"
+          while true; do
+            # call and capture both body and HTTP status in one go
+            resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" \
+              "$ENDPOINT/api/v1/sync/missing-epoch")
+
+            body=${resp%HTTPSTATUS:*}
+            status=${resp##*HTTPSTATUS:}
+
+            echo "HTTP status: $status"
+            echo "$body"
+
+            # any non-200 is a hard failure
+            if [[ "$status" -ne 200 ]]; then
+              echo "❌ HTTP $status returned"
+              exit 1
+            fi
+
+            # JSON error field?
+            if echo "$body" | jq -e 'has("error")' >/dev/null; then
+              echo "❌ Server error:" $(echo "$body" | jq -r '.error')
+              exit 1
+            fi
+
+            # parse out sync flags
+            isSynced=$(echo "$body" | jq -r '.isSynced // false')
+            syncedEpoch=$(echo "$body" | jq -r '.syncedEpoch // "N/A"')
+            totalMissing=$(echo "$body" | jq -r '.totalMissing // "N/A"')
+
+            if [[ "$isSynced" == "true" ]]; then
+              echo "✅ All epochs synced (last synced epoch: $syncedEpoch)"
               break
             fi
 
-            next=$(echo "$resp" | jq -r '.next')
-            echo "✅ Synced epoch $syncedEpoch, next epoch is $next ($totalMissing remaining)"
+            next=$(echo "$body" | jq -r '.next // "N/A"')
+            echo "✅ Synced up to epoch $syncedEpoch → next: $next ($totalMissing remaining)"
+            sleep 1
           done
 
       - name: Sync snapshot
         env:
           ENDPOINT: ${{ matrix.endpoint }}
         run: |
+          set -eo pipefail
           echo "🔄 Syncing snapshot at $ENDPOINT"
-          error_file=$(mktemp)
-          curl -v -fsS "$ENDPOINT/api/v1/sync/snapshot" 2>"$error_file" || {
-            echo "❌ Snapshot sync failed for $ENDPOINT with error:"
-            cat "$error_file"
+
+          resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" \
+            "$ENDPOINT/api/v1/sync/snapshot")
+
+          body=${resp%HTTPSTATUS:*}
+          status=${resp##*HTTPSTATUS:}
+
+          echo "HTTP status: $status"
+          echo "$body"
+
+          if [[ "$status" -ne 200 ]]; then
+            echo "❌ HTTP $status returned"
             exit 1
-          }
+          fi
+
+          if echo "$body" | jq -e 'has("error")' >/dev/null; then
+            echo "❌ Server error:" $(echo "$body" | jq -r '.error')
+            exit 1
+          fi
+
           echo "✅ Snapshot sync completed successfully"
