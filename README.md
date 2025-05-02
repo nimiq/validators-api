@@ -13,9 +13,14 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/nimiq/validators-api/actions/workflows/sync.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/sync.yml/badge.svg" /></a>&nbsp; &nbsp; &nbsp;
-<a href="https://validators-api-mainnet.pages.dev" target="_blank">Dashboard</a>&nbsp; &nbsp; &nbsp;
-<a href="https://validators-api-testnet.pages.dev" target="_blank">Dashboard (testnet)</a>
+<a href="https://github.com/nimiq/validators-api/actions/workflows/sync-matrix.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/sync-matrix.yml/badge.svg" /></a>
+</p>
+
+<h2 align="center">Dashboards</h2>
+
+<p align="center">
+<a href="https://validators-api-mainnet.pages.dev" target="_blank">Mainnet</a>&nbsp; &nbsp; &nbsp;
+<a href="https://validators-api-testnet.pages.dev" target="_blank">Testnet</a>
 </p>
 
 <br />
