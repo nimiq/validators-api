@@ -6,7 +6,7 @@ const debouncedRefresh = useDebounceFn(() => {
   refreshNuxtData(['/api/v1/validators', '/api/v1/supply', '/api/v1/status'])
 }, 300)
 
-const { status: statusSync, data: dataSync, error: syncError, close: closeSync, open: syncData } = useEventSource('/api/v1/sync', [], { immediate: false })
+const { status: statusSync, data: dataSync, error: syncError, close: closeSync, open: syncData } = useEventSource('/api/v1/sync/sse', [], { immediate: false })
 
 // Check for sync success message and refresh document
 watch(() => dataSync.value, (newData) => {
