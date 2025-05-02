@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
-  call-endpoints:
+  sync:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -32,7 +32,13 @@ jobs:
           echo "🔄 Starting missing-epoch sync at $ENDPOINT"
           # Loop until the endpoint reports isSynced: true
           while true; do
-            resp=$(curl -fsS "$ENDPOINT/api/v1/sync/missing-epoch")
+            # Use -v for verbose output but redirect to a file
+            error_file=$(mktemp)
+            resp=$(curl -v -fsS "$ENDPOINT/api/v1/sync/missing-epoch" 2>"$error_file" || {
+              echo "❌ Missing-epoch sync failed for $ENDPOINT with error:"
+              cat "$error_file"
+              exit 1
+            })
             echo "$resp"
             isSynced=$(echo "$resp" | jq -r '.isSynced')
             syncedEpoch=$(echo "$resp" | jq -r '.syncedEpoch')
@@ -55,7 +61,10 @@ jobs:
           ENDPOINT: ${{ matrix.endpoint }}
         run: |
           echo "🔄 Syncing snapshot at $ENDPOINT"
-          curl -fsS "$ENDPOINT/api/v1/sync/snapshot" || {
-            echo "❌ Snapshot sync failed for $ENDPOINT"
+          error_file=$(mktemp)
+          curl -v -fsS "$ENDPOINT/api/v1/sync/snapshot" 2>"$error_file" || {
+            echo "❌ Snapshot sync failed for $ENDPOINT with error:"
+            cat "$error_file"
             exit 1
           }
+          echo "✅ Snapshot sync completed successfully"
