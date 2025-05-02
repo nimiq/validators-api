@@ -34,7 +34,7 @@ export async function findMissingEpochs(range: Range) {
 /**
  * We loop over all the pairs activities/epochBlockNumber and store the validator activities.
  */
-async function storeActivities(epochs: EpochsActivities) {
+export async function storeActivities(epochs: EpochsActivities) {
   const promises = Object.entries(epochs).map(async ([_epochNumber, activities]) => {
     const epochNumber = Number(_epochNumber)
     const activePromises = Object.entries(activities)
@@ -52,7 +52,7 @@ interface StoreActivityParams {
 
 const defaultActivity: ElectedValidator = { likelihood: -1, balance: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, missed: -1, rewarded: -1, address: '', elected: true, stakers: 0 }
 
-async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
+export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
   if (!validatorId)
     return
@@ -97,7 +97,7 @@ interface FetchMissingEpochsParams {
 /**
  * Fetches the activities of the epochs that have finished and are missing in the database.
  */
-export async function fetchMissingEpochs({ report, controller }: FetchMissingEpochsParams): Result<number[]> {
+export async function fetchMissingEpochs({ report, controller }: FetchMissingEpochsParams = {}): Result<number[]> {
   const { nimiqNetwork: network } = useRuntimeConfig().public
 
   // The range that we will consider

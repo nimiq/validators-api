@@ -72,16 +72,20 @@ export async function getRange(options: GetRangeOptions = {}): Result<Range> {
   return [true, undefined, {
     head,
     headEpoch,
+
+    fromTimestamp,
     fromEpoch,
     fromBlockNumber,
+
     toEpoch,
     toBlockNumber,
-    epochCount,
-    fromTimestamp,
     toTimestamp,
+
     snapshotEpoch,
     snapshotTimestamp,
     snapshotBlock,
+
+    epochCount,
     epochDurationMs,
   }]
 }
