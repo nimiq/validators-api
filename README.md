@@ -115,7 +115,7 @@ The Validators API provides endpoints to retrieve validator information for inte
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [/api/v1/validators](https://validators-api-mainnet.pages.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
 | [/api/v1/validators/:validator_address](https://validators-api-mainnet.pages.dev/api/v1/validators/NQ7700000000000000000000000000000001) | Retrieves the validator information |
-| [/api/v1/distribution](https://validators-api-mainnet.pages.dev/api/v1/distribution) | Retrieves stats about NIM and staking |
+| [/api/v1/supply](https://validators-api-mainnet.pages.dev/api/v1/supply) | Retrieves supply status |
 
 ## Validators Dashboard
 
