@@ -15,6 +15,13 @@
       "when": 1743530832833,
       "tag": "0001_dashing_whiplash",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1746604297839,
+      "tag": "0002_magenta_anita_blake",
+      "breakpoints": true
     }
   ]
 }

@@ -32,7 +32,6 @@ export const scores = sqliteTable('scores', {
   availability: real('availability').notNull(),
   dominance: real('dominance').notNull(),
   reliability: real('reliability').notNull(),
-  reason: text('reason', { mode: 'json' }).notNull(),
 }, table => [
   index('idx_validator_id').on(table.validatorId),
   primaryKey({ columns: [table.validatorId, table.epochNumber] }),

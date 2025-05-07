@@ -76,7 +76,6 @@ async function calculateScore(range: Range, validatorId: number): Result<Calcula
     ...scoreValues,
     validatorId,
     epochNumber: range.toEpoch,
-    reason: '{}',
   }
   return [true, undefined, { ...score, params }]
 }
