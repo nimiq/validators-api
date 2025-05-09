@@ -105,7 +105,7 @@ The VTS is a metric designed to help stakers evaluate the performance and reliab
 
 The VTS is displayed in the Nimiq Wallet, allowing stakers to compare validators and select the one that best meets their needs.
 
-- [Read the docs](https://nimiq.com/developers/learn/validator-trustscore)
+- [Read the docs](https://nimiq.com/developers/validators/validator-trustscore)
 - Checkout the [pnpm package](./packages/nimiq-validator-trustscore/)
 
 ## Validators API

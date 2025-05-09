@@ -32,6 +32,7 @@
     "@nimiq/core": "catalog:",
     "@nimiq/utils": "catalog:",
     "@nuxthub/core": "catalog:",
+    "@tanstack/vue-table": "catalog:",
     "@unovis/ts": "catalog:",
     "@unovis/vue": "catalog:",
     "@vueuse/core": "catalog:",
