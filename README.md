@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/nimiq/validators-api/actions/workflows/sync-matrix.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/sync-matrix.yml/badge.svg" /></a>
+<a href="https://github.com/nimiq/validators-api/actions/workflows/sync.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/sync.yml/badge.svg" /></a>
 </p>
 
 <h2 align="center">Dashboards</h2>
@@ -40,10 +40,10 @@ If you operate a staking pool and want to be displayed in the Nimiq Wallet, foll
 2. Add your Validator File:
    - Create a new JSON file in the `public/validators/main-albatross` directory.
    - Use the provided example template in the directory to structure your data.
-3. Review the [Description Guidelines](#recommendations-for-your-validator-information).
+3. Review the [Description Guidelines](#recommendations-for-your-validator-description).
 4. Learn about the [JSON Schema](#validator-json-schema).
 5. Submit a PR to this repository. A Nimiq team member will review your submission within 3 days.
-6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.pages.dev/api/v1) returns your information. This process may take a few minutes.
+6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.pages.dev/api/v1/validators) returns your information. This process may take a few minutes.
 
 > [!WARNING]
 > Nimiq reserves the right to make minor adjustments to the content submitted by validator owners if necessary.
@@ -64,7 +64,7 @@ This information will be displayed in the wallet to help stakers decide which po
 
 ### Validator JSON schema
 
-Use the following schema to create your validator information file. You can start by copying this [example JSON template](./public/validators/main-albatross/.example.json). When you add your validator information, you'll need to include specific keys in your JSON file. Below is an explanation of each key and its possible values.
+Use the following schema to create your validator information file. You can start by copying this [example JSON template](./public/validators/.example.json). When you add your validator information, you'll need to include specific keys in your JSON file. Below is an explanation of each key and its possible values.
 
 **Required Keys**:
 
@@ -196,9 +196,9 @@ There are 4 different environments:
 | ------------ | -------------------- | ------------------------------------------------------------------------------ | ----------------------------- |
 | `production` | `production-mainnet` | [Validators API Mainnet](https://validators-api-mainnet.pages.dev)             | Push to `main` branch         |
 | `production` | `production-testnet` | [Validators API Testnet](https://validators-api-testnet.pages.dev)             | Push to `main` branch         |
-| `preview`    | `preview-mainnet`    | [Validators API Mainnet Preview](https://dev.validators-api-preview.pages.dev) | Push any commit to any branch |
-| `preview`    | `preview-testnet`    | [Validators API Testnet Preview](https://dev.validators-api-preview.pages.dev) | Push any commit to any branch |
+| `preview`    | `preview-mainnet`    | [Validators API Mainnet Preview](https://dev.validators-api-mainnet.pages.dev) | Push any commit to any branch |
+| `preview`    | `preview-testnet`    | [Validators API Testnet Preview](https://dev.validators-api-testnet.pages.dev) | Push any commit to any branch |
 
-Each Nuxt Hub environment has its own database, so effectively we have 4 different databases and there 4 tasks in the [`sync.yml`](./.github/workflows/sync.yml) workflow that are responsible for syncing the data from the Nimiq network to the database.
+Each Nuxt Hub environment has its own database, so effectively we have 4 different databases and there are 4 tasks in the [`sync.yml`](./.github/workflows/sync.yml) workflow that are responsible for syncing the data from the Nimiq network to the database.
 
 **Write operations to `main` are restricted**, only via PR.

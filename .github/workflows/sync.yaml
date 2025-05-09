@@ -1,4 +1,4 @@
-name: Sync Matrix
+name: Sync
 
 on:
   schedule:
