@@ -1,11 +1,72 @@
 packages:
   - packages/**
+
+patchedDependencies:
+  '@nimiq/utils': patches/@nimiq__utils.patch
+
 catalog:
-  '@antfu/eslint-config': ^3.8.0
-  eslint: ^9.13.0
-  lint-staged: ^15.2.10
-  simple-git-hooks: ^2.11.1
-  esno: ^4.7.0
-  typescript: ^5.5.4
-  unbuild: ^2.0.0
-  vite: ^5.4.2
+  '@antfu/eslint-config': ^4.13.0
+  '@antfu/ni': ^24.3.0
+  '@iconify-json/tabler': ^1.2.17
+  '@nimiq/core': ^2.1.0
+  '@nimiq/utils': ^0.12.3
+  '@nuxt/eslint': ^1.3.0
+  '@nuxt/image': ^1.10.0
+  '@nuxthub/core': ^0.8.27
+  '@nuxtjs/color-mode': ^3.5.2
+  '@types/node': ^22.15.17
+  '@unocss/eslint-config': ^66.1.1
+  '@unocss/nuxt': ^66.1.1
+  '@unocss/reset': ^66.1.1
+  '@unovis/ts': ^1.5.1
+  '@unovis/vue': ^1.5.1
+  '@vueuse/core': ^13.1.0
+  '@vueuse/nuxt': ^13.1.0
+  bumpp: ^10.1.0
+  consola: ^3.4.2
+  defu: ^6.1.4
+  dotenv: ^16.5.0
+  drizzle-kit: ^0.31.1
+  drizzle-orm: ^0.43.1
+  drizzle-zod: ^0.7.1
+  eslint: ^9.26.0
+  eslint-plugin-format: ^1.0.1
+  identicons-esm: ^1.0.0-beta.5
+  lint-staged: ^15.5.2
+  nimiq-css: ^1.0.0-beta.22
+  nimiq-rpc-client-ts: 1.0.0-beta.18
+  nuxt: ^3.17.2
+  nuxt-time: 1.0.3
+  ofetch: ^1.4.1
+  pathe: ^2.0.3
+  reka-ui: ^2.2.1
+  simple-git-hooks: ^2.13.0
+  std-env: ^3.9.0
+  tsx: ^4.19.4
+  typescript: ^5.8.3
+  unbuild: ^3.5.0
+  unocss: ^66.1.1
+  unocss-preset-onmax: 1.0.0-beta.19
+  unocss-preset-scale-px: ^1.0.0-beta.19
+  vite-plugin-top-level-await: ^1.5.0
+  vite-plugin-wasm: ^3.4.1
+  vitest: ^3.1.3
+  vue: ^3.5.13
+  vue-router: ^4.5.1
+  vue-tsc: ^2.2.10
+  wrangler: ^4.14.4
+  zod: ^3.24.4
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@swc/core'
+  - bufferutil
+  - es5-ext
+  - esbuild
+  - maplibre-gl
+  - sharp
+  - simple-git-hooks
+  - unrs-resolver
+  - utf-8-validate
+  - vue-demi
+  - workerd

@@ -3,15 +3,12 @@ name: CI
 on:
   push:
     branches:
-      - main
-
-  pull_request:
-    branches:
-      - main
+      - '*'
 
 jobs:
-  lint:
+  ci:
     runs-on: ubuntu-latest
+    environment: preview-testnet
     steps:
       - uses: actions/checkout@v4
 
@@ -21,45 +18,25 @@ jobs:
       - name: Set node
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
-
-      - name: Set .env file
-        run: echo "NUXT_PUBLIC_NIMIQ_NETWORK=test-albatross" > .env
+          node-version: 22
+          cache: pnpm
 
       - name: Install
         run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm run lint
-
-  package:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Set node
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
-      - name: Set .env file
-        run: echo "NUXT_PUBLIC_NIMIQ_NETWORK=test-albatross" > .env
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-        working-directory: packages/nimiq-validators-trustscore
-
-      - name: Lint
-        run: pnpm run lint
-        working-directory: packages/nimiq-validators-trustscore
 
       - name: Typecheck
         run: pnpm run typecheck
-        working-directory: packages/nimiq-validators-trustscore
+        env:
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
+
+      - name: Validate JSON files
+        run: pnpm run validate:json-files github
 
       - name: Test
         run: pnpm run test
-        working-directory: packages/nimiq-validators-trustscore
+        env:
+          ALBATROSS_RPC_NODE_URL: ${{ secrets.ALBATROSS_RPC_NODE_URL }}
+          NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}

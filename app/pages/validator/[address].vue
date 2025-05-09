@@ -1,15 +1,20 @@
 <script setup lang="ts">
-const { getValidatorByAddress } = useApiStore()
-
 const route = useRoute()
-const validator = computed(() => getValidatorByAddress(route.params.address as string))
+const { data: validator } = await useFetch(`/api/v1/validators/${route.params.address}`)
+
+const scores = computed<[number, number][]>(() => {
+  if (!validator.value?.scores)
+    return []
+  return validator.value.scores.map(({ total, epochNumber }) => [total, epochNumber])
+})
 </script>
 
 <template>
   <div v-if="validator">
     <div flex="~ gap-16 items-center">
       <Identicon
-        :validator size-64 shrink-0 object-contain
+        v-bind="validator"
+        size-64 shrink-0 object-contain
         :style="{ 'view-transition-name': `logo-${validator.id}` }"
       />
       <div flex="~ col gap-12" relative>
@@ -23,35 +28,32 @@ const validator = computed(() => getValidatorByAddress(route.params.address as s
         v-if="validator.isMaintainedByNimiq" nq-pill-sm self-start bg-green-400 text-green-1100 nq-pill-secondary
         flex="~ items-center gap-8"
       >
-        <div aria-hidden i-nimiq:icons-lg-verified-filled />
+        <div aria-hidden i-nimiq:verified-filled />
         <span>Maintained by Nimiq</span>
       </div>
       <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill-sm ml-auto self-start nq-arrow nq-pill-tertiary>
-        {{
-          validator.website?.replace(/https?:\/\//, '') }}
+        {{ validator.website?.replace(/https?:\/\//, '') }}
       </NuxtLink>
     </div>
-    <!-- <p v-if="validator.description" mt-8 ml-80 text-neutral-800>{{ validator.description }}</p> -->
+    <p v-if="validator.description" f-mt-xs ml-80 text="neutral-800 f-sm">
+      {{ validator.description }}
+    </p>
 
     <div flex="~ col items-center justify-center" mt-96>
       <h3 text="center neutral-900" mb-0 font-bold>
         {{ validator.name }}'s score is
       </h3>
       <ScorePie
-        mx-auto mt-32 size-128 text-40 :score="validator.total"
+        mx-auto mt-32 size-128 text-40 :score="validator.score?.total || 0"
         :style="{ 'view-transition-name': `score-${validator.id}` }"
       />
 
-      <ScorePies :validator mt-64 text-28 />
-      <!-- <div self-stretch  w-2 bg-neutral-300 mx-48 /> -->
-      <details>
-        <summary text-neutral-900 font-semibold mt-32 w-full>
-          Reasons for the score
-        </summary>
-        <code nq-prose mt-32 block max-w-700 text-neutral-900>
-          {{ JSON.stringify(validator.reason, null, 2) }}
-        </code>
-      </details>
+      <ScorePies v-if="validator.score" v-bind="validator.score" f-mt-md text-28 />
+
+      <ChartLine :data="scores" f-mt-md />
+
+      <Batches :activity="validator.activity" f-mt-md />
+
       <details>
         <summary text-neutral-900 font-semibold mt-32 w-full>
           More details

@@ -16,13 +16,13 @@ export const validators = sqliteTable('validators', {
   accentColor: text('accent_color').notNull(),
   website: text('website'),
   contact: text('contact', { mode: 'json' }),
-}, table => ({
-  uniqueAddress: uniqueIndex('validators_address_unique').on(table.address),
-  enumCheck: check(
+}, table => [
+  uniqueIndex('validators_address_unique').on(table.address),
+  check(
     'enum_check',
     sql`${table.payoutType} IN ('none', 'restake', 'direct')`, // Make sure to update these values if the PayoutType changes
   ),
-}))
+])
 
 // The scores only for the default window dominance
 export const scores = sqliteTable('scores', {
@@ -32,11 +32,10 @@ export const scores = sqliteTable('scores', {
   availability: real('availability').notNull(),
   dominance: real('dominance').notNull(),
   reliability: real('reliability').notNull(),
-  reason: text('reason', { mode: 'json' }).notNull(),
-}, table => ({
-  idxValidatorId: index('idx_validator_id').on(table.validatorId),
-  compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.epochNumber] }),
-}))
+}, table => [
+  index('idx_validator_id').on(table.validatorId),
+  primaryKey({ columns: [table.validatorId, table.epochNumber] }),
+])
 
 export const scoresRelations = relations(scores, ({ one }) => ({
   validator: one(validators, {
@@ -54,10 +53,11 @@ export const activity = sqliteTable('activity', {
   dominanceRatioViaBalance: integer('dominance_ratio_via_balance').notNull(),
   dominanceRatioViaSlots: integer('dominance_ratio_via_slots').notNull(),
   balance: real('balance').notNull().default(-1),
-}, table => ({
-  idxElectionBlock: index('idx_election_block').on(table.epochNumber),
-  compositePrimaryKey: primaryKey({ columns: [table.validatorId, table.epochNumber] }),
-}))
+  stakers: integer('stakers').notNull().default(0),
+}, table => [
+  index('idx_election_block').on(table.epochNumber),
+  primaryKey({ columns: [table.validatorId, table.epochNumber] }),
+])
 
 export const activityRelations = relations(activity, ({ one }) => ({
   validator: one(validators, {

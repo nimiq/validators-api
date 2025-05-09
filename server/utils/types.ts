@@ -1,7 +1,5 @@
-import type { Range } from '~~/packages/nimiq-validators-trustscore/src'
-import type { Activity, Score, Validator } from './drizzle'
-
-export type Result<T> = Promise<{ data: T, error: undefined } | { data: undefined, error: string }>
+import type { ElectedValidator, UnelectedValidator } from 'nimiq-validator-trustscore/types'
+import type { Activity, Score } from './drizzle'
 
 export enum PayoutType {
   Restake = 'restake',
@@ -9,30 +7,28 @@ export enum PayoutType {
   None = 'none',
 }
 
-export type ValidatorScore =
-  Omit<Validator, 'hasDefaultLogo' | 'accentColor' | 'contact'>
-  & Pick<Score, 'availability' | 'dominance' | 'reliability' | 'total'>
-  & Pick<Activity, 'dominanceRatioViaBalance' | 'dominanceRatioViaSlots'>
+export interface SnapshotEpochValidators {
+  epochNumber: number
+  electedValidators: (ElectedValidator | UnelectedValidator)[]
+  unelectedValidators: (ElectedValidator | UnelectedValidator)[]
+  deletedValidators: string[]
 
-export enum HealthFlag {
-  MissingEpochs = 'missing-epochs',
-  NoValidators = 'no-validators',
-  // TODO,
-  // ScoreNotComputed = 'score-not-computed',
+  /**
+   * Validators that are not tracked by the database. The untracked validators are
+   * also part of the `electedValidators` and `unelectedValidators` arrays, but they are
+   * not stored in the database yet.
+   */
+  untrackedValidators: (ElectedValidator | UnelectedValidator)[]
 }
 
-export interface HealthStatus {
-  // TODO
-  // latestScoreEpoch: number | undefined
-  latestFetchedEpoch: number | undefined
-  totalValidators: number
-  headBlockNumber: number
-  currentEpoch: number
-  missingEpochs: number[]
-  fetchedEpochs: number[]
-  range: Range
-
-  isSynced: boolean
-  flags: HealthFlag[]
-  network: string
+type Nullable<T> = {
+  [K in keyof T]: T[K] | null
 }
+export type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & Pick<Activity, 'balance' | 'stakers'> & {
+  logo?: string
+  score: Nullable<Pick<Score, 'total' | 'availability' | 'reliability' | 'dominance' | 'epochNumber'>>
+  dominanceRatio: number | null
+}
+
+export interface SyncStream { kind: 'success' | 'data' | 'log' | 'error', message: string, payload?: any }
+export type SyncStreamReportFn = (json: SyncStream) => void

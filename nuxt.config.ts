@@ -1,22 +1,16 @@
+import { execSync } from 'node:child_process'
 import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
+import { description, name, version } from './package.json'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
-  modules: [
-    '@vueuse/nuxt',
-    '@pinia/nuxt',
-    '@unocss/nuxt',
-    '@nuxtjs/color-mode',
-    '@nuxt/eslint',
-    '@nuxthub/core',
-    '@nuxt/image',
-    'radix-vue/nuxt',
-  ],
+  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-time'],
 
   hub: {
     database: true,
@@ -25,9 +19,9 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    rpcUrl: process.env.NUXT_RPC_URL || '',
-    GITHUB_ACTIONS: process.env.GITHUB_ACTIONS || '',
+    albatrossRpcNodeUrl: process.env.ALBATROSS_RPC_NODE_URL || '',
     public: {
+      gitBranch: 'dev', // Modified in the build hook
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
     },
   },
@@ -57,28 +51,45 @@ export default defineNuxtConfig({
     optimizeDeps: {
       exclude: ['@nimiq/core'],
     },
+    resolve: {
+      alias: {
+        'nimiq-validator-trustscore': './packages/nimiq-validator-trustscore/src/index.ts',
+        // Add alias for data files
+        'css-tree': 'css-tree/dist/csstree.esm.js',
+      },
+    },
   },
+
+  components: [
+    { path: '~/components/[UI]', pathPrefix: false },
+    '~/components',
+  ],
 
   hooks: {
     'build:before': async () => {
-      const nimiqNetwork = process.env.NUXT_PUBLIC_NIMIQ_NETWORK as string
+    },
+    'ready': (nuxt) => {
+      // 1. Modify runtimeConfig
+      const gitBranch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+      nuxt.options.runtimeConfig.public.gitBranch = gitBranch
+
+      // 2. Log runtimeConfig
+      const nimiqNetwork = nuxt.options.runtimeConfig.public.nimiqNetwork
       const validNimiqNetworks = ['main-albatross', 'test-albatross']
       if (!validNimiqNetworks.includes(nimiqNetwork)) {
         consola.warn(`Invalid nimiqNetwork: ${nimiqNetwork}. Please make sure it is one of: ${validNimiqNetworks.join(', ')}`)
       }
+      consola.info(`Nimiq network: \`${nimiqNetwork}\``)
+
+      consola.info(`Git branch: \`${gitBranch}\``)
+
+      const { projectUrl, env } = nuxt.options.runtimeConfig.hub
+      consola.info(`Remote NuxtHub: \`${projectUrl || 'local'}@${env}\``)
     },
   },
 
-  nitro: {
-    esbuild: {
-      options: {
-        target: 'esnext',
-      },
-    },
-    experimental: {
-      tasks: true,
-      openAPI: true,
-    },
+  alias: {
+    'nimiq-validator-trustscore/*': `${fileURLToPath(new URL('./packages/nimiq-validator-trustscore/src/', import.meta.url))}/*`,
   },
 
   app: {
@@ -101,7 +112,7 @@ export default defineNuxtConfig({
   },
 
   watch: [
-    '~~/packages/nimiq-validators-trustscore',
+    '~~/packages/nimiq-validator-trustscore',
   ],
 
   features: {
@@ -119,7 +130,21 @@ export default defineNuxtConfig({
     classSuffix: '',
   },
 
-  compatibilityDate: '2024-08-15',
+  nitro: {
+    experimental: {
+      openAPI: true,
+    },
+    openAPI: {
+      meta: { title: name, description, version },
+      production: 'runtime',
+    },
+
+    externals: {
+      external: ['ws'],
+    },
+  },
+
+  compatibilityDate: '2025-03-21',
   future: {
     compatibilityVersion: 4,
   },

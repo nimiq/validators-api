@@ -1,16 +1,5 @@
-import { DEFAULT_WINDOW_IN_DAYS, DEFAULT_WINDOW_IN_MS } from '~~/packages/nimiq-validators-trustscore/src'
 import { z } from 'zod'
 import { PayoutType } from './types'
-
-export const rangeQuerySchema = z.object({
-  epoch: z.literal('latest').or(z.number().min(1)).default('latest'),
-  epochsCount: z.number().min(1).default(DEFAULT_WINDOW_IN_DAYS),
-  durationWindowMs: z.number().min(1).default(DEFAULT_WINDOW_IN_MS),
-}).refine(({ epochsCount, durationWindowMs }) => {
-  const defaultCounts = epochsCount === DEFAULT_WINDOW_IN_DAYS
-  const defaultWindow = durationWindowMs === DEFAULT_WINDOW_IN_MS
-  return (!epochsCount || !durationWindowMs) || (defaultCounts && defaultWindow) || (!defaultCounts && !defaultWindow)
-})
 
 export const logoFormatRe = /^data:image\/(png|svg\+xml|webp)(?:;base64)?,/
 export const validatorSchema = z.object({
@@ -38,6 +27,7 @@ export const validatorSchema = z.object({
     youtube: z.string().regex(/^@?(\w){1,50}$/).optional(),
   }).optional(),
 })
+export const validatorsSchema = z.array(validatorSchema)
 export type ValidatorJSON = z.infer<typeof validatorSchema>
 
 function getDefaults<Schema extends z.AnyZodObject>(schema: Schema) {
@@ -54,8 +44,10 @@ export const defaultValidatorJSON = getDefaults(validatorSchema) as ValidatorJSO
 
 export const mainQuerySchema = z.object({
   'payout-type': z.nativeEnum(PayoutType).optional(),
-  'only-active': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'only-known': z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
   'with-identicons': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'force': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'epoch-number': z.number().min(1).default(1).transform(Number),
 })
+
+export type MainQuerySchema = z.infer<typeof mainQuerySchema>

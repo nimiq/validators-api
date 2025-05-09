@@ -1,30 +1,18 @@
 import type { SQLWrapper } from 'drizzle-orm'
-import type { Validator } from './drizzle'
+import type { H3Event } from 'h3'
+import type { ElectedValidator, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
+import type { Activity, Score, Validator } from './drizzle'
 import type { ValidatorJSON } from './schemas'
-import type { Result, ValidatorScore } from './types'
-import { readdir, readFile } from 'node:fs/promises'
-import path from 'node:path'
+import type { FetchedValidator, SnapshotEpochValidators } from './types'
 import { consola } from 'consola'
-import { desc, inArray } from 'drizzle-orm'
+import { and, eq, gte, lte, sql } from 'drizzle-orm'
+import { fetchSnapshotEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
+import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
-import { defaultValidatorJSON, validatorSchema } from './schemas'
+import { defaultValidatorJSON } from './schemas'
 
-/**
- * Given a list of validator addresses, it returns the addresses that are missing in the database.
- * This is useful when we are fetching the activity for a range of epochs and we need to check if the validators are already in the database.
- * They should be present in the database because the fetch function needs to be run in order to compute the score.
- */
-export async function findMissingValidators(addresses: string[]) {
-  const existingAddresses = await useDrizzle()
-    .select({ address: tables.validators.address })
-    .from(tables.validators)
-    .where(inArray(tables.validators.address, addresses))
-    .execute()
-    .then(r => r.map(r => r.address))
-
-  const missingAddresses = addresses.filter(a => !existingAddresses.includes(a))
-  return missingAddresses
-}
+export const getStoredValidatorsId = () => useDrizzle().select({ id: tables.validators.id }).from(tables.validators).execute().then(r => r.map(v => v.id))
+export const getStoredValidatorsAddress = () => useDrizzle().select({ address: tables.validators.address }).from(tables.validators).execute().then(r => r.map(v => v.address))
 
 const validators = new Map<string, number>()
 
@@ -38,7 +26,7 @@ interface StoreValidatorOptions {
 
 export async function storeValidator(address: string, rest: ValidatorJSON = defaultValidatorJSON, options: StoreValidatorOptions = {}): Promise<number | undefined> {
   try {
-    // TODO Build broken
+    // TODO Use @nimiq/utils
     // Address.fromString(address)
   }
   catch (error: unknown) {
@@ -96,72 +84,44 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
   return validatorId
 }
 
-export async function fetchValidatorsScoreByIds(validatorIds: number[]): Result<ValidatorScore[]> {
-  const validators = await useDrizzle()
-    .select({
-      id: tables.validators.id,
-      name: tables.validators.name,
-      address: tables.validators.address,
-      fee: tables.validators.fee,
-      payoutType: tables.validators.payoutType,
-      description: tables.validators.description,
-      logo: tables.validators.logo,
-      isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
-      website: tables.validators.website,
-      total: tables.scores.total,
-      availability: tables.scores.availability,
-      dominance: tables.scores.dominance,
-    })
-    .from(tables.validators)
-    .leftJoin(tables.scores, eq(tables.validators.id, tables.scores.validatorId))
-    .where(inArray(tables.validators.id, validatorIds))
-    .groupBy(tables.validators.id)
-    .orderBy(desc(tables.scores.total))
-    .all() as ValidatorScore[]
-  return { data: validators, error: undefined }
-}
+export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber: number }
 
-export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { addresses: string[], epochNumber: number }
-
-type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & {
-  logo?: string
-  score?: { total: number | null, availability: number | null, reliability: number | null, dominance: number | null }
-  dominanceRatio?: number
-  balance?: number
-}
-
-export async function fetchValidators(params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, addresses = [], 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
+export async function fetchValidators(_event: H3Event, params: FetchValidatorsOptions): Result<FetchedValidator[]> {
+  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
 
   const filters: SQLWrapper[] = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
-  if (addresses?.length > 0)
-    filters.push(inArray(tables.validators.address, addresses))
   if (onlyKnown)
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
+    // Fixed subqueries to correctly reference the validator_id column
+    const maxScoreEpochSubquery = sql`(
+      SELECT MAX(s.epoch_number) 
+      FROM scores s 
+      WHERE s.validator_id = validators.id 
+      AND s.epoch_number <= ${epochNumber}
+    )`
+
+    const maxActivityEpochSubquery = sql`(
+      SELECT MAX(a.epoch_number) 
+      FROM activity a 
+      WHERE a.validator_id = validators.id 
+      AND a.epoch_number <= ${epochNumber + 1}
+    )`
+
     const dbValidators = await useDrizzle().query.validators.findMany({
       where: and(...filters),
       with: {
         scores: {
-          where: eq(tables.scores.epochNumber, epochNumber),
+          where: eq(tables.scores.epochNumber, maxScoreEpochSubquery),
+          columns: { total: true, availability: true, dominance: true, reliability: true, epochNumber: true },
           limit: 1,
-          columns: {
-            total: true,
-            availability: true,
-            dominance: true,
-            reliability: true,
-          },
         },
         activity: {
-          where: eq(tables.scores.epochNumber, epochNumber + 1),
-          columns: {
-            dominanceRatioViaBalance: true,
-            dominanceRatioViaSlots: true,
-            balance: true,
-          },
+          where: eq(tables.activity.epochNumber, maxActivityEpochSubquery),
+          columns: { dominanceRatioViaBalance: true, dominanceRatioViaSlots: true, balance: true, stakers: true, epochNumber: true },
           limit: 1,
         },
       },
@@ -170,24 +130,26 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
     const validators = dbValidators.map((validator) => {
       const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
 
-      const score: FetchedValidator['score'] = scores[0]
-      if (score) {
-        const { availability, dominance, reliability } = scores[0]
-        if (reliability === -1 || reliability === null) {
-          score.reliability = null
-          score.total = null
-        }
-        if (availability === -1 || availability === null) {
-          score.availability = null
-          score.total = null
-        }
-        if (dominance === -1 || dominance === null) {
-          score.dominance = null
-          score.total = null
-        }
+      if (scores.length === 0) {
+        // Gracefully handle the case where the validator has no score equal or lower than the requested epoch
+        consola.warn(`Validator ${validator.address} has no score for epoch ${epochNumber} or earlier`)
+        scores.push({ availability: -1, dominance: -1, reliability: -1, total: -1, epochNumber: -1 })
       }
 
-      const { dominanceRatioViaBalance, dominanceRatioViaSlots, balance } = activity?.[0] || {}
+      if (activity.length === 0) {
+        // Gracefully handle the case where the validator has no activity equal or lower than the requested next epoch
+        consola.warn(`Validator ${validator.address} has no activity for epoch ${epochNumber + 1} or earlier`)
+        activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, epochNumber: -1 })
+      }
+
+      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1, balance = -1, stakers = 0 } = activity[0]!
+      const score: FetchedValidator['score'] = {
+        availability: scores[0]!.availability === -1 ? null : scores[0]!.availability,
+        reliability: scores[0]!.reliability === -1 ? null : scores[0]!.reliability,
+        dominance: scores[0]!.dominance === -1 ? null : scores[0]!.dominance,
+        total: !Object.values(scores[0]!).includes(-1) ? scores[0]!.total : null,
+        epochNumber: scores[0]!.epochNumber,
+      }
 
       return {
         ...rest,
@@ -196,56 +158,97 @@ export async function fetchValidators(params: FetchValidatorsOptions): Result<Fe
         logo: !withIdenticons && hasDefaultLogo ? undefined : logo,
         dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
         balance,
+        stakers,
       } satisfies FetchedValidator
     })
 
-    return { data: validators, error: undefined }
+    // TODO Remove this when the issue is fixed. See comment above
+    const sorted = validators.sort((a, b) => a.score.total! < b.score.total! ? 1 : -1)
+
+    return [true, undefined, sorted]
   }
   catch (error) {
     consola.error(`Error fetching validators: ${error}`)
-    return { data: undefined, error: JSON.stringify(error) }
+    return [false, JSON.stringify(error), undefined]
   }
 }
 
+export const cachedFetchValidators = defineCachedFunction((_event: H3Event, params: FetchValidatorsOptions) => fetchValidators(_event, params), {
+  maxAge: import.meta.dev ? 0.01 : 10 * 60, // 10 minutes
+  name: 'validators',
+  getKey: (_event, p) => `validators:${p['only-known']}:${p['with-identicons']}:${p['payout-type']}:${p.epochNumber}`,
+})
+
+export interface FetchValidatorOptions { address: string, range: Range }
+export type FetchedValidatorDetails = Validator & { activity: Activity[], scores: Score[], score?: Score }
+
+export async function fetchValidator(_event: H3Event, params: FetchValidatorOptions): Result<FetchedValidatorDetails> {
+  const { address, range: { fromEpoch, toEpoch } } = params
+
+  try {
+    const validator = await useDrizzle().query.validators.findFirst({
+      where: eq(tables.validators.address, address),
+      with: {
+        // Returns all the scores in the range to visualize
+        scores: {
+          where: ({ validatorId: id }) => and(eq(tables.scores.validatorId, id), gte(tables.scores.epochNumber, fromEpoch), lte(tables.scores.epochNumber, toEpoch)),
+        },
+        // Returns all the activity in the range to visualize
+        activity: {
+          where: ({ validatorId: id }) =>
+            and(eq(tables.activity.validatorId, id), gte(tables.activity.epochNumber, fromEpoch), lte(tables.activity.epochNumber, toEpoch)),
+        },
+      },
+    })
+
+    if (!validator)
+      return [false, `Validator with address ${address} not found`, undefined]
+    const score = validator?.scores?.sort((a, b) => a.epochNumber < b.epochNumber ? 1 : -1).at(0)
+    return [true, undefined, { ...validator, score }]
+  }
+  catch (error) {
+    consola.error(`Error fetching validator ${address}: ${error}`)
+    return [false, JSON.stringify(error), undefined]
+  }
+}
+
+export const cachedFetchValidator = defineCachedFunction((_event: H3Event, params: FetchValidatorOptions) => fetchValidator(_event, params), {
+  maxAge: import.meta.dev ? 0.01 : 10 * 60, // 10 minutes
+  name: 'validator',
+  getKey: (_event, p) => `validator:${p.address}:${p.range.fromEpoch}:${p.range.toEpoch}`,
+})
+
 /**
- * Import validators from a folder containing .json files.
+ * Gets the validators in the current epoch and categorizes them into:
+ * - electedTrackedValidators: elected validators that are tracked in the database
+ * - unelectedTrackedValidators: unelected validators that are tracked in the database
+ * - electedUntrackedValidators: elected validators that are not tracked in the database
+ * - unelectedUntrackedValidators: unelected validators that are not tracked in the database
  *
- * This function is expected to be used when initializing the database with validators, so it will throw
- * an error if the files are not valid and the program should stop.
+ * Untracked validators are not the same as anonymous validators:
+ * - anonymous validators are the ones that didn't submit any information, but we do track them
+ * - untracked validators are the ones that are not in the database, because they were recently added. Having
+ *   untracked validators is a rare exception since, we rarely have new validators.
+ *
+ * Deleted validators are the ones that are not in the staking contract anymore, but are still in the database.
  */
-export async function importValidatorsFromFiles(folderPath: string) {
-  const allFiles = await readdir(folderPath)
-  const files = allFiles
-    .filter(f => path.extname(f) === '.json')
-    .filter(f => !f.endsWith('.example.json'))
+export async function categorizeValidatorsSnapshotEpoch(): Result<SnapshotEpochValidators> {
+  const { nimiqNetwork: network } = useRuntimeConfig().public
+  const [epochOk, error, epoch] = await fetchSnapshotEpoch({ network })
+  if (!epochOk)
+    return [false, error, undefined]
 
-  const validators = []
-  for (const file of files) {
-    const filePath = path.join(folderPath, file)
-    const fileContent = await readFile(filePath, 'utf8')
+  const dbAddresses = await getStoredValidatorsAddress()
+  const electedValidators = epoch.validators.filter(v => v.elected) as ElectedValidator[]
+  const unelectedValidators = epoch.validators.filter(v => !v.elected) as UnelectedValidator[]
+  const untrackedValidators = electedValidators.filter(v => !dbAddresses.includes(v.address)) as (ElectedValidator & UnelectedValidator)[]
+  const deletedValidators = dbAddresses.filter(dbAddress => !epoch.validators.map(v => v.address).includes(dbAddress))
 
-    // Validate the file content
-    let jsonData
-    try {
-      jsonData = JSON.parse(fileContent)
-    }
-    catch (error) {
-      throw new Error(`Invalid JSON in file: ${file}. Error: ${error}`)
-    }
-    const { success, data: validator, error } = validatorSchema.safeParse(jsonData)
-    if (!success || error)
-      throw new Error(`Invalid file: ${file}. Error: ${JSON.stringify(error)}`)
-
-    // Check if the address in the title matches the address in the body
-    const fileNameAddress = path.basename(file, '.json')
-    if (jsonData.address !== fileNameAddress)
-      throw new Error(`Address mismatch in file: ${file}`)
-
-    validators.push(validator)
-  }
-  const res = await Promise.allSettled(validators.map(validator => storeValidator(validator.address, validator, { upsert: true })))
-  const errors = res.filter(r => r.status === 'rejected')
-  if (errors.length > 0) {
-    throw new Error(`There were errors while importing the validators: ${errors.map(e => e.reason)}`)
-  }
+  return [true, undefined, {
+    epochNumber: epoch.epochNumber,
+    electedValidators,
+    unelectedValidators,
+    untrackedValidators,
+    deletedValidators,
+  }]
 }

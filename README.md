@@ -1,12 +1,31 @@
-  <a id="README" href="#README" href="https://github.com/nimiq/core-rs-albatross/blob/albatross/README.md">
-    <img src="https://raw.githubusercontent.com/nimiq/developer-center/refs/heads/main/assets/images/logos/validators-API.svg" alt="Nimiq PoS Albatross Repository" width="600" />
+<p align="center">
+  <a href="https://github.com/nimiq/validators-api" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nimiq/validators-API/HEAD/.github/logo-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/nimiq/validators-API/HEAD/.github/logo-light.svg">
+      <img alt="Nimiq Validators API" src="https://raw.githubusercontent.com/nimiq/validators-API/HEAD/.github/logo-light.svg" width="350" height="70" style="max-width: 100%;">
+    </picture>
   </a>
-</br>
-</br>
+</p>
 
-[![Sync Mainnet](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/sync-mainnet.yml) [![Sync Testnet](https://github.com/nimiq/validators-api/actions/workflows/sync-testnet.yml/badge.svg)](https://github.com/nimiq/validators-api/actions/workflows/sync-testnet.yml)
+<p align="center">
+  An API for integrating validators and pools with the Nimiq Wallet and other apps, helping stakers choose where to stake.
+</p>
 
-The Nimiq Validators API enables staking pools, based on single validators, to integrate with the Nimiq Wallet and other applications. This helps stakers make informed decisions when choosing where to stake their funds.
+<p align="center">
+<a href="https://github.com/nimiq/validators-api/actions/workflows/sync-matrix.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/sync-matrix.yml/badge.svg" /></a>
+</p>
+
+<h2 align="center">Dashboards</h2>
+
+<p align="center">
+<a href="https://validators-api-mainnet.pages.dev" target="_blank">Mainnet</a>&nbsp; &nbsp; &nbsp;
+<a href="https://validators-api-testnet.pages.dev" target="_blank">Testnet</a>
+</p>
+
+<br />
+
+<br />
 
 **Validators and Staking Pools**:
 A validator can operate as a staking pool, allowing multiple users to stake. Pools must provide detailed information such as fees, payout schedules, and contact details to ensure trust and transparency.
@@ -24,7 +43,7 @@ If you operate a staking pool and want to be displayed in the Nimiq Wallet, foll
 3. Review the [Description Guidelines](#recommendations-for-your-validator-information).
 4. Learn about the [JSON Schema](#validator-json-schema).
 5. Submit a PR to this repository. A Nimiq team member will review your submission within 3 days.
-6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.nuxt.dev/api/v1) returns your information. This process may take a few minutes.
+6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.pages.dev/api/v1) returns your information. This process may take a few minutes.
 
 > [!WARNING]
 > Nimiq reserves the right to make minor adjustments to the content submitted by validator owners if necessary.
@@ -62,7 +81,7 @@ Use the following schema to create your validator information file. You can star
   - `restake`: Rewards are automatically restaked.
   - `direct`: Rewards are paid directly into the staker's wallet and are not automatically restaked. Requires:
     - `payoutAddress`: Provide address you will payout from.
-    - `payoutSchedule`: Specifiy the frequency of payouts using the [cron job format](https://crontab.guru/). Example: `0 */6 * * *` for payouts every 6 hours.
+    - `payoutSchedule`: Specify the frequency of payouts using the [cron job format](https://crontab.guru/). Example: `0 */6 * * *` for payouts every 6 hours.
   - `none`: No rewards will be paid out.
   - `custom`: Custom payout scheme. Requires:
     - `payoutScheme`: A description of the custom payout method (e.g., "Pays 50% of rewards every 1st of the month").
@@ -87,7 +106,7 @@ The VTS is a metric designed to help stakers evaluate the performance and reliab
 The VTS is displayed in the Nimiq Wallet, allowing stakers to compare validators and select the one that best meets their needs.
 
 - [Read the docs](https://nimiq.com/developers/learn/validator-trustscore)
-- [See implementation](./packages/nimiq-validators-trustscore/)
+- Checkout the [pnpm package](./packages/nimiq-validator-trustscore/)
 
 ## Validators API
 
@@ -95,27 +114,70 @@ The Validators API provides endpoints to retrieve validator information for inte
 | Endpoint | Description |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [/api/v1/validators](https://validators-api-mainnet.pages.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
+| [/api/v1/validators/:validator_address](https://validators-api-mainnet.pages.dev/api/v1/validators/NQ7700000000000000000000000000000001) | Retrieves the validator information |
+| [/api/v1/supply](https://validators-api-mainnet.pages.dev/api/v1/supply) | Retrieves supply status |
 
 ## Validators Dashboard
 
-The Validators Dashboard is a simple Nuxt application that displays all validators along with their trust scores. You can access the dashboard here: https://validators-api-mainnet.pages.dev/
+The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-mainnet.pages.dev/
+
+> [!TIP]
+> Check also the [deployment](#deployment) section to learn how to access to the `testnet` and `preview` environments.
+
+## How the API works
+
+The API has different endpoints to retrieve information about validators and staking metrics. In the following sections we will focus on how the validators scores are calculated and how the data is stored.
+
+### Range
+
+We fetch the data from the last ~9 months to calculate the score. In order to do this, we have a function to calculate the window of epochs to fetch.
+
+- `fromXXX`: The information for the first block/epoch we consider (~9 months). We have: `fromEpoch`, `fromBlockNumber`, `fromTimestamp`
+- `toXXX`: The information for the last block/epoch we consider. We have: `toEpoch`, `toBlockNumber`, `toTimestamp`
+- `snapshotXXX`: The information for current epoch. (It is not called `currentEpoch` as this could be missleading when talking about a range that is in the past). We have: `snapshotEpoch`, `snapshotBlockNumber`, `snapshotTimestamp`. If you have a better name, please suggest it.
+
+We also do have an UI component to visualize the range, check the status, and debug.
+
+### Fetcher
+
+The fetcher is a process that retrieves data from the Nimiq network and stores it in a D1 database. The fetcher runs every hour and collects data about the validators in two different ways:
+
+#### Ended epochs
+
+It fetches the data from epochs already ended and stores it in the database the following variables:
+
+- `epoch`: The epoch number.
+- `validatorAddress`: The address of the validator.
+- `missed`: The number of batches where at least a slot was missed.
+- `rewarded`: The number of batches rewarded.
+- `likelihood`: The probability of being selected to produce a block, calculated by `numSlots / SLOTS`.
+- `dominanceViaSlots`: Same as `likelihood`
+- `dominanceViaBalance`: The dominance ratio of the validator, calculated by `validatorBalance / totalBalance`. Might be -1 if the `balance` was not fetched when the epoch was active.
+
+#### Current epoch
+
+It fetches the data from the current active epoch and stores it in the database the following variables:
+
+- `epoch`: The epoch number.
+- `validatorAddress`: The address of the validator.
+- `balance`: The balance of the validator.
+- `stakers`: The amount of stakers in the validator.
+
+It will also set empty values for `missed`, `rewarded`, `likelihood`, and `dominanceViaBalance` for the current epoch. This is because the epoch is still active and the data is not available yet. Those fields will be updated once the epoch ends and only if the validator was selected to produce a block, otherwise they will remain untouched.
+
+#### Types of validators
+
+| Type                          | Elected | Tracked |
+| ----------------------------- | ------- | ------- |
+| `ElectedTrackedValidator`     | ✅      | ✅      |
+| `ElectedUntrackedValidator`   | ✅      | ❌      |
+| `UnelectedTrackedValidator`   | ❌      | ✅      |
+| `UnelectedUntrackedValidator` | ❌      | ❌      |
+
+> [!NOTE]
+> Having a `UnelectedUntrackedValidator` should only happen when the validator has been selected for the first time in history.
 
 ## Development
-
-```bash
-pnpm install
-pnpm dev
-```
-
-### Score Calculation with Nitro Tasks
-
-To calculate the score, we need to run two processes: the fetcher and the score calculator. We do this using a Nitro Task, which is currently an experimental feature of Nitro. Nitro Task is a feature that allows you to trigger an action in the server programmatically or manually from the Nuxt Dev Center (go to tasks page). Read more about the process of computing the score in the [nimiq-validators-trustscore](./packages/nimiq-validators-trustscore/README.md) package.
-
-### Database
-
-As well as storing the [Validator Details](#validator-details), we also store the data produced by the fetcher in a sqlite database. This data is then used in the score calculator to compute the score. You can see the file [schema.ts](./server/database/schema.ts).
-
-#### Development
 
 Once it is cloned and installed the dependencies, you must run:
 
@@ -123,3 +185,20 @@ Once it is cloned and installed the dependencies, you must run:
 pnpm db:generate
 pnpm dev # or pnpm dev:local to use the local database
 ```
+
+## Deployment
+
+The deployment is handled by the [`NuxtHub Action`](./.github/workflows/nuxt-hub.yml).
+
+There are 4 different environments:
+
+| Nuxt Hub Env | GitHub Env           | Dashboard URL                                                                  | Trigger                       |
+| ------------ | -------------------- | ------------------------------------------------------------------------------ | ----------------------------- |
+| `production` | `production-mainnet` | [Validators API Mainnet](https://validators-api-mainnet.pages.dev)             | Push to `main` branch         |
+| `production` | `production-testnet` | [Validators API Testnet](https://validators-api-testnet.pages.dev)             | Push to `main` branch         |
+| `preview`    | `preview-mainnet`    | [Validators API Mainnet Preview](https://dev.validators-api-preview.pages.dev) | Push any commit to any branch |
+| `preview`    | `preview-testnet`    | [Validators API Testnet Preview](https://dev.validators-api-preview.pages.dev) | Push any commit to any branch |
+
+Each Nuxt Hub environment has its own database, so effectively we have 4 different databases and there 4 tasks in the [`sync.yml`](./.github/workflows/sync.yml) workflow that are responsible for syncing the data from the Nimiq network to the database.
+
+**Write operations to `main` are restricted**, only via PR.
