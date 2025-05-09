@@ -2,7 +2,7 @@ import type { BaseAlbatrossPolicyOptions } from '@nimiq/utils/albatross-policy'
 import type { ElectionMacroBlock } from 'nimiq-rpc-client-ts/types'
 import type { ElectedValidator, EpochActivity, Result, ResultSync, SnapshotEpoch, UnelectedValidator } from './types'
 import { batchAt, BATCHES_PER_EPOCH, electionBlockOf, firstBlockOf, isElectionBlockAt, SLOTS } from '@nimiq/utils/albatross-policy'
-import { getAccountByAddress, getBlockByNumber, getEpochNumber, getInherentsByBatchNumber, getStakersByValidatorAddress, getValidators } from 'nimiq-rpc-client-ts/http'
+import { getBlockByNumber, getEpochNumber, getInherentsByBatchNumber, getStakersByValidatorAddress, getValidatorByAddress, getValidators } from 'nimiq-rpc-client-ts/http'
 import { InherentType } from 'nimiq-rpc-client-ts/types'
 
 export interface FetchActivityOptions extends Pick<BaseAlbatrossPolicyOptions, 'network'> {
@@ -201,7 +201,7 @@ export async function fetchSnapshotEpoch(options: FetchSnapshotEpochOptions = {}
   const slotsDistribution = Object.fromEntries((electionBlock as ElectionMacroBlock).slots.map(({ validator, numSlots }) => [validator, numSlots]))
 
   const result: ResultSync<SnapshotEpoch['validators'][number]>[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
-    const [accountOk, error, account] = await getAccountByAddress(address)
+    const [accountOk, error, account] = await getValidatorByAddress(address)
     if (!accountOk)
       return [false, JSON.stringify({ error, address }), undefined]
 

@@ -53,7 +53,7 @@ defineProps<{ validators: FetchedValidator[] }>()
       <Copyable :content="validator.address" :style="{ 'view-transition-name': `address-${validator.id}` }" />
 
       <span font-semibold text="right neutral-700 f-xs">
-        {{ nimFormatter.format(validator.balance) }}
+        {{ nimFormatter.format(Math.max(0, validator.balance / 1e5)) }}
       </span>
 
       <span font-semibold text="right neutral-700/80 f-xs">
@@ -61,7 +61,7 @@ defineProps<{ validators: FetchedValidator[] }>()
       </span>
 
       <span font-semibold text="right neutral-700 f-xs">
-        {{ validator.stakers }}
+        {{ Math.max(0, validator.stakers) }}
       </span>
 
       <ScorePie

@@ -138,7 +138,6 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
 
       if (activity.length === 0) {
         // Gracefully handle the case where the validator has no activity equal or lower than the requested next epoch
-        consola.warn(`Validator ${validator.address} has no activity for epoch ${epochNumber + 1} or earlier`)
         activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, epochNumber: -1 })
       }
 
@@ -162,8 +161,16 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
       } satisfies FetchedValidator
     })
 
-    // TODO Remove this when the issue is fixed. See comment above
-    const sorted = validators.sort((a, b) => a.score.total! < b.score.total! ? 1 : -1)
+    // Drizzle’s current relational API does not apply orderBy specified inside a nested with block to the outer query.
+    // https://github.com/drizzle-team/drizzle-orm/issues/696?utm_source=chatgpt.com
+
+    const sorted = validators.sort((a, b) => {
+      const totalA = a.score.total ?? -Infinity
+      const totalB = b.score.total ?? -Infinity
+      if (totalA !== totalB)
+        return totalB - totalA // descending by score.total
+      return b.balance - a.balance // tie-breaker: descending by activity.balance
+    })
 
     return [true, undefined, sorted]
   }
