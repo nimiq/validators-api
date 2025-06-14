@@ -6,16 +6,89 @@ import { consola } from 'consola'
 import { importValidators } from '../server/utils/json-files'
 import { validatorsSchema } from '../server/utils/schemas'
 
+interface ValidationErrorDetails {
+  validatorIndex: number
+  field: string
+  value: any
+  message: string
+  path: (string | number)[]
+}
+
+function formatValidationErrors(error: any): ValidationErrorDetails[] {
+  if (!error?.issues)
+    return []
+
+  return error.issues.map((issue: any) => {
+    const validatorIndex = (issue.path?.[0] ?? -1) as number
+    const field = issue.path?.slice(1).join('.') || 'root'
+
+    return {
+      validatorIndex,
+      field,
+      value: issue.input,
+      message: issue.message || 'Unknown validation error',
+      path: issue.path || [],
+    }
+  })
+}
+
+function logValidationErrors(errors: ValidationErrorDetails[], source: string, network: string) {
+  consola.error(`\n❌ Validation failed for ${network} validators from ${source}:\n`)
+
+  // Group errors by validator index
+  const errorsByValidator = errors.reduce((acc, error) => {
+    if (!acc[error.validatorIndex]) {
+      acc[error.validatorIndex] = []
+    }
+    acc[error.validatorIndex]!.push(error)
+    return acc
+  }, {} as Record<number, ValidationErrorDetails[]>)
+
+  Object.entries(errorsByValidator).forEach(([index, validatorErrors]) => {
+    consola.error(`🔴 Validator #${index}:`)
+    validatorErrors.forEach((error) => {
+      const valueStr = error.value !== undefined
+        ? `"${String(error.value).substring(0, 100)}${String(error.value).length > 100 ? '...' : ''}"`
+        : 'undefined'
+
+      consola.error(`   └─ ${error.field}: ${error.message}`)
+      if (error.value !== undefined) {
+        consola.error(`      Current value: ${valueStr}`)
+      }
+    })
+    consola.error('') // Empty line between validators
+  })
+
+  consola.info(`\n💡 Tips for fixing these errors:`)
+
+  const uniqueFields = [...new Set(errors.map(e => e.field))]
+  if (uniqueFields.includes('address')) {
+    consola.info(`   • Nimiq addresses should follow format: "NQ## #### #### #### #### #### #### #### ####"`)
+  }
+  if (uniqueFields.includes('logo')) {
+    consola.info(`   • Logos should be data URLs starting with "data:image/png,", "data:image/svg+xml," or "data:image/webp,"`)
+  }
+  if (uniqueFields.some(f => f.includes('contact'))) {
+    consola.info(`   • Social media handles should not include '@' symbol or should follow platform-specific format rules`)
+  }
+  if (uniqueFields.includes('website')) {
+    consola.info(`   • Websites must be valid URLs starting with http:// or https://`)
+  }
+}
+
 async function validateValidators(source: 'filesystem' | 'github', nimiqNetwork: string, gitBranch: string): Result<ValidatorJSON[]> {
   const [importOk, errorReading, validatorsData] = await importValidators(source, { nimiqNetwork, shouldStore: false, gitBranch })
   if (!importOk)
     return [false, errorReading, undefined]
 
-  const { success, data: validators, error } = validatorsSchema.safeParse(validatorsData)
-  if (!success || !validators || error)
-    return [false, `Invalid validators data: ${error || 'Unknown error'}`, undefined]
+  const result = validatorsSchema.safeParse(validatorsData)
+  if (!result.success) {
+    const errors = formatValidationErrors(result.error)
+    logValidationErrors(errors, source, nimiqNetwork)
+    return [false, `Found ${errors.length} validation error(s)`, undefined]
+  }
 
-  return [true, undefined, validators]
+  return [true, undefined, result.data]
 }
 
 // get flag from --source. should be either 'filesystem' or 'github'
@@ -37,11 +110,11 @@ if (!okMain) {
   consola.error(errorMain)
   process.exit(1)
 }
-consola.success(`The ${validatorsMain.length} validators for main-albatross are valid in ${source}!`)
+consola.success(`✅ All ${validatorsMain.length} validators for main-albatross are valid in ${source}!`)
 
 const [okTest, errorTest, validatorsTest] = await validateValidators(source, 'test-albatross', gitBranch)
 if (!okTest) {
   consola.error(errorTest)
   process.exit(1)
 }
-consola.success(`The ${validatorsTest.length} validators for test-albatross are valid in ${source}!`)
+consola.success(`✅ All ${validatorsTest.length} validators for test-albatross are valid in ${source}!`)

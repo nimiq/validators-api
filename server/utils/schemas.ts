@@ -30,7 +30,7 @@ export const validatorSchema = z.object({
 export const validatorsSchema = z.array(validatorSchema)
 export type ValidatorJSON = z.infer<typeof validatorSchema>
 
-function getDefaults<Schema extends z.AnyZodObject>(schema: Schema) {
+function getDefaults<Schema extends z.ZodObject<any>>(schema: Schema) {
   return Object.fromEntries(
     Object.entries(schema.shape).map(([key, value]) => {
       if (value instanceof z.ZodDefault)
