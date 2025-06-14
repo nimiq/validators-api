@@ -1,10 +1,9 @@
 import type { Result } from 'nimiq-validator-trustscore/types'
-import type { ValidatorJSON } from '../server/utils/schemas'
+import { validatorsSchema, type ValidatorJSON } from '../server/utils/schemas'
 import { execSync } from 'node:child_process'
 import process from 'node:process'
 import { consola } from 'consola'
 import { importValidators } from '../server/utils/json-files'
-import { validatorsSchema } from '../server/utils/schemas'
 
 interface ValidationErrorDetails {
   validatorIndex: number
