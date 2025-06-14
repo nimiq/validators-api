@@ -19,7 +19,7 @@ function formatLunaAsNim(lunaValue: number): string {
 // Filter and search state
 const showUnknown = useLocalStorage('show-unknown-validators', false)
 const globalFilter = ref('')
-const sorting = ref<SortingState>([])
+const sorting = ref<SortingState>([{ id: 'balance', desc: true }])
 
 // Filter validators based on unknown toggle
 const filteredValidators = computed(() =>
@@ -28,10 +28,10 @@ const filteredValidators = computed(() =>
 
 function getSortingIcon(sort?: SortDirection | false) {
   if (sort === 'asc')
-    return 'i-nimiq:triangle-up'
+    return 'i-nimiq:triangle-up scale-70'
   if (sort === 'desc')
-    return 'i-nimiq:triangle-down'
-  return ''
+    return 'i-nimiq:triangle-down scale-70'
+  return 'i-nimiq:chevron-top-down'
 }
 
 // Column definitions - simplified without complex cell renderers
@@ -57,7 +57,7 @@ const columns: ColumnDef<FetchedValidator>[] = [
     accessorKey: 'address',
     id: 'address',
     header: 'Address',
-    enableSorting: false,
+    enableSorting: true,
     filterFn: (row, id, value) => {
       const address = row.getValue(id) as string
       return address ? address.toLowerCase().includes(value.toLowerCase()) : false
@@ -98,7 +98,9 @@ const columns: ColumnDef<FetchedValidator>[] = [
 
 // Create the table instance
 const table = useVueTable({
-  data: filteredValidators,
+  get data() {
+    return filteredValidators.value
+  },
   columns,
   get state() {
     return {
@@ -136,9 +138,17 @@ async function clearSearch() {
   await nextTick()
 }
 
-// Computed for table rows with error handling
+// Debug function to handle column header clicks
+function handleHeaderClick(header: any) {
+  if (header.column.getCanSort()) {
+    header.column.toggleSorting()
+  }
+}
+
+// Computed for table rows with error handling - use sorted and filtered rows
 const tableRows = computed(() => {
   try {
+    // Get the final processed rows (filtered and sorted)
     return table.getRowModel().rows
   }
   catch (error) {
@@ -169,7 +179,7 @@ const filteredRowsCount = computed(() => {
       <!-- API and Trust Score links -->
       <div flex="~ items-center gap-32">
         <NuxtLink
-          :to="apiUrl" flex="~ items-center" target="_blank" nq-arrow
+          :to="apiUrl" class="flex items-center" target="_blank" nq-arrow
           un-text="f-xs neutral-700 hocus:neutral-800" transition-colors font-semibold
         >
           <div i-nimiq:code mr-8 />
@@ -177,7 +187,7 @@ const filteredRowsCount = computed(() => {
         </NuxtLink>
 
         <NuxtLink
-          to="https://www.nimiq.com/developers/validators/validator-trustscore" external flex="~ items-center"
+          to="https://www.nimiq.com/developers/validators/validator-trustscore" external class="flex items-center"
           target="_blank" nq-arrow un-text="f-xs neutral-700 hocus:neutral-800" font-semibold transition-colors
         >
           <div i-nimiq:verified mr-8 />
@@ -212,10 +222,15 @@ const filteredRowsCount = computed(() => {
       </label>
     </div>
 
-    <!-- Results count -->
-    <div v-if="globalFilter || !showUnknown" f-mb-sm text="f-xs neutral-600">
-      {{ filteredRowsCount }} of {{ validators.length }} validators
-      <span v-if="globalFilter">matching "{{ globalFilter }}"</span>
+    <!-- Results count and sorting status -->
+    <div v-if="globalFilter || !showUnknown || sorting.length > 0" f-mb-sm text="f-xs neutral-700" flex="~ items-center justify-between gap-16 wrap">
+      <span v-if="globalFilter || !showUnknown">
+        {{ filteredRowsCount }} of {{ validators.length }} validators
+        <span v-if="globalFilter">matching "{{ globalFilter }}"</span>
+      </span>
+      <span v-if="sorting.length > 0">
+        Sorted by: {{ sorting.map(s => `${s.id} (${s.desc ? 'desc' : 'asc'})`).join(', ') }}
+      </span>
     </div>
 
     <!-- Responsive table container -->
@@ -234,25 +249,42 @@ const filteredRowsCount = computed(() => {
         <thead>
           <tr>
             <th
-              v-for="header in table.getFlatHeaders()" :key="header.id" class="header-cell" :class="[
-                header.column.getCanSort() ? 'sortable' : '',
+              v-for="header in table.getFlatHeaders()" :key="header.id"
+              class="py-12 px-8 font-semibold text-11 text-neutral-700 border-none whitespace-nowrap rounded-4" :class="[
+                header.column.getCanSort() ? 'cursor-pointer select-none hover:text-neutral-800 hover:bg-neutral-50 active:bg-neutral-100' : '',
                 header.id === 'identicon' ? 'w-56' : '',
                 header.id === 'name' ? 'text-left' : '',
                 header.id === 'address' ? 'text-left' : '',
                 ['balance', 'fee', 'stakers', 'score'].includes(header.id) ? 'text-right' : '',
-              ]" @click="header.column.getCanSort() ? header.column.toggleSorting() : null"
+              ]"
+              @click="handleHeaderClick(header)"
             >
               <div v-if="header.id === 'balance'" flex="~ items-center justify-end gap-6">
                 <div class="i-nimiq:logos-nimiq" />
                 NIM
-                <div v-if="header.column.getCanSort()" :class="getSortingIcon(header.column.getIsSorted())" />
+                <div
+                  v-if="header.column.getCanSort()"
+                  :class="getSortingIcon(header.column.getIsSorted())"
+                  class="size-14 opacity-70 transition-all duration-200 flex-shrink-0"
+                  :style="{
+                    opacity: header.column.getIsSorted() ? '1' : '0.5',
+                    color: header.column.getIsSorted() ? 'var(--nq-neutral-700)' : 'var(--nq-neutral-500)',
+                  }"
+                />
               </div>
               <div
                 v-else-if="header.column.getCanSort()" flex="~ items-center gap-6"
                 :class="header.id === 'name' || header.id === 'address' ? 'justify-start' : 'justify-end'"
               >
                 {{ header.isPlaceholder ? null : header.column.columnDef.header }}
-                <div :class="getSortingIcon(header.column.getIsSorted())" />
+                <div
+                  :class="getSortingIcon(header.column.getIsSorted())"
+                  class="w-14 h-14 opacity-70 transition-all duration-200 flex-shrink-0"
+                  :style="{
+                    opacity: header.column.getIsSorted() ? '1' : '0.5',
+                    color: header.column.getIsSorted() ? 'rgb(var(--nq-blue))' : 'rgb(var(--nq-neutral-500))',
+                  }"
+                />
               </div>
               <div v-else>
                 {{ header.isPlaceholder ? null : header.column.columnDef.header }}
@@ -394,24 +426,6 @@ const filteredRowsCount = computed(() => {
 .col-score {
   width: auto;
   min-width: 80px;
-}
-
-.header-cell {
-  padding: 8px 0;
-  font-weight: 600;
-  font-size: 11px;
-  color: rgb(var(--nq-neutral-700));
-  border: none;
-  white-space: nowrap;
-}
-
-.header-cell.sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.header-cell.sortable:hover {
-  color: rgb(var(--nq-neutral-800));
 }
 
 .table-row {
