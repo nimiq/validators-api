@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import type { SortDirection, SortingState } from '@tanstack/vue-table'
+import type { ColumnDef, SortDirection, SortingState } from '@tanstack/vue-table'
 import type { FetchedValidator } from '~~/server/utils/types'
-import { getCoreRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
+import { getCoreRowModel, getFilteredRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
 
 // @unocss-include
 
 const { validators } = defineProps<{ validators: FetchedValidator[] }>()
 
-// toggle state
-const showUnknown = useLocalStorage('show-unknown-validators', false)
-const filteredValidators = computed(() => showUnknown.value ? validators : validators.filter(v => v.name !== 'Unknown validator'))
+// Helper function to convert Luna to NIM for display
+function formatLunaAsNim(lunaValue: number): string {
+  return new Intl.NumberFormat('en', {
+    notation: 'compact',
+    compactDisplay: 'short',
+    maximumFractionDigits: 1,
+  }).format(lunaValue / 1e5)
+}
 
-// sorting state
+// Filter and search state
+const showUnknown = useLocalStorage('show-unknown-validators', false)
+const globalFilter = ref('')
 const sorting = ref<SortingState>([])
+
+// Filter validators based on unknown toggle
+const filteredValidators = computed(() =>
+  showUnknown.value ? validators : validators.filter(v => v.name !== 'Unknown validator'),
+)
 
 function getSortingIcon(sort?: SortDirection | false) {
   if (sort === 'asc')
@@ -22,24 +34,92 @@ function getSortingIcon(sort?: SortDirection | false) {
   return ''
 }
 
-// create the table instance
+// Column definitions - simplified without complex cell renderers
+const columns: ColumnDef<FetchedValidator>[] = [
+  {
+    id: 'identicon',
+    header: '',
+    enableSorting: false,
+    enableGlobalFilter: false,
+    size: 56,
+  },
+  {
+    accessorKey: 'name',
+    id: 'name',
+    header: 'Name',
+    enableSorting: true,
+    filterFn: (row, id, value) => {
+      const name = row.getValue(id) as string
+      return name ? name.toLowerCase().includes(value.toLowerCase()) : false
+    },
+  },
+  {
+    accessorKey: 'address',
+    id: 'address',
+    header: 'Address',
+    enableSorting: false,
+    filterFn: (row, id, value) => {
+      const address = row.getValue(id) as string
+      return address ? address.toLowerCase().includes(value.toLowerCase()) : false
+    },
+  },
+  {
+    accessorKey: 'balance',
+    id: 'balance',
+    header: 'NIM',
+    enableSorting: true,
+    enableGlobalFilter: false,
+    sortingFn: (a, b) => (a.original.balance || 0) - (b.original.balance || 0),
+  },
+  {
+    accessorKey: 'fee',
+    id: 'fee',
+    header: 'Fee',
+    enableSorting: true,
+    enableGlobalFilter: false,
+    sortingFn: (a, b) => (a.original.fee || 0) - (b.original.fee || 0),
+  },
+  {
+    accessorKey: 'stakers',
+    id: 'stakers',
+    header: 'Stakers',
+    enableSorting: true,
+    enableGlobalFilter: false,
+  },
+  {
+    accessorKey: 'score',
+    id: 'score',
+    header: 'Score',
+    enableSorting: true,
+    enableGlobalFilter: false,
+    sortingFn: (a, b) => (a.original.score?.total || 0) - (b.original.score?.total || 0),
+  },
+]
+
+// Create the table instance
 const table = useVueTable({
   data: filteredValidators,
-  columns: [
-    { accessorKey: 'name', id: 'name' },
-    { accessorKey: 'address', id: 'address' },
-    { accessorKey: 'balance', id: 'balance', enableSorting: true },
-    { accessorKey: 'dominanceRatio', id: 'dominance', enableSorting: true },
-    { accessorKey: 'fee', id: 'fee', enableSorting: true },
-    { accessorKey: 'stakers', id: 'stakers', enableSorting: true },
-    { accessorKey: 'score', id: 'score', enableSorting: true },
-  ],
-  state: { sorting: sorting.value },
+  columns,
+  get state() {
+    return {
+      sorting: sorting.value,
+      globalFilter: globalFilter.value,
+    }
+  },
   onSortingChange: (updater) => {
     sorting.value = typeof updater === 'function' ? updater(sorting.value) : updater
   },
+  onGlobalFilterChange: (updater) => {
+    globalFilter.value = typeof updater === 'function' ? updater(globalFilter.value) : updater
+  },
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  globalFilterFn: (row, columnId, filterValue) => {
+    const searchValue = filterValue.toLowerCase()
+    return row.original.name.toLowerCase().includes(searchValue)
+      || row.original.address.toLowerCase().includes(searchValue)
+  },
 })
 
 const apiUrl = computed(() => {
@@ -48,23 +128,83 @@ const apiUrl = computed(() => {
     base += '?only-known=false'
   return base
 })
+
+// Clear search with proper state management
+async function clearSearch() {
+  globalFilter.value = ''
+  // Wait for next tick to ensure DOM updates are complete
+  await nextTick()
+}
+
+// Computed for table rows with error handling
+const tableRows = computed(() => {
+  try {
+    return table.getRowModel().rows
+  }
+  catch (error) {
+    console.warn('Error getting table rows:', error)
+    return []
+  }
+})
+
+// Computed for filtered rows count with error handling
+const filteredRowsCount = computed(() => {
+  try {
+    return table.getFilteredRowModel().rows.length
+  }
+  catch (error) {
+    console.warn('Error getting filtered rows count:', error)
+    return 0
+  }
+})
 </script>
 
 <template>
-  <div of-x-auto mx--32 px-32>
-    <!-- filter toggle -->
-    <div shadow bg-neutral-0 f-px-md f-py-sm flex="~ items-center gap-32" f-mb-lg f-text-xs outline="~ 1.5 offset--1.5 neutral-200" rounded-8>
-      <NuxtLink :to="apiUrl" flex="~ items-center" target="_blank" nq-arrow un-text="f-xs neutral-700  hocus:neutral-800" transition-colors font-semibold>
-        <div i-nimiq:code mr-8 />
-        API
-      </NuxtLink>
+  <div>
+    <!-- Controls section -->
+    <div
+      shadow bg-neutral-0 f-px-md f-py-sm flex="~ items-center gap-32 wrap" f-mb-lg f-text-xs
+      outline="~ 1.5 offset--1.5 neutral-200" rounded-8
+    >
+      <!-- API and Trust Score links -->
+      <div flex="~ items-center gap-32">
+        <NuxtLink
+          :to="apiUrl" flex="~ items-center" target="_blank" nq-arrow
+          un-text="f-xs neutral-700 hocus:neutral-800" transition-colors font-semibold
+        >
+          <div i-nimiq:code mr-8 />
+          API
+        </NuxtLink>
 
-      <NuxtLink to="https://www.nimiq.com/developers/validators/validator-trustscore" external flex="~ items-center" target="_blank" nq-arrow un-text="f-xs neutral-700 hocus:neutral-800" font-semibold transition-colors>
-        <div i-nimiq:verified mr-8 />
-        Trust Score
-      </NuxtLink>
+        <NuxtLink
+          to="https://www.nimiq.com/developers/validators/validator-trustscore" external flex="~ items-center"
+          target="_blank" nq-arrow un-text="f-xs neutral-700 hocus:neutral-800" font-semibold transition-colors
+        >
+          <div i-nimiq:verified mr-8 />
+          Trust Score
+        </NuxtLink>
+      </div>
 
-      <label flex="~ items-center gap-8" w-max ml-auto>
+      <!-- Search -->
+      <div flex="~ items-center gap-8" flex-1 min-w-200>
+        <div relative flex-1>
+          <input v-model="globalFilter" type="text" placeholder="Search validators..." nq-input-box>
+          <button
+            v-if="globalFilter"
+            class="absolute right-8 top-50% transform -translate-y-50% text-neutral-500 hover:text-neutral-700 transition-colors"
+            type="button" @click="clearSearch"
+          >
+            <div i-nimiq:cross text-12 />
+          </button>
+          <div
+            v-else i-nimiq:magnifying-glass absolute right-8 top="50%" transform="-translate-y-50%" text-neutral-400
+            text-12
+          />
+        </div>
+      </div>
+
+      <!-- Show unknown toggle -->
+      <label flex="~ items-center gap-8" w-max>
         <span nq-label text="11 neutral-700/70" font-semibold select-none>
           All validators
         </span>
@@ -72,112 +212,292 @@ const apiUrl = computed(() => {
       </label>
     </div>
 
-    <table min-w-full border-collapse>
-      <colgroup>
-        <col w-56>
-        <col w-max>
-        <col w-auto>
-        <col w-max>
-        <col w-max>
-        <col w-max>
-        <col w-max>
-      </colgroup>
+    <!-- Results count -->
+    <div v-if="globalFilter || !showUnknown" f-mb-sm text="f-xs neutral-600">
+      {{ filteredRowsCount }} of {{ validators.length }} validators
+      <span v-if="globalFilter">matching "{{ globalFilter }}"</span>
+    </div>
 
-      <thead>
-        <tr>
-          <th />
+    <!-- Responsive table container -->
+    <div class="table-container">
+      <table class="validators-table" min-w-full border-collapse>
+        <colgroup>
+          <col class="col-identicon">
+          <col class="col-name">
+          <col class="col-address">
+          <col class="col-balance">
+          <col class="col-fee">
+          <col class="col-stakers">
+          <col class="col-score">
+        </colgroup>
 
-          <!-- Name (no sort) -->
-          <th nq-label text="11 neutral-700 left" py-2>
-            Name
-          </th>
+        <thead>
+          <tr>
+            <th
+              v-for="header in table.getFlatHeaders()" :key="header.id" class="header-cell" :class="[
+                header.column.getCanSort() ? 'sortable' : '',
+                header.id === 'identicon' ? 'w-56' : '',
+                header.id === 'name' ? 'text-left' : '',
+                header.id === 'address' ? 'text-left' : '',
+                ['balance', 'fee', 'stakers', 'score'].includes(header.id) ? 'text-right' : '',
+              ]" @click="header.column.getCanSort() ? header.column.toggleSorting() : null"
+            >
+              <div v-if="header.id === 'balance'" flex="~ items-center justify-end gap-6">
+                <div class="i-nimiq:logos-nimiq" />
+                NIM
+                <div v-if="header.column.getCanSort()" :class="getSortingIcon(header.column.getIsSorted())" />
+              </div>
+              <div
+                v-else-if="header.column.getCanSort()" flex="~ items-center gap-6"
+                :class="header.id === 'name' || header.id === 'address' ? 'justify-start' : 'justify-end'"
+              >
+                {{ header.isPlaceholder ? null : header.column.columnDef.header }}
+                <div :class="getSortingIcon(header.column.getIsSorted())" />
+              </div>
+              <div v-else>
+                {{ header.isPlaceholder ? null : header.column.columnDef.header }}
+              </div>
+            </th>
+          </tr>
+        </thead>
 
-          <!-- Address (no sort) -->
-          <th nq-label font-bold text="11 neutral-700 left" py-2>
-            Address
-          </th>
+        <tbody>
+          <tr
+            v-for="row in tableRows" :key="`validator-${row.original.id}-${globalFilter}`" class="table-row"
+            @click="navigateTo(`/validator/${row.original.address}`)"
+          >
+            <td class="cell-identicon">
+              <Identicon
+                v-bind="row.original" size-32 object-contain my-6
+                :style="{ 'view-transition-name': `logo-${row.original.id}-${globalFilter}` }"
+              />
+            </td>
 
-          <!-- Balance / NIM -->
-          <th nq-label text="11 neutral-700" py-2 flex="~ items-center justify-end gap-6" cursor-pointer @click="table.getColumn('balance')?.toggleSorting()">
-            <div class="i-nimiq:logos-nimiq" />
-            NIM
-            <div :class="getSortingIcon(table.getColumn('balance')?.getIsSorted())" />
-          </th>
+            <td class="cell-name">
+              <h2
+                text-14 op-90 lh-none font-light w-max
+                :style="{ 'view-transition-name': `h-${row.original.id}-${globalFilter}` }"
+              >
+                {{ row.original.name }}
+              </h2>
+              <div
+                v-if="row.original.isMaintainedByNimiq" i-nimiq:verified-filled text="13 green/70"
+                title="Maintained by Nimiq"
+              />
+            </td>
 
-          <!-- Fee -->
-          <th nq-label text="11 neutral-700 right" py-2 cursor-pointer @click="table.getColumn('fee')?.toggleSorting()">
-            Fee
-            <div :class="getSortingIcon(table.getColumn('fee')?.getIsSorted())" />
-          </th>
+            <td class="cell-address">
+              <Copyable
+                :content="row.original.address"
+                :style="{ 'view-transition-name': `address-${row.original.id}-${globalFilter}` }"
+              />
+            </td>
 
-          <!-- Stakers -->
-          <th nq-label text="11 neutral-700 right" py-2 cursor-pointer @click="table.getColumn('stakers')?.toggleSorting()">
-            Stakers
-            <div :class="getSortingIcon(table.getColumn('stakers')?.getIsSorted())" />
-          </th>
+            <td class="cell-balance">
+              <div flex="~ col justify-center" pr-12>
+                <span font-semibold text="neutral-700 f-xs" lh-none>
+                  {{ formatLunaAsNim(Math.max(0, row.original.balance)) }}
+                </span>
+                <span v-if="row.original.dominanceRatio" lh-none text="neutral-700/70 f-2xs" font-semibold>
+                  {{ percentageFormatter.format(Math.max(0, row.original.dominanceRatio)) }}
+                </span>
+              </div>
+            </td>
 
-          <!-- Score -->
-          <th nq-label text="11 neutral-700 center" py-2 cursor-pointer @click="table.getColumn('score')?.toggleSorting()">
-            Score
-            <div :class="getSortingIcon(table.getColumn('score')?.getIsSorted())" />
-          </th>
-        </tr>
-      </thead>
+            <td class="cell-fee">
+              <span font-semibold text="neutral-700/80 f-xs">
+                {{ row.original.fee ? percentageFormatter.format(row.original.fee) : 'N/A' }}
+              </span>
+            </td>
 
-      <tbody>
-        <tr
-          v-for="row in table.getRowModel().rows" :key="row.id"
-          border="t neutral-200" bg="even:neutral-50 hocus:neutral-200 hocus:even:neutral-300" transition-colors cursor-pointer align-middle
-          @click="navigateTo(`/validator/${row.original.address}`)"
+            <td class="cell-stakers">
+              <span font-semibold text="neutral-700 f-xs">
+                {{ Math.max(0, row.original.stakers) }}
+              </span>
+            </td>
+
+            <td class="cell-score">
+              <ScorePie
+                size-32 text-12 mx-auto :score="row.original.score.total!" :decimals="0"
+                :style="{ 'view-transition-name': `score-${row.original.id}-${globalFilter}` }"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty state -->
+    <div v-if="filteredRowsCount === 0" class="empty-state">
+      <div text="center neutral-500" py-32>
+        <div i-nimiq:magnifying-glass text-32 mb-16 />
+        <p font-semibold mb-8>
+          No validators found
+        </p>
+        <p text-sm>
+          <span v-if="globalFilter">Try adjusting your search terms</span>
+          <span v-else>Try enabling "All validators" to see more results</span>
+        </p>
+        <button
+          v-if="globalFilter"
+          class="mt-16 px-16 py-8 bg-blue-500 text-white rounded-6 hover:bg-blue-600 transition-colors text-sm font-semibold"
+          @click="clearSearch"
         >
-          <td>
-            <Identicon v-bind="row.original" size-32 object-contain my-6 :style="{ 'view-transition-name': `logo-${row.original.id}` }" />
-          </td>
-
-          <!-- Name + Verified -->
-          <td class="mr-24">
-            <h2 text-14 op-90 lh-none font-light w-max :style="{ 'view-transition-name': `h-${row.original.id}` }">
-              {{ row.original.name }}
-            </h2>
-            <div v-if="row.original.isMaintainedByNimiq" i-nimiq:verified-filled text="13 green/70" title="Maintained by Nimiq" />
-          </td>
-
-          <td>
-            <Copyable :content="row.original.address" :style="{ 'view-transition-name': `address-${row.original.id}` }" />
-          </td>
-
-          <!-- Balance -->
-          <td text-right>
-            <div flex="~ col justify-center" pr-12>
-              <span font-semibold text="neutral-700 f-xs " lh-none>
-                {{ nimFormatter.format(Math.max(0, row.original.balance / 1e5)) }}
-              </span>
-              <span v-if="row.original.dominanceRatio" lh-none text="neutral-700/70 f-2xs" font-semibold>
-                {{ percentageFormatter.format(Math.max(0, row.original.dominanceRatio)) }}
-              </span>
-            </div>
-          </td>
-
-          <!-- Fee -->
-          <td text-right>
-            <span font-semibold text="neutral-700/80 f-xs">
-              {{ row.original.fee ? percentageFormatter.format(row.original.fee) : 'N/A' }}
-            </span>
-          </td>
-
-          <!-- Stakers -->
-          <td text-right>
-            <span font-semibold text="neutral-700 f-xs">
-              {{ Math.max(0, row.original.stakers) }}
-            </span>
-          </td>
-
-          <!-- ScorePie -->
-          <td class="text-center">
-            <ScorePie size-32 text-12 mx-auto :score="row.original.score.total!" :decimals="0" :style="{ 'view-transition-name': `score-${row.original.id}` }" />
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          Clear search
+        </button>
+      </div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.table-container {
+  overflow-x: auto;
+  margin: 0 -32px;
+  padding: 0 32px;
+}
+
+.validators-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.col-identicon {
+  width: 56px;
+}
+
+.col-name {
+  width: auto;
+  min-width: 150px;
+}
+
+.col-address {
+  width: auto;
+  min-width: 200px;
+}
+
+.col-balance {
+  width: auto;
+  min-width: 120px;
+}
+
+.col-fee {
+  width: auto;
+  min-width: 80px;
+}
+
+.col-stakers {
+  width: auto;
+  min-width: 80px;
+}
+
+.col-score {
+  width: auto;
+  min-width: 80px;
+}
+
+.header-cell {
+  padding: 8px 0;
+  font-weight: 600;
+  font-size: 11px;
+  color: rgb(var(--nq-neutral-700));
+  border: none;
+  white-space: nowrap;
+}
+
+.header-cell.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.header-cell.sortable:hover {
+  color: rgb(var(--nq-neutral-800));
+}
+
+.table-row {
+  border-top: 1px solid rgb(var(--nq-neutral-200));
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.table-row:nth-child(even) {
+  background-color: rgb(var(--nq-neutral-50));
+}
+
+.table-row:hover {
+  background-color: rgb(var(--nq-neutral-200));
+}
+
+.table-row:nth-child(even):hover {
+  background-color: rgb(var(--nq-neutral-300));
+}
+
+.table-row td {
+  padding: 12px 0;
+  border: none;
+}
+
+.cell-name {
+  padding-right: 24px;
+}
+
+.cell-balance,
+.cell-fee,
+.cell-stakers {
+  text-align: right;
+}
+
+.cell-score {
+  text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .col-address {
+    display: none;
+  }
+
+  .cell-address {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+
+  .col-fee {
+    display: none;
+  }
+
+  .cell-fee {
+    display: none;
+
+    .col-stakers {
+      display: none;
+    }
+
+    .cell-stakers {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .validators-table {
+    font-size: 14px;
+  }
+
+  .header-cell {
+    font-size: 10px;
+  }
+
+  .cell-name h2 {
+    font-size: 12px;
+  }
+}
+</style>

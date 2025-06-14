@@ -28,6 +28,11 @@ const snapshotInThePast = computed(() => {
   const now = new Date()
   return snapshotTimestamp.getTime() < now.getTime()
 })
+
+const progressStyle = computed(() => ({
+  '--progress': `${currentEpochProgress.value}%`,
+  '--offset-x': `calc(var(--progress) - 100%)`,
+}))
 </script>
 
 <template>
@@ -41,26 +46,26 @@ const snapshotInThePast = computed(() => {
     </div>
   </DefineEpoch>
 
-  <div flex="~ items-center" w-full>
+  <div flex="~ items-center" w-full class="window-container">
     <Epoch
       :epoch-number="range.fromEpoch"
       :block-number="range.fromBlockNumber"
       :block-number-formatted="fromBlockFormatted"
       :timestamp="range.fromTimestamp"
     />
-    <div min-w-20 border="dashed 3 neutral-300" relative h-0 />
-    <div text-9 z-1 nq-label py-4 w-max px-8 rounded-6 bg-neutral-0 outline="1.5 ~ offset--1.5 neutral/10" text="neutral-700" text-center>
+    <div min-w-20 border="dashed 3 neutral-300" relative h-0 class="window-connector" />
+    <div text-9 z-1 nq-label py-4 w-max px-8 rounded-6 bg-neutral-0 outline="1.5 ~ offset--1.5 neutral/10" text="neutral-700" text-center class="window-label">
       Window<br>context
     </div>
-    <div min-w-20 border="dashed 3 neutral-300" relative h-0 />
+    <div min-w-20 border="dashed 3 neutral-300" relative h-0 class="window-connector" />
     <Epoch
       :epoch-number="range.toEpoch"
       :block-number="range.toBlockNumber"
       :block-number-formatted="toBlockFormatted"
       :timestamp="range.toTimestamp"
     />
-    <div flex-1 relative>
-      <ProgressRoot v-model="currentEpochProgress" data-allow-mismatch flex="~ col" of-hidden bg-neutral-300 h-12 w-full :style="`--progress: ${currentEpochProgress}%; --offset-x: calc(var(--progress) - 100%)`" outline="~ 1.5 neutral-0" :class="{ 'bg-red-400': snapshotInThePast }">
+    <div flex-1 relative class="progress-section">
+      <ProgressRoot v-model="currentEpochProgress" data-allow-mismatch flex="~ col" of-hidden bg-neutral-300 h-12 w-full :style="progressStyle" outline="~ 1.5 neutral-0" :class="{ 'bg-red-400': snapshotInThePast }">
         <ProgressIndicator v-if="!snapshotInThePast" class="progress-indicator" data-allow-mismatch />
       </ProgressRoot>
       <span v-if="!snapshotInThePast" data-allow-mismatch h-max absolute bottom--16 text="f-2xs neutral-800 center" inset-x-0 whitespace-nowrap :timestamp="range.snapshotTimestamp">
@@ -111,6 +116,39 @@ const snapshotInThePast = computed(() => {
       transparent
     );
     background-size: 30px 30px;
+  }
+}
+
+/* Responsive layout for mobile */
+@media (max-width: 768px) {
+  .window-container {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .window-connector {
+    display: none;
+  }
+
+  .window-label {
+    order: -1;
+    margin-bottom: 8px;
+  }
+
+  .progress-section {
+    order: 999;
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .window-container {
+    gap: 12px;
+  }
+
+  .progress-section {
+    margin-top: 12px;
   }
 }
 </style>
