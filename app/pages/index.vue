@@ -105,7 +105,7 @@ function useStats() {
           </Tooltip>
         </div>
 
-        <div font-semibold lh-none v-bind="$attrs" flex="~ items-center" :class="paddingXs && typeof value === 'string' && value.length > 6 ? 'f-text-xl' : 'f-text-2xl'" :style="`color: rgb(var(--nq-${color}))`" h-full>
+        <div font-semibold lh-none v-bind="$attrs" flex="~ items-center" :class="paddingXs && typeof value === 'string' && value.length > 6 ? 'f-text-xl' : 'f-text-2xl'" :style="`color: var(--nq-${color})`" h-full>
           <component :is="$slots.default" v-if="value === undefined" />
           <span v-else justify-self-start w-max padding-xs font-semibold>
             {{ value }}

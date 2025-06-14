@@ -23,8 +23,8 @@ const datum = computed(() => {
   if (!stakedRatio.value)
     return []
   return [
-    { color: `rgb(var(--nq-green))`, value: stakedRatio.value || 0, label: `${percentageFormatter.format(stakedRatio.value * 100)} staked`, annotation: { bottom: '40px', right: '-72px' } },
-    { color: `rgb(var(--nq-neutral-200))`, value: 1 - stakedRatio.value || 1, label: 'Circulating', annotation: { top: '40px', left: '-42px' } },
+    { color: `var(--colors-green)`, value: stakedRatio.value || 0, label: `${percentageFormatter.format(stakedRatio.value * 100)} staked`, annotation: { bottom: '40px', right: '-72px' } },
+    { color: `var(--colors-neutral-200)`, value: 1 - stakedRatio.value || 1, label: 'Circulating', annotation: { top: '40px', left: '-42px' } },
   ] satisfies (DonutDatum & { label: string, annotation: StyleValue })[]
 })
 

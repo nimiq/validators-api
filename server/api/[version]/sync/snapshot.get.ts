@@ -1,4 +1,4 @@
-import { initRpcClient } from 'nimiq-rpc-client-ts/config'
+import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { isDevelopment } from 'std-env'
 import { sendSyncFailureNotification } from '~~/server/utils/slack'
 

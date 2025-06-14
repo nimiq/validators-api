@@ -268,7 +268,7 @@ const filteredRowsCount = computed(() => {
                   class="size-14 opacity-70 transition-all duration-200 flex-shrink-0"
                   :style="{
                     opacity: header.column.getIsSorted() ? '1' : '0.5',
-                    color: header.column.getIsSorted() ? 'var(--nq-neutral-700)' : 'var(--nq-neutral-500)',
+                    color: header.column.getIsSorted() ? 'var(--colors-neutral-700)' : 'var(--colors-neutral-500)',
                   }"
                 />
               </div>
@@ -282,7 +282,7 @@ const filteredRowsCount = computed(() => {
                   class="w-14 h-14 opacity-70 transition-all duration-200 flex-shrink-0"
                   :style="{
                     opacity: header.column.getIsSorted() ? '1' : '0.5',
-                    color: header.column.getIsSorted() ? 'rgb(var(--nq-blue))' : 'rgb(var(--nq-neutral-500))',
+                    color: header.column.getIsSorted() ? 'var(--colors-blue)' : 'var(--colors-neutral-500)',
                   }"
                 />
               </div>
@@ -429,7 +429,7 @@ const filteredRowsCount = computed(() => {
 }
 
 .table-row {
-  border-top: 1px solid rgb(var(--nq-neutral-200));
+  border-top: 1px solid var(--colors-neutral-200);
   background-color: transparent;
   transition: background-color 0.2s ease;
   cursor: pointer;
@@ -437,15 +437,15 @@ const filteredRowsCount = computed(() => {
 }
 
 .table-row:nth-child(even) {
-  background-color: rgb(var(--nq-neutral-50));
+  background-color: var(--colors-neutral-50);
 }
 
 .table-row:hover {
-  background-color: rgb(var(--nq-neutral-200));
+  background-color: var(--colors-neutral-200);
 }
 
 .table-row:nth-child(even):hover {
-  background-color: rgb(var(--nq-neutral-300));
+  background-color: var(--colors-neutral-300);
 }
 
 .table-row td {

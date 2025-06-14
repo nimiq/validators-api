@@ -1,4 +1,4 @@
-import { initRpcClient } from 'nimiq-rpc-client-ts/config'
+import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { getBlockNumber } from 'nimiq-rpc-client-ts/http'
 import { getRange } from 'nimiq-validator-trustscore/range'
 

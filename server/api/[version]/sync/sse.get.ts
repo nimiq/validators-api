@@ -1,6 +1,6 @@
 import type { SyncStream } from '~~/server/utils/types'
 import { createConsola } from 'consola'
-import { initRpcClient } from 'nimiq-rpc-client-ts/config'
+import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { isDevelopment } from 'std-env'
 
 const consola = createConsola({ defaults: { tag: 'sync' } })

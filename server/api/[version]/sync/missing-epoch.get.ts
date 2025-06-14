@@ -1,4 +1,4 @@
-import { initRpcClient } from 'nimiq-rpc-client-ts/config'
+import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { fetchActivity } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { getRange } from '~~/packages/nimiq-validator-trustscore/src/range'
 import { storeActivities } from '~~/server/utils/activities'

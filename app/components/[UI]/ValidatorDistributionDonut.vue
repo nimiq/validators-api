@@ -17,7 +17,7 @@ const data = computed(() => {
   if (!validators)
     return []
   const validatorsList: (DonutDatum & FetchedValidator)[] = []
-  const smallValidators = { color: 'rgb(var(--nq-neutral-400))', value: 0, name: 'Others', logo: '', balance: 0 }
+  const smallValidators = { color: 'var(--colors-neutral-400)', value: 0, name: 'Others', logo: '', balance: 0 }
   for (const { dominanceRatio, accentColor, ...v } of validators) {
     const ratio = dominanceRatio ?? 0
     if (ratio < 0.02) {
