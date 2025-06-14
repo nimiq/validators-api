@@ -5,7 +5,7 @@ import { extname } from 'node:path'
 import { consola } from 'consola'
 import { $fetch } from 'ofetch'
 import { join } from 'pathe'
-import { validatorsSchema } from './schemas'
+import { validatorSchema } from './schemas'
 
 /**
  * Import validators from a folder containing .json files.
