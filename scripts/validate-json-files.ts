@@ -4,17 +4,11 @@ import { execSync } from 'node:child_process'
 import process from 'node:process'
 import { consola } from 'consola'
 import { importValidators } from '../server/utils/json-files'
-import { validatorsSchema } from '../server/utils/schemas'
 
 async function validateValidators(source: 'filesystem' | 'github', nimiqNetwork: string, gitBranch: string): Result<ValidatorJSON[]> {
-  const [importOk, errorReading, validatorsData] = await importValidators(source, { nimiqNetwork, shouldStore: false, gitBranch })
+  const [importOk, errorReading, validators] = await importValidators(source, { nimiqNetwork, shouldStore: false, gitBranch })
   if (!importOk)
     return [false, errorReading, undefined]
-
-  const { success, data: validators, error } = validatorsSchema.safeParse(validatorsData)
-  if (!success || !validators || error)
-    return [false, `Invalid validators data: ${error || 'Unknown error'}`, undefined]
-
   return [true, undefined, validators]
 }
 
@@ -25,6 +19,7 @@ if (source !== 'filesystem' && source !== 'github') {
   consola.error('Invalid source. Use either "filesystem" or "github".')
   process.exit(1)
 }
+consola.info(`Validating validators from ${source}...`)
 
 const gitBranch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
 if (!gitBranch) {
