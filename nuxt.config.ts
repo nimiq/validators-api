@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
-import { z } from 'zod'
+import * as z from 'zod'
 import { description, name, version } from './package.json'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
