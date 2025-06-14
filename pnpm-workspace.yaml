@@ -37,7 +37,7 @@ catalog:
   nimiq-css: ^1.0.0-beta.22
   nimiq-rpc-client-ts: 1.0.0-beta.18
   nuxt: ^3.17.2
-  nuxt-time: 1.0.3
+  nuxt-safe-runtime-config: ^0.0.3
   ofetch: ^1.4.1
   pathe: ^2.0.3
   reka-ui: ^2.2.1
@@ -49,6 +49,7 @@ catalog:
   unocss: ^66.1.1
   unocss-preset-onmax: 1.0.0-beta.19
   unocss-preset-scale-px: ^1.0.0-beta.19
+  valibot: ^1.1.0
   vite-plugin-top-level-await: ^1.5.0
   vite-plugin-wasm: ^3.4.1
   vitest: ^3.1.3

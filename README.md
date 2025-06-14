@@ -186,6 +186,21 @@ pnpm db:generate
 pnpm dev # or pnpm dev:local to use the local database
 ```
 
+## Slack Notifications
+
+The API supports Slack notifications for important events. To enable notifications, set the `NUXT_SLACK_WEBHOOK_URL` environment variable:
+
+```bash
+NUXT_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
+```
+
+**Notification Types:**
+
+- **Sync Failures** (Production only): Notifies when sync operations fail, with `@maxi` tagged and full context
+- **New Epochs** (Mainnet only): Notifies when a new epoch is successfully synced
+
+The system automatically detects the environment and only sends notifications in production, unless `NUXT_SLACK_WEBHOOK_URL_FORCE_DEV=true` is set for testing in development.
+
 ## Deployment
 
 The deployment is handled by the [`NuxtHub Action`](./.github/workflows/nuxt-hub.yml).

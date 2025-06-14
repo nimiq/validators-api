@@ -43,8 +43,8 @@
     "nimiq-rpc-client-ts": "catalog:",
     "nimiq-validator-trustscore": "workspace:*",
     "nuxt": "catalog:",
-    "nuxt-time": "catalog:",
     "reka-ui": "catalog:",
+    "valibot": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:",
     "zod": "catalog:"
@@ -69,6 +69,7 @@
     "eslint-plugin-format": "catalog:",
     "lint-staged": "catalog:",
     "nimiq-css": "catalog:",
+    "nuxt-safe-runtime-config": "catalog:",
     "ofetch": "catalog:",
     "pathe": "catalog:",
     "simple-git-hooks": "catalog:",

@@ -4,13 +4,14 @@ import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
+import * as z from 'zod'
 import { description, name, version } from './package.json'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
-  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-time'],
+  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-safe-runtime-config'],
 
   hub: {
     database: true,
@@ -20,10 +21,24 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     albatrossRpcNodeUrl: process.env.ALBATROSS_RPC_NODE_URL || '',
+    slackWebhookUrl: process.env.NUXT_SLACK_WEBHOOK_URL || '',
     public: {
       gitBranch: 'dev', // Modified in the build hook
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
     },
+  },
+
+  safeRuntimeConfig: {
+    $schema: z.object({
+      albatrossRpcNodeUrl: z.string().describe('Albatross RPC Node URL is required'),
+      slackWebhookUrl: z.string().describe('Slack webhook URL must be a valid string'),
+      public: z.object({
+        gitBranch: z.string().describe('Git branch is required'),
+        nimiqNetwork: z.string().describe('Nimiq network is required').refine(value => ['main-albatross', 'test-albatross'].includes(value), {
+          message: 'Nimiq network must be one of: main-albatross, test-albatross',
+        }),
+      }),
+    }),
   },
 
   imports: {
@@ -69,18 +84,12 @@ export default defineNuxtConfig({
     'build:before': async () => {
     },
     'ready': (nuxt) => {
-      // 1. Modify runtimeConfig
       const gitBranch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+      const nimiqNetwork = nuxt.options.runtimeConfig.public.nimiqNetwork
+
       nuxt.options.runtimeConfig.public.gitBranch = gitBranch
 
-      // 2. Log runtimeConfig
-      const nimiqNetwork = nuxt.options.runtimeConfig.public.nimiqNetwork
-      const validNimiqNetworks = ['main-albatross', 'test-albatross']
-      if (!validNimiqNetworks.includes(nimiqNetwork)) {
-        consola.warn(`Invalid nimiqNetwork: ${nimiqNetwork}. Please make sure it is one of: ${validNimiqNetworks.join(', ')}`)
-      }
       consola.info(`Nimiq network: \`${nimiqNetwork}\``)
-
       consola.info(`Git branch: \`${gitBranch}\``)
 
       const { projectUrl, env } = nuxt.options.runtimeConfig.hub
