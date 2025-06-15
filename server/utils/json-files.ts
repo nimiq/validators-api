@@ -114,7 +114,7 @@ export async function importValidators(source: 'filesystem' | 'github', options:
   for (const validator of data) {
     const { data, success, error } = validatorSchema.safeParse(validator)
     if (!success)
-      return [false, `Invalid validator ${validator.name}(${validator.address}) data: ${error || 'Unknown error'}. ${ { path, gitBranch, source } }`, undefined]
+      return [false, `Invalid validator ${validator.name}(${validator.address}) data: ${error || 'Unknown error'}. ${JSON.stringify({ path, gitBranch, source })}`, undefined]
     validators.push(data)
   }
 
