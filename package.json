@@ -69,6 +69,7 @@
     "eslint-plugin-format": "catalog:",
     "lint-staged": "catalog:",
     "nimiq-css": "catalog:",
+    "nuxt-safe-runtime-config": "catalog:",
     "ofetch": "catalog:",
     "pathe": "catalog:",
     "simple-git-hooks": "catalog:",
