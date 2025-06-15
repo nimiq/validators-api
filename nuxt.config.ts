@@ -4,14 +4,14 @@ import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
-import * as z from 'zod'
+import { z } from 'zod'
 import { description, name, version } from './package.json'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
-  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-safe-runtime-config'],
+  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-time', 'nuxt-safe-runtime-config'],
 
   hub: {
     database: true,
@@ -23,7 +23,7 @@ export default defineNuxtConfig({
     albatrossRpcNodeUrl: process.env.ALBATROSS_RPC_NODE_URL || '',
     slackWebhookUrl: process.env.NUXT_SLACK_WEBHOOK_URL || '',
     public: {
-      gitBranch: 'dev', // Modified in the build hook
+      gitBranch: execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(),
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
     },
   },
