@@ -2,7 +2,7 @@
   "address": "NQ96 X97C 94M1 6MV3 KJ0G JA5U 6VB4 6Y63 EUH4",
   "name": "Keyring Staking",
   "description": "Smooth Staking and Rewards Distribution Experience",
-  "website": "https://keyring.so/nimiq",
+  "website": "https://stake.keyring.so/nimiq",
   "payoutType": "restake",
   "fee": 0.05,
   "payoutSchedule": "Every 12 hours",
