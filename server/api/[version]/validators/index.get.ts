@@ -1,11 +1,11 @@
-import { initRpcClient } from 'nimiq-rpc-client-ts/config'
+import type { FetchValidatorsOptions } from '~~/server/utils/validators'
+import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { getRange } from '~~/packages/nimiq-validator-trustscore/src/range'
+import { cachedFetchValidators, fetchValidators } from '~~/server/utils/validators'
 
 export default defineEventHandler(async (event) => {
   const queryParams = await getValidatedQuery(event, mainQuerySchema.parse)
 
-  if (!useRuntimeConfig().albatrossRpcNodeUrl)
-    throw createError('No Albatross RPC Node URL')
   initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
   const { nimiqNetwork: network } = useRuntimeConfig().public
 

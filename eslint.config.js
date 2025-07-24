@@ -9,5 +9,9 @@ export default withNuxt(
     ignores: [
       'server/database/migrations/*',
     ],
+    rules: {
+      // Fix deprecated property in vue/object-property-newline rule
+      'vue/object-property-newline': ['error', { allowAllPropertiesOnSameLine: false }],
+    },
   }),
 )

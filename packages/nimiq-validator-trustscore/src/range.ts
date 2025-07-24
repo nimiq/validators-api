@@ -56,10 +56,10 @@ export async function getRange(options: GetRangeOptions = {}): Result<Range> {
     return [false, `Invalid epoch range: [${fromBlockNumber}/${fromEpoch}, ${toBlockNumber}/${toEpoch}]. The current head is ${head}/${headEpoch}.`, undefined]
 
   // Get block data to determine timestamps
-  const [fromBlockOk, errorFromBlock, fromBlock] = await getBlockByNumber(fromBlockNumber)
+  const [fromBlockOk, errorFromBlock, fromBlock] = await getBlockByNumber({ blockNumber: fromBlockNumber })
   if (!fromBlockOk)
     return [false, errorFromBlock, undefined]
-  const [toBlockOk, errorToBlock, toBlock] = await getBlockByNumber(toBlockNumber)
+  const [toBlockOk, errorToBlock, toBlock] = await getBlockByNumber({ blockNumber: toBlockNumber })
   if (!toBlockOk)
     return [false, errorToBlock, undefined]
 

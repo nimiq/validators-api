@@ -1,63 +1,59 @@
 packages:
   - packages/**
 
-patchedDependencies:
-  '@nimiq/utils': patches/@nimiq__utils.patch
-
 catalog:
-  '@antfu/eslint-config': ^4.13.0
-  '@antfu/ni': ^24.3.0
-  '@iconify-json/tabler': ^1.2.17
-  '@nimiq/core': ^2.1.0
-  '@nimiq/utils': ^0.12.3
-  '@nuxt/eslint': ^1.3.0
+  '@antfu/eslint-config': ^4.19.0
+  '@antfu/ni': ^25.0.0
+  '@iconify-json/tabler': ^1.2.20
+  '@nimiq/core': ^2.1.1
+  '@nimiq/utils': ^0.12.4
+  '@nuxt/eslint': ^1.7.1
   '@nuxt/image': ^1.10.0
-  '@nuxthub/core': ^0.8.27
+  '@nuxthub/core': ^0.9.0
   '@nuxtjs/color-mode': ^3.5.2
   '@tanstack/vue-table': ^8.21.3
-  '@types/node': ^22.15.17
-  '@unocss/eslint-config': ^66.1.1
-  '@unocss/nuxt': ^66.1.1
-  '@unocss/reset': ^66.1.1
-  '@unovis/ts': ^1.5.1
-  '@unovis/vue': ^1.5.1
-  '@vueuse/core': ^13.1.0
-  '@vueuse/nuxt': ^13.1.0
-  bumpp: ^10.1.0
+  '@types/node': ^24.1.0
+  '@unocss/eslint-config': ^66.3.3
+  '@unocss/nuxt': ^66.3.3
+  '@unocss/reset': ^66.3.3
+  '@unovis/ts': ^1.5.2
+  '@unovis/vue': ^1.5.2
+  '@vueuse/core': ^13.5.0
+  '@vueuse/nuxt': ^13.5.0
+  bumpp: ^10.2.0
   consola: ^3.4.2
   defu: ^6.1.4
-  dotenv: ^16.5.0
-  drizzle-kit: ^0.31.1
-  drizzle-orm: ^0.43.1
-  drizzle-zod: ^0.7.1
-  eslint: ^9.26.0
+  dotenv: ^16.6.1
+  drizzle-kit: ^0.31.4
+  drizzle-orm: ^0.44.3
+  drizzle-zod: ^0.8.2
+  eslint: ^9.31.0
   eslint-plugin-format: ^1.0.1
   identicons-esm: ^1.0.0-beta.5
-  lint-staged: ^15.5.2
-  nimiq-css: ^1.0.0-beta.22
-  nimiq-rpc-client-ts: 1.0.0-beta.18
-  nuxt: ^3.17.2
+  lint-staged: ^16.1.2
+  nimiq-css: ^1.0.0-beta.61
+  nimiq-rpc-client-ts: 1.0.0-beta.28
+  nuxt: ^4.0.1
   nuxt-safe-runtime-config: ^0.0.3
-  nuxt-time: 1.0.3
   ofetch: ^1.4.1
   pathe: ^2.0.3
-  reka-ui: ^2.2.1
+  reka-ui: ^2.4.0
   simple-git-hooks: ^2.13.0
   std-env: ^3.9.0
-  tsx: ^4.19.4
+  tsx: ^4.20.3
   typescript: ^5.8.3
-  unbuild: ^3.5.0
-  unocss: ^66.1.1
-  unocss-preset-onmax: 1.0.0-beta.19
-  unocss-preset-scale-px: ^1.0.0-beta.19
-  vite-plugin-top-level-await: ^1.5.0
-  vite-plugin-wasm: ^3.4.1
-  vitest: ^3.1.3
-  vue: ^3.5.13
+  unbuild: ^3.6.0
+  unocss: ^66.3.3
+  unocss-preset-onmax: 1.0.0-beta.37
+  valibot: ^1.1.0
+  vite-plugin-top-level-await: ^1.6.0
+  vite-plugin-wasm: ^3.5.0
+  vitest: ^3.2.4
+  vue: ^3.5.18
   vue-router: ^4.5.1
-  vue-tsc: ^2.2.10
-  wrangler: ^4.14.4
-  zod: ^3.24.4
+  vue-tsc: ^3.0.3
+  wrangler: ^4.25.1
+  zod: ^4.0.8
 
 onlyBuiltDependencies:
   - '@parcel/watcher'

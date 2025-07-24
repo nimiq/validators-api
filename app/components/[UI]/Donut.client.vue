@@ -46,7 +46,7 @@ export interface DonutDatum { color: string, value: number }
 
   --vis-donut-central-label-font-size: 12px;
   --vis-donut-central-label-font-weight: var(--nq-font-sans);
-  --vis-donut-central-label-text-color: rgb(var(--nq-neutral-800));
+  --vis-donut-central-label-text-color: var(--colors-neutral-800);
   --vis-donut-central-label-font-weight: 600;
 
   div:has(> [data-tooltip-container]) {

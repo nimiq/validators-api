@@ -10,8 +10,7 @@ import { description, name, version } from './package.json'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-
-  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-time', 'nuxt-safe-runtime-config'],
+  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-safe-runtime-config'],
 
   hub: {
     database: true,
@@ -21,6 +20,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     albatrossRpcNodeUrl: process.env.ALBATROSS_RPC_NODE_URL || '',
+    slackWebhookUrl: process.env.NUXT_SLACK_WEBHOOK_URL || '',
     public: {
       gitBranch: execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(),
       nimiqNetwork: process.env.NUXT_PUBLIC_NIMIQ_NETWORK || '',
@@ -29,10 +29,13 @@ export default defineNuxtConfig({
 
   safeRuntimeConfig: {
     $schema: z.object({
-      albatrossRpcNodeUrl: z.string().url(),
+      albatrossRpcNodeUrl: z.string().describe('Albatross RPC Node URL is required'),
+      slackWebhookUrl: z.string().describe('Slack webhook URL must be a valid string'),
       public: z.object({
-        gitBranch: z.string().optional(),
-        nimiqNetwork: z.enum(['main-albatross', 'test-albatross']).optional(),
+        gitBranch: z.string().describe('Git branch is required'),
+        nimiqNetwork: z.string().describe('Nimiq network is required').refine(value => ['main-albatross', 'test-albatross'].includes(value), {
+          message: 'Nimiq network must be one of: main-albatross, test-albatross',
+        }),
       }),
     }),
   },
@@ -77,8 +80,13 @@ export default defineNuxtConfig({
   ],
 
   hooks: {
-    ready: (nuxt) => {
-      const { gitBranch, nimiqNetwork } = nuxt.options.runtimeConfig.public
+    'build:before': async () => {
+    },
+    'ready': (nuxt) => {
+      const gitBranch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+      const nimiqNetwork = nuxt.options.runtimeConfig.public.nimiqNetwork
+
+      nuxt.options.runtimeConfig.public.gitBranch = gitBranch
 
       consola.info(`Nimiq network: \`${nimiqNetwork}\``)
       consola.info(`Git branch: \`${gitBranch}\``)
@@ -145,7 +153,4 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2025-03-21',
-  future: {
-    compatibilityVersion: 4,
-  },
 })

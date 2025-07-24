@@ -16,7 +16,9 @@ function getTitle({ missed, rewarded, epochNumber }: Partial<Activity>) {
   <ul grid="~ cols-50 gap-4">
     <DefineBatchState v-slot="{ missed, rewarded, epochNumber, title }">
       <div
-        :title="title || getTitle({ missed, rewarded, epochNumber })"
+        :title="title || getTitle({ missed,
+                                    rewarded,
+                                    epochNumber })"
         size-16 rounded-full outline="~ 1 offset--1 white/20"
         :class="{
           'bg-green-400': missed === 0 && rewarded >= 0,

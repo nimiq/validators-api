@@ -30,11 +30,11 @@ export const validatorSchema = z.object({
 export const validatorsSchema = z.array(validatorSchema)
 export type ValidatorJSON = z.infer<typeof validatorSchema>
 
-function getDefaults<Schema extends z.AnyZodObject>(schema: Schema) {
+function getDefaults<Schema extends z.ZodObject<any>>(schema: Schema) {
   return Object.fromEntries(
     Object.entries(schema.shape).map(([key, value]) => {
       if (value instanceof z.ZodDefault)
-        return [key, value._def.defaultValue()]
+        return [key, value.parse(undefined)]
       return [key, undefined]
     }),
   )
@@ -47,7 +47,7 @@ export const mainQuerySchema = z.object({
   'only-known': z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
   'with-identicons': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'force': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
-  'epoch-number': z.number().min(1).default(1).transform(Number),
+  'epoch-number': z.coerce.number().min(1).default(1),
 })
 
 export type MainQuerySchema = z.infer<typeof mainQuerySchema>

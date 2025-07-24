@@ -1,6 +1,6 @@
 import { posSupplyAt } from '@nimiq/utils/supply-calculator'
 import { not, sql } from 'drizzle-orm'
-import { initRpcClient } from 'nimiq-rpc-client-ts/config'
+import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { getLatestBlock } from 'nimiq-rpc-client-ts/http'
 
 export default defineCachedEventHandler(async () => {

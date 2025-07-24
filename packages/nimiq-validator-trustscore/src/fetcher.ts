@@ -21,7 +21,7 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
   const { maxRetries = 5, network = 'mainnet' } = options
   // Epochs start at 1, but election block is the first block of the epoch
   const electionBlock = electionBlockOf(epochIndex, { network })!
-  const [isBlockOk, errorBlockNumber, block] = await getBlockByNumber(electionBlock, { includeBody: false })
+  const [isBlockOk, errorBlockNumber, block] = await getBlockByNumber({ blockNumber: electionBlock, includeBody: false })
   if (!isBlockOk) {
     console.error(JSON.stringify({ epochIndex, errorBlockNumber, block }))
     return [false, errorBlockNumber, undefined]
@@ -58,7 +58,7 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
   const createPromise = async (index: number, retryCount = 0): Promise<ResultSync<void>> => {
     try {
       const batchIndex = firstBatchIndex + index
-      const [inherentsOk, errorBatch, inherents] = await getInherentsByBatchNumber(batchIndex)
+      const [inherentsOk, errorBatch, inherents] = await getInherentsByBatchNumber({ batchIndex })
       if (!inherentsOk) {
         const remainingBatches = BATCHES_PER_EPOCH - index
         throw new Error(`${JSON.stringify({ errorBatch, batchIndex, inherents, inherentsOk, remainingBatches })}`)
@@ -193,7 +193,7 @@ export async function fetchSnapshotEpoch(options: FetchSnapshotEpochOptions = {}
 
   // We retrieve the election block because we need the slots distribution
   // to be able to compute the dominance ratio via slots
-  const [electionBlockOk, errorElectionBlock, electionBlock] = await getBlockByNumber(electionBlockPreviousEpoch)
+  const [electionBlockOk, errorElectionBlock, electionBlock] = await getBlockByNumber({ blockNumber: electionBlockPreviousEpoch })
   if (!electionBlockOk)
     return [false, JSON.stringify({ errorElectionBlock, currentElectionBlock: electionBlock }), undefined]
   if (!('isElectionBlock' in electionBlock) || !('slots' in electionBlock))
@@ -201,7 +201,7 @@ export async function fetchSnapshotEpoch(options: FetchSnapshotEpochOptions = {}
   const slotsDistribution = Object.fromEntries((electionBlock as ElectionMacroBlock).slots.map(({ validator, numSlots }) => [validator, numSlots]))
 
   const result: ResultSync<SnapshotEpoch['validators'][number]>[] = await Promise.all(validatorsStakingContract.map(async ({ address }) => {
-    const [accountOk, error, account] = await getValidatorByAddress(address)
+    const [accountOk, error, account] = await getValidatorByAddress({ address })
     if (!accountOk)
       return [false, JSON.stringify({ error, address }), undefined]
 
@@ -235,7 +235,7 @@ export async function fetchSnapshotEpoch(options: FetchSnapshotEpochOptions = {}
     const batch = validators.slice(i, i + batchSize)
     await Promise.all(batch.map(async ({ address }) => {
       // const { data: stakers, error: errorStakers } = await getStakersByValidatorAddress(address)
-      const [stakersOk, errorStakers, stakers] = await getStakersByValidatorAddress(address)
+      const [stakersOk, errorStakers, stakers] = await getStakersByValidatorAddress({ address })
       if (!stakersOk)
         return [false, JSON.stringify({ error: errorStakers, address }), undefined]
       const stakersCount = stakers.length

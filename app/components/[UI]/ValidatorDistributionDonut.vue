@@ -4,11 +4,20 @@ import type { DonutDatum } from './Donut.client.vue'
 
 const { validators } = defineProps<{ validators: FetchedValidator[] }>()
 
+// Helper function to convert Luna to NIM for display
+function formatLunaAsNim(lunaValue: number): string {
+  return new Intl.NumberFormat('en', {
+    notation: 'compact',
+    compactDisplay: 'short',
+    maximumFractionDigits: 1,
+  }).format(lunaValue / 1e5)
+}
+
 const data = computed(() => {
   if (!validators)
     return []
   const validatorsList: (DonutDatum & FetchedValidator)[] = []
-  const smallValidators = { color: 'rgb(var(--nq-neutral-400))', value: 0, name: 'Others', logo: '', balance: 0 }
+  const smallValidators = { color: 'var(--colors-neutral-400)', value: 0, name: 'Others', logo: '', balance: 0 }
   for (const { dominanceRatio, accentColor, ...v } of validators) {
     const ratio = dominanceRatio ?? 0
     if (ratio < 0.02) {
@@ -24,7 +33,7 @@ const data = computed(() => {
 </script>
 
 <template>
-  <div flex="~ col items-center">
+  <div flex="~ col items-center justify-center" mx-auto>
     <Donut :data="data!" :size="140">
       <template #default="{ color, value, name, logo, balance }">
         <div :key="name" :style="{ '--c': color }" ring="1.5 $c" data-tooltip-container w-max rounded-8 bg-neutral-0 p-16 text-neutral font-semibold flex="~ items-center gap-16" shadow>
@@ -38,7 +47,7 @@ const data = computed(() => {
                 {{ percentageFormatter.format(value) }}
               </span>
               <p text="green f-xs" font-bold lh-none>
-                {{ nimFormatter.format(balance / 1e5) }} NIM
+                {{ formatLunaAsNim(balance) }} NIM
               </p>
             </div>
           </div>

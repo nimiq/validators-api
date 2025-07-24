@@ -1,5 +1,5 @@
 import { ValidationUtils } from '@nimiq/utils/validation-utils'
-import { initRpcClient } from 'nimiq-rpc-client-ts/config'
+import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { z } from 'zod'
 import { getRange } from '~~/packages/nimiq-validator-trustscore/src/range'
 

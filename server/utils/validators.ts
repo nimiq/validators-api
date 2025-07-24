@@ -2,7 +2,7 @@ import type { SQLWrapper } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import type { ElectedValidator, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
 import type { Activity, Score, Validator } from './drizzle'
-import type { ValidatorJSON } from './schemas'
+import type { MainQuerySchema, ValidatorJSON } from './schemas'
 import type { FetchedValidator, SnapshotEpochValidators } from './types'
 import { consola } from 'consola'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
@@ -84,10 +84,16 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
   return validatorId
 }
 
-export type FetchValidatorsOptions = Zod.infer<typeof mainQuerySchema> & { epochNumber: number }
+export type FetchValidatorsOptions = MainQuerySchema & { epochNumber: number }
 
 export async function fetchValidators(_event: H3Event, params: FetchValidatorsOptions): Result<FetchedValidator[]> {
   const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
+
+  // Add safety check for epochNumber
+  if (epochNumber === null || epochNumber === undefined || !Number.isInteger(epochNumber)) {
+    consola.error(`Invalid epochNumber: ${epochNumber}`)
+    return [false, `Invalid epochNumber: ${epochNumber}`, undefined]
+  }
 
   const filters: SQLWrapper[] = []
   if (payoutType)
@@ -161,7 +167,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
       } satisfies FetchedValidator
     })
 
-    // Drizzle’s current relational API does not apply orderBy specified inside a nested with block to the outer query.
+    // Drizzle's current relational API does not apply orderBy specified inside a nested with block to the outer query.
     // https://github.com/drizzle-team/drizzle-orm/issues/696?utm_source=chatgpt.com
 
     const sorted = validators.sort((a, b) => {
