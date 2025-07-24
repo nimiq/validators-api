@@ -4,7 +4,6 @@ import { execSync } from 'node:child_process'
 import process from 'node:process'
 import { consola } from 'consola'
 import { importValidators } from '../server/utils/json-files'
-import { validatorsSchema } from '../server/utils/schemas'
 
 interface ValidationErrorDetails {
   validatorIndex: number
@@ -105,8 +104,7 @@ let gitBranch: string = ''
 
 try {
   gitBranch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
-}
-catch {
+} catch (error) {
   // Fallback for GitHub Actions - git command might fail in detached HEAD state
   consola.warn('Unable to get current branch from git command, trying environment variables...')
 }
@@ -114,12 +112,12 @@ catch {
 // If git command failed or returned empty, try GitHub Actions environment variables
 if (!gitBranch) {
   // For pull requests, use the head ref (source branch)
-  gitBranch = process.env.GITHUB_HEAD_REF
-  // For pushes, use the ref name
-    || process.env.GITHUB_REF_NAME
-  // Last resort: use the commit SHA
-    || process.env.GITHUB_SHA
-    || ''
+  gitBranch = process.env.GITHUB_HEAD_REF || 
+              // For pushes, use the ref name  
+              process.env.GITHUB_REF_NAME ||
+              // Last resort: use the commit SHA
+              process.env.GITHUB_SHA ||
+              ''
 }
 
 if (!gitBranch) {
