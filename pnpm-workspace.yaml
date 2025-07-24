@@ -2,59 +2,58 @@ packages:
   - packages/**
 
 catalog:
-  '@antfu/eslint-config': ^4.14.1
+  '@antfu/eslint-config': ^4.19.0
   '@antfu/ni': ^25.0.0
-  '@iconify-json/tabler': ^1.2.19
-  '@nimiq/core': ^2.1.0
+  '@iconify-json/tabler': ^1.2.20
+  '@nimiq/core': ^2.1.1
   '@nimiq/utils': ^0.12.4
-  '@nuxt/eslint': ^1.4.1
+  '@nuxt/eslint': ^1.7.1
   '@nuxt/image': ^1.10.0
   '@nuxthub/core': ^0.9.0
   '@nuxtjs/color-mode': ^3.5.2
   '@tanstack/vue-table': ^8.21.3
-  '@types/node': ^24.0.1
-  '@unocss/eslint-config': ^66.2.0
-  '@unocss/nuxt': ^66.2.0
-  '@unocss/reset': ^66.2.0
+  '@types/node': ^24.1.0
+  '@unocss/eslint-config': ^66.3.3
+  '@unocss/nuxt': ^66.3.3
+  '@unocss/reset': ^66.3.3
   '@unovis/ts': ^1.5.2
   '@unovis/vue': ^1.5.2
-  '@vueuse/core': ^13.3.0
-  '@vueuse/nuxt': ^13.3.0
-  bumpp: ^10.1.1
+  '@vueuse/core': ^13.5.0
+  '@vueuse/nuxt': ^13.5.0
+  bumpp: ^10.2.0
   consola: ^3.4.2
   defu: ^6.1.4
-  dotenv: ^16.5.0
-  drizzle-kit: ^0.31.1
-  drizzle-orm: ^0.44.2
+  dotenv: ^16.6.1
+  drizzle-kit: ^0.31.4
+  drizzle-orm: ^0.44.3
   drizzle-zod: ^0.8.2
-  eslint: ^9.29.0
+  eslint: ^9.31.0
   eslint-plugin-format: ^1.0.1
   identicons-esm: ^1.0.0-beta.5
-  lint-staged: ^16.1.1
-  nimiq-css: ^1.0.0-beta.54
+  lint-staged: ^16.1.2
+  nimiq-css: ^1.0.0-beta.61
   nimiq-rpc-client-ts: 1.0.0-beta.28
-  nuxt: ^4.0.0-alpha.1
+  nuxt: ^4.0.1
   nuxt-safe-runtime-config: ^0.0.3
-  nuxt-time: 1.0.3
   ofetch: ^1.4.1
   pathe: ^2.0.3
-  reka-ui: ^2.3.1
+  reka-ui: ^2.4.0
   simple-git-hooks: ^2.13.0
   std-env: ^3.9.0
   tsx: ^4.20.3
   typescript: ^5.8.3
-  unbuild: ^3.5.0
-  unocss: ^66.2.0
+  unbuild: ^3.6.0
+  unocss: ^66.3.3
   unocss-preset-onmax: 1.0.0-beta.37
   valibot: ^1.1.0
-  vite-plugin-top-level-await: ^1.5.0
-  vite-plugin-wasm: ^3.4.1
-  vitest: ^3.2.3
-  vue: ^3.5.16
+  vite-plugin-top-level-await: ^1.6.0
+  vite-plugin-wasm: ^3.5.0
+  vitest: ^3.2.4
+  vue: ^3.5.18
   vue-router: ^4.5.1
-  vue-tsc: ^2.2.10
-  wrangler: ^4.20.0
-  zod: ^3.25.64
+  vue-tsc: ^3.0.3
+  wrangler: ^4.25.1
+  zod: ^4.0.8
 
 onlyBuiltDependencies:
   - '@parcel/watcher'

@@ -2,14 +2,14 @@ import type { SQLWrapper } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import type { ElectedValidator, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
 import type { Activity, Score, Validator } from './drizzle'
-import type { ValidatorJSON } from './schemas'
+import type { MainQuerySchema, ValidatorJSON } from './schemas'
 import type { FetchedValidator, SnapshotEpochValidators } from './types'
 import { consola } from 'consola'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { fetchSnapshotEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
-import { defaultValidatorJSON, type MainQuerySchema } from './schemas'
+import { defaultValidatorJSON } from './schemas'
 
 export const getStoredValidatorsId = () => useDrizzle().select({ id: tables.validators.id }).from(tables.validators).execute().then(r => r.map(v => v.id))
 export const getStoredValidatorsAddress = () => useDrizzle().select({ address: tables.validators.address }).from(tables.validators).execute().then(r => r.map(v => v.address))

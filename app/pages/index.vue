@@ -118,7 +118,8 @@ function useStats() {
       Loading...
     </div>
     <div v-else-if="statusFetch === 'error' || validatorsStatus === 'error'">
-      There was an error: {{ JSON.stringify({ statusFetchError: statusError, validatorsStatusError: validatorsError }) }}
+      There was an error: {{ JSON.stringify({ statusFetchError: statusError,
+                                              validatorsStatusError: validatorsError }) }}
     </div>
     <div v-else-if="statusFetch === 'success' && validatorsStatus === 'success' && validators" flex="~ col" pt-64 pb-128>
       <div
