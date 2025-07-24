@@ -9,7 +9,7 @@ import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { fetchSnapshotEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
-import { defaultValidatorJSON, type MainQuerySchema } from './schemas'
+import { defaultValidatorJSON } from './schemas'
 
 export const getStoredValidatorsId = () => useDrizzle().select({ id: tables.validators.id }).from(tables.validators).execute().then(r => r.map(v => v.id))
 export const getStoredValidatorsAddress = () => useDrizzle().select({ address: tables.validators.address }).from(tables.validators).execute().then(r => r.map(v => v.address))
