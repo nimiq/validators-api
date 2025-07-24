@@ -1,5 +1,5 @@
 import type { Result } from 'nimiq-validator-trustscore/types'
-import { validatorsSchema, type ValidatorJSON } from '../server/utils/schemas'
+import type { ValidatorJSON } from '../server/utils/schemas'
 import { execSync } from 'node:child_process'
 import process from 'node:process'
 import { consola } from 'consola'
