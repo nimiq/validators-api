@@ -7,8 +7,8 @@
   "fee": 0.00,
   "payoutType": "restake",
   "contact": {
-  "email": "nim@subimpact.net",
-  "telegram": "@subimpact",
-  "twitter": "@subimpact",
-             }
+      "email": "nim@subimpact.net",
+      "telegram": "@subimpact",
+      "twitter": "@subimpact"
+    }
 }
