@@ -1,0 +1,42 @@
+# .github/workflows/lint-fix.yml
+
+name: 'Lint and Fix Code'
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  lint-and-fix:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code from your repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          # We need a token to be able to push changes back to the repo
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 2: Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use the Node.js version your project uses
+          cache: 'npm'
+
+      # Step 3: Install project dependencies
+      - name: Install Dependencies
+        run: npm ci
+
+      # Step 4: Run the lint:fix script
+      - name: Run Lint and Fix
+        run: npm run lint:fix
+
+      # Step 5: Commit and push the changes if any files were fixed
+      - name: Commit and Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: apply automated linting fixes'
+          commit_user_name: 'github-actions[bot]'
+          commit_user_email: 'github-actions[bot]@users.noreply.github.com'
