@@ -45,7 +45,7 @@ export const defaultValidatorJSON = getDefaults(validatorSchema) as ValidatorJSO
 export const mainQuerySchema = z.object({
   'payout-type': z.nativeEnum(PayoutType).optional(),
   'only-known': z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
-  'with-identicons': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'with-identicons': z.literal('true').or(z.literal('false')).optional().transform(v => v === undefined ? undefined : v === 'true'),
   'force': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'epoch-number': z.coerce.number().min(1).default(1),
 })
