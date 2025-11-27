@@ -87,7 +87,7 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
 export type FetchValidatorsOptions = MainQuerySchema & { epochNumber: number }
 
 export async function fetchValidators(_event: H3Event, params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons = false, epochNumber } = params
+  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons, epochNumber } = params
 
   // Add safety check for epochNumber
   if (epochNumber === null || epochNumber === undefined || !Number.isInteger(epochNumber)) {
@@ -160,7 +160,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
         ...rest,
         score,
         hasDefaultLogo,
-        logo: !withIdenticons && hasDefaultLogo ? undefined : logo,
+        logo: withIdenticons === false && hasDefaultLogo ? undefined : logo,
         dominanceRatio: dominanceRatioViaBalance || dominanceRatioViaSlots,
         balance,
         stakers,
