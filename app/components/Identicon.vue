@@ -6,5 +6,5 @@ const logo = computed(() => _logo || createIdenticon(address, { format: 'image/s
 </script>
 
 <template>
-  <NuxtImg :src="logo" object-contain :alt="name" />
+  <img :src="logo" class="object-contain" :alt="name">
 </template>
