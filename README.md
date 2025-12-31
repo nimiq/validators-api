@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/nimiq/validators-api/actions/workflows/sync.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/sync.yml/badge.svg" /></a>
+<a href="https://github.com/nimiq/validators-api/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/ci.yml/badge.svg" /></a>
 </p>
 
 <h2 align="center">Dashboards</h2>
@@ -203,7 +203,18 @@ The system automatically detects the environment and only sends notifications in
 
 ## Deployment
 
-The deployment is handled by the [`NuxtHub Action`](./.github/workflows/nuxt-hub.yml).
+The deployment is handled via Wrangler CLI using the `wrangler.json` configuration file.
+
+**Deploy command:**
+```bash
+pnpm build && npx wrangler --cwd .output deploy [-e env]
+```
+
+Where `env` can be: `preview`, `testnet`, or `testnet-preview` (omit for mainnet production).
+
+**Required secrets:**
+- `ALBATROSS_RPC_NODE_URL`
+- `NUXT_SLACK_WEBHOOK_URL`
 
 There are 4 different environments:
 
@@ -214,6 +225,11 @@ There are 4 different environments:
 | `preview`    | `preview-mainnet`    | [Validators API Mainnet Preview](https://dev.validators-api-mainnet.pages.dev) | Push any commit to any branch |
 | `preview`    | `preview-testnet`    | [Validators API Testnet Preview](https://dev.validators-api-testnet.pages.dev) | Push any commit to any branch |
 
-Each Nuxt Hub environment has its own database, so effectively we have 4 different databases and there are 4 tasks in the [`sync.yml`](./.github/workflows/sync.yml) workflow that are responsible for syncing the data from the Nimiq network to the database.
+**Data Synchronization:**
+
+Each environment has its own D1 database, KV cache, and R2 blob storage. Data synchronization is handled automatically by Nitro scheduled tasks that run hourly via Cloudflare Workers cron triggers configured in `wrangler.json`:
+
+- `sync:epochs` - Fetches missing blockchain epochs and stores them in the database
+- `sync:snapshot` - Updates validator snapshots and calculates trust scores
 
 **Write operations to `main` are restricted**, only via PR.
