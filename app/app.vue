@@ -1,32 +1,6 @@
 <script setup lang="ts">
 const { data: status, status: statusRequest, refresh: refreshStatus, error } = await useFetch('/api/v1/status', { server: true, lazy: false })
 
-const debouncedRefresh = useDebounceFn(() => {
-  refreshStatus()
-  refreshNuxtData(['/api/v1/validators', '/api/v1/supply', '/api/v1/status'])
-}, 300)
-
-const { status: statusSync, data: dataSync, error: syncError, close: closeSync, open: syncData } = useEventSource('/api/v1/sync/sse', [], { immediate: false })
-
-// Check for sync success message and refresh document
-watch(() => dataSync.value, (newData) => {
-  if (newData) {
-    try {
-      const parsedData = JSON.parse(newData)
-      if (parsedData.kind === 'success' && parsedData.message === 'Sync process completed') {
-        debouncedRefresh()
-        closeSync()
-      }
-    }
-    catch (e) {
-      console.error('Failed to parse sync data:', e)
-    }
-  }
-}, { immediate: true })
-
-// Also maintain the original watch for general updates
-watch(() => [dataSync, syncError], debouncedRefresh)
-
 const colorMode = useColorMode()
 const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
 
@@ -110,7 +84,7 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
       <button i-nimiq:moon @click="() => toggleDark()" />
     </header>
     <main flex-1>
-      <div v-if="(!isSynced || error || syncError) && $route.path === '/'" bg="red/8" outline="1.5 ~ red-600" rounded-12 f-p-md text="14 red-1100" nq-prose-compact children:max-w-none f-mb-lg>
+      <div v-if="(!isSynced || error) && $route.path === '/'" bg="red/8" outline="1.5 ~ red-600" rounded-12 f-p-md text="14 red-1100" nq-prose-compact children:max-w-none f-mb-lg>
         <h1 flex="~ items-center gap-12" text-red-1100 f-text-lg>
           <div i-nimiq:alert op-70 text-0.9em m-0 />
           <template v-if="!isActivitySync">
@@ -124,7 +98,7 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
           The database is not fully synchronized with the blockchain. The API may not return the most recent data.
         </p>
 
-        <pre v-if="syncError || error" bg="red/6" text="f-2xs red-1100" outline="red/30" w-inherit>{{ JSON.stringify(syncError || error, null, 2) }}</pre>
+        <pre v-if="error" bg="red/6" text="f-2xs red-1100" outline="red/30" w-inherit>{{ JSON.stringify(error, null, 2) }}</pre>
 
         <template v-if="status">
           <h2 f-mt-md text-red-1100 f-text-md flex="~ items-center gap-12">
@@ -149,29 +123,9 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
 
         <hr f-my-sm border-red-600>
 
-        <div flex="~ items-baseline gap-8" mx-0 f-mt-md>
-          <button
-            mx-0 nq-pill nq-pill-red outline="~ 1.5 offset--1.5 red-1100/40"
-            :disabled="statusSync === 'OPEN'"
-            @click="() => syncData()"
-          >
-            <div :class="statusSync === 'OPEN' ? 'i-nimiq:spinner' : 'i-nimiq:restore'" mr-6 />
-            <span>
-              {{ statusSync === 'OPEN' ? 'Syncing...' : 'Sync now' }}
-            </span>
-          </button>
-
-          <button v-if="statusSync === 'OPEN'" mx-0 nq-pill-tertiary @click="() => closeSync()">
-            <div i-nimiq:cross mr-6 scale-70 />
-            Cancel
-          </button>
-
-          <div flex-1 flex="~ items-center justify-end">
-            <code w-max mr-0>SSE: {{ statusSync }}</code>
-          </div>
-        </div>
-
-        <pre v-if="dataSync" bg="red/6" lh-none text="f-2xs red-1100" outline="red/30" w-inherit max-h-80vh of-auto>{{ dataSync }}</pre>
+        <p f-mt-md text="f-sm red-1100/80">
+          <strong>Note:</strong> Data synchronization is handled automatically by scheduled tasks that run hourly. Please wait for the next sync cycle or contact an administrator if the issue persists.
+        </p>
       </div>
 
       <NuxtPage />

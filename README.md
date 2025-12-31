@@ -12,6 +12,10 @@
   An API for integrating validators and pools with the Nimiq Wallet and other apps, helping stakers choose where to stake.
 </p>
 
+<p align="center">
+<a href="https://github.com/nimiq/validators-api/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/ci.yml/badge.svg" /></a>
+</p>
+
 <h2 align="center">Dashboards</h2>
 
 <p align="center">
@@ -199,7 +203,15 @@ The system automatically detects the environment and only sends notifications in
 
 ## Deployment
 
-Deployment is handled by Cloudflare Workers CI (git push triggers build).
+Deployed via Wrangler CLI with `wrangler.json` config:
+
+```bash
+pnpm build && npx wrangler --cwd .output deploy [-e env]
+```
+
+Where `env`: `preview`, `testnet`, or `testnet-preview` (omit for mainnet production).
+
+**Required secrets:** `ALBATROSS_RPC_NODE_URL`, `NUXT_SLACK_WEBHOOK_URL`
 
 **Environments** (configured in `wrangler.json`):
 
@@ -210,6 +222,6 @@ Deployment is handled by Cloudflare Workers CI (git push triggers build).
 | `testnet`         | [Validators API Testnet](https://validators-api-testnet.pages.dev)             | Push to `main`     |
 | `testnet-preview` | [Validators API Testnet Preview](https://dev.validators-api-testnet.pages.dev) | Push to any branch |
 
-Each environment has its own D1 database. Sync runs hourly via Cloudflare cron triggers (`server/tasks/sync/`).
+Each environment has its own D1 database, KV cache, and R2 blob. Sync runs hourly via Cloudflare cron triggers (see `server/tasks/sync/`).
 
 **Write operations to `main` are restricted**, only via PR.
