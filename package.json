@@ -15,7 +15,7 @@
     "dev:packages": "nr -C packages -r dev",
     "build": "nr -r build && nuxt build",
     "generate": "nuxt generate",
-    "preview": "npx nuxthub preview",
+    "preview": "npx wrangler --cwd .output dev",
     "postinstall": "nuxt prepare",
     "prepublishOnly": "nr build",
     "typecheck": "nuxt typecheck && nr -r typecheck",
