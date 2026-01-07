@@ -33,7 +33,7 @@ export default defineNuxtConfig({
       slackWebhookUrl: z.string().describe('Slack webhook URL must be a valid string'),
       public: z.object({
         gitBranch: z.string().describe('Git branch is required'),
-        nimiqNetwork: z.string().describe('Nimiq network is required').refine(value => ['main-albatross', 'test-albatross'].includes(value), {
+        nimiqNetwork: z.string().describe('Nimiq network is required').refine(value => !value || ['main-albatross', 'test-albatross'].includes(value), {
           message: 'Nimiq network must be one of: main-albatross, test-albatross',
         }),
       }),
