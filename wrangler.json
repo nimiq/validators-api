@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "validators-api-mainnet",
+  "name": "validators-api-main",
   "main": "dist/server/index.mjs",
   "assets": { "directory": "dist/public" },
   "account_id": "cf9baad7d68d7ee717f3339731e81dfb",
@@ -24,7 +24,7 @@
       "r2_buckets": [{ "binding": "BLOB", "bucket_name": "validators-api-mainnet-preview" }]
     },
     "testnet": {
-      "name": "validators-api-testnet",
+      "name": "validators-api-test",
       "main": "dist/server/index.mjs",
       "assets": { "directory": "dist/public" },
       "compatibility_flags": ["nodejs_compat"],
