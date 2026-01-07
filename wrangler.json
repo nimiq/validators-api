@@ -13,6 +13,8 @@
   "env": {
     "preview": {
       "name": "validators-api-mainnet-preview",
+      "main": "dist/server/index.mjs",
+      "assets": { "directory": "dist/public" },
       "triggers": { "crons": ["0 * * * *"] },
       "vars": { "NUXT_PUBLIC_NIMIQ_NETWORK": "main-albatross" },
       "d1_databases": [{ "binding": "DB", "database_id": "dd9fa8b7-f5a1-48ab-b0af-d93d1092b89a", "database_name": "validators-api-mainnet-preview" }],
@@ -21,6 +23,8 @@
     },
     "testnet": {
       "name": "validators-api-testnet",
+      "main": "dist/server/index.mjs",
+      "assets": { "directory": "dist/public" },
       "triggers": { "crons": ["0 * * * *"] },
       "vars": { "NUXT_PUBLIC_NIMIQ_NETWORK": "test-albatross" },
       "d1_databases": [{ "binding": "DB", "database_id": "de14e353-5028-4e52-a383-a9cc200d960d", "database_name": "validators-api-testnet" }],
@@ -29,6 +33,8 @@
     },
     "testnet-preview": {
       "name": "validators-api-testnet-preview",
+      "main": "dist/server/index.mjs",
+      "assets": { "directory": "dist/public" },
       "triggers": { "crons": ["0 * * * *"] },
       "vars": { "NUXT_PUBLIC_NIMIQ_NETWORK": "test-albatross" },
       "d1_databases": [{ "binding": "DB", "database_id": "da6931b2-6d06-4598-911b-fba1fa19efd2", "database_name": "validators-api-testnet-preview" }],
