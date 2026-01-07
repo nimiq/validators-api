@@ -1,6 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "validators-api-mainnet",
+  "main": "dist/server/index.mjs",
+  "assets": { "directory": "dist/public" },
   "account_id": "cf9baad7d68d7ee717f3339731e81dfb",
   "compatibility_date": "2025-01-01",
   "triggers": { "crons": ["0 * * * *"] },
