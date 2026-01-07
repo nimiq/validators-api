@@ -37,9 +37,17 @@ export async function importValidatorsFromFiles(folderPath: string): Result<any[
  * Import validators from GitHub using the official GitHub REST API.
  */
 async function importValidatorsFromGitHub(path: string, { gitBranch }: Pick<ImportValidatorsFromFilesOptions, 'gitBranch'>): Result<any[]> {
-  const owner = 'nimiq'
-  const repo = 'validators-api'
-  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${gitBranch}`
+  // Default to main branch if not specified
+  const branch = gitBranch || 'main'
+
+  // Check if running in a fork PR (GitHub Actions sets GITHUB_HEAD_REPOSITORY)
+  const headRepo = process.env.GITHUB_HEAD_REPOSITORY // format: "owner/repo"
+  const baseRepo = process.env.GITHUB_REPOSITORY || 'nimiq/validators-api'
+
+  // Use head repo if it's different from base (fork PR scenario)
+  const [owner, repo] = (headRepo && headRepo !== baseRepo ? headRepo : baseRepo).split('/')
+
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`
 
   // 1. List directory contents
   let listing: Array<{
@@ -98,10 +106,6 @@ export async function importValidators(source: 'filesystem' | 'github', options:
 
   const path = `public/validators/${nimiqNetwork}`
 
-  if (source === 'github') {
-    if (!gitBranch)
-      return [false, 'Git branch is required when using GitHub as source', undefined]
-  }
   const [ok, readError, data] = source === 'filesystem'
     ? await importValidatorsFromFiles(path)
     : await importValidatorsFromGitHub(path, { gitBranch })
