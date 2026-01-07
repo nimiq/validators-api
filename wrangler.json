@@ -24,7 +24,7 @@
       "r2_buckets": [{ "binding": "BLOB", "bucket_name": "validators-api-mainnet-preview" }]
     },
     "testnet": {
-      "name": "validators-api-testnet",
+      "name": "validators-api",
       "main": "dist/server/index.mjs",
       "assets": { "directory": "dist/public" },
       "compatibility_flags": ["nodejs_compat"],
