@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/nimiq/validators-api/actions/workflows/sync.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/sync.yml/badge.svg" /></a>
+<a href="https://github.com/nimiq/validators-api/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/ci.yml/badge.svg" /></a>
 </p>
 
 <h2 align="center">Dashboards</h2>
@@ -203,17 +203,25 @@ The system automatically detects the environment and only sends notifications in
 
 ## Deployment
 
-The deployment is handled by the [`NuxtHub Action`](./.github/workflows/nuxt-hub.yml).
+Deployed via Wrangler CLI with `wrangler.json` config:
 
-There are 4 different environments:
+```bash
+pnpm build && npx wrangler --cwd .output deploy [-e env]
+```
 
-| Nuxt Hub Env | GitHub Env           | Dashboard URL                                                                  | Trigger                       |
-| ------------ | -------------------- | ------------------------------------------------------------------------------ | ----------------------------- |
-| `production` | `production-mainnet` | [Validators API Mainnet](https://validators-api-mainnet.pages.dev)             | Push to `main` branch         |
-| `production` | `production-testnet` | [Validators API Testnet](https://validators-api-testnet.pages.dev)             | Push to `main` branch         |
-| `preview`    | `preview-mainnet`    | [Validators API Mainnet Preview](https://dev.validators-api-mainnet.pages.dev) | Push any commit to any branch |
-| `preview`    | `preview-testnet`    | [Validators API Testnet Preview](https://dev.validators-api-testnet.pages.dev) | Push any commit to any branch |
+Where `env`: `preview`, `testnet`, or `testnet-preview` (omit for mainnet production).
 
-Each Nuxt Hub environment has its own database, so effectively we have 4 different databases and there are 4 tasks in the [`sync.yml`](./.github/workflows/sync.yml) workflow that are responsible for syncing the data from the Nimiq network to the database.
+**Required secrets:** `ALBATROSS_RPC_NODE_URL`, `NUXT_SLACK_WEBHOOK_URL`
+
+**Environments** (configured in `wrangler.json`):
+
+| Environment       | Dashboard URL                                                                  | Trigger            |
+| ----------------- | ------------------------------------------------------------------------------ | ------------------ |
+| `production`      | [Validators API Mainnet](https://validators-api-mainnet.pages.dev)             | Push to `main`     |
+| `preview`         | [Validators API Mainnet Preview](https://dev.validators-api-mainnet.pages.dev) | Push to any branch |
+| `testnet`         | [Validators API Testnet](https://validators-api-testnet.pages.dev)             | Push to `main`     |
+| `testnet-preview` | [Validators API Testnet Preview](https://dev.validators-api-testnet.pages.dev) | Push to any branch |
+
+Each environment has its own D1 database, KV cache, and R2 blob. Sync runs hourly via Cloudflare cron triggers (see `server/tasks/sync/`).
 
 **Write operations to `main` are restricted**, only via PR.

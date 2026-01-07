@@ -37,7 +37,7 @@ jobs:
           NUXT_PUBLIC_NIMIQ_NETWORK: ${{ vars.NUXT_PUBLIC_NIMIQ_NETWORK }}
 
       - name: Validate JSON files
-        run: pnpm run validate:json-files github
+        run: pnpm run validate:json-files
 
       - name: Test
         run: pnpm run test

@@ -139,8 +139,14 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    preset: 'cloudflare_module',
     experimental: {
       openAPI: true,
+      tasks: true,
+    },
+    scheduledTasks: {
+      // Hourly sync: fetch missing epochs and update validator snapshots
+      '0 * * * *': ['sync:epochs', 'sync:snapshot'],
     },
     openAPI: {
       meta: { title: name, description, version },
