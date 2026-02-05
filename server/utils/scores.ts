@@ -3,7 +3,7 @@ import type { NewScore } from './drizzle'
 import { and, count, desc, eq, gte, lte, or } from 'drizzle-orm'
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { computeScore } from 'nimiq-validator-trustscore/score'
-import { activity } from '../database/schema'
+import { activity } from '../db/schema'
 import { getStoredValidatorsId } from './validators'
 
 interface CalculateScoreResult {

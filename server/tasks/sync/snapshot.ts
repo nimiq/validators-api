@@ -1,4 +1,5 @@
 import { initRpcClient } from 'nimiq-rpc-client-ts/client'
+import { getRpcUrl } from '~~/server/utils/rpc'
 import { sendSyncFailureNotification } from '~~/server/utils/slack'
 
 export default defineTask({
@@ -10,7 +11,10 @@ export default defineTask({
     const config = useRuntimeConfig()
 
     try {
-      initRpcClient({ url: config.albatrossRpcNodeUrl })
+      const rpcUrl = getRpcUrl()
+      if (!rpcUrl)
+        throw new Error('No Albatross RPC Node URL')
+      initRpcClient({ url: rpcUrl })
 
       // Use import.meta.dev for consistent behavior with Cloudflare Workers runtime
       const source = import.meta.dev ? 'filesystem' : 'github'

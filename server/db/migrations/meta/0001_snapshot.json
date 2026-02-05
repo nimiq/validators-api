@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "dec040af-39af-4fec-bed6-8b25bdc2449b",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "881d12e0-2f45-4e86-b497-f87f7d463483",
+  "prevId": "dec040af-39af-4fec-bed6-8b25bdc2449b",
   "tables": {
     "activity": {
       "name": "activity",
@@ -63,6 +63,14 @@
           "notNull": true,
           "autoincrement": false,
           "default": -1
+        },
+        "stakers": {
+          "name": "stakers",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
         }
       },
       "indexes": {

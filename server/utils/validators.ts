@@ -5,7 +5,7 @@ import type { Activity, Score, Validator } from './drizzle'
 import type { MainQuerySchema, ValidatorJSON } from './schemas'
 import type { FetchedValidator, SnapshotEpochValidators } from './types'
 import { consola } from 'consola'
-import { and, eq, gte, lte, sql } from 'drizzle-orm'
+import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm'
 import { fetchSnapshotEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
@@ -102,58 +102,96 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
     filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
-    // Fixed subqueries to correctly reference the validator_id column
-    const maxScoreEpochSubquery = sql`(
-      SELECT MAX(s.epoch_number) 
-      FROM scores s 
-      WHERE s.validator_id = validators.id 
-      AND s.epoch_number <= ${epochNumber}
-    )`
+    const validatorsQuery = useDrizzle().select().from(tables.validators)
+    const dbValidators = filters.length > 0
+      ? await validatorsQuery.where(and(...filters)).execute()
+      : await validatorsQuery.execute()
 
-    const maxActivityEpochSubquery = sql`(
-      SELECT MAX(a.epoch_number) 
-      FROM activity a 
-      WHERE a.validator_id = validators.id 
-      AND a.epoch_number <= ${epochNumber + 1}
-    )`
+    const validatorIds = dbValidators.map(v => v.id)
+    if (validatorIds.length === 0)
+      return [true, undefined, []]
 
-    const dbValidators = await useDrizzle().query.validators.findMany({
-      where: and(...filters),
-      with: {
-        scores: {
-          where: eq(tables.scores.epochNumber, maxScoreEpochSubquery),
-          columns: { total: true, availability: true, dominance: true, reliability: true, epochNumber: true },
-          limit: 1,
-        },
-        activity: {
-          where: eq(tables.activity.epochNumber, maxActivityEpochSubquery),
-          columns: { dominanceRatioViaBalance: true, dominanceRatioViaSlots: true, balance: true, stakers: true, epochNumber: true },
-          limit: 1,
-        },
-      },
-    })
+    const maxScoreEpochs = useDrizzle()
+      .select({
+        validatorId: tables.scores.validatorId,
+        epochNumber: sql<number>`max(${tables.scores.epochNumber})`.as('epochNumber'),
+      })
+      .from(tables.scores)
+      .where(and(
+        lte(tables.scores.epochNumber, epochNumber),
+        inArray(tables.scores.validatorId, validatorIds),
+      ))
+      .groupBy(tables.scores.validatorId)
+      .as('max_scores')
+
+    const scoresRows = await useDrizzle()
+      .select({
+        validatorId: tables.scores.validatorId,
+        total: tables.scores.total,
+        availability: tables.scores.availability,
+        dominance: tables.scores.dominance,
+        reliability: tables.scores.reliability,
+        epochNumber: tables.scores.epochNumber,
+      })
+      .from(tables.scores)
+      .innerJoin(maxScoreEpochs, and(
+        eq(tables.scores.validatorId, maxScoreEpochs.validatorId),
+        eq(tables.scores.epochNumber, maxScoreEpochs.epochNumber),
+      ))
+      .execute()
+
+    const maxActivityEpochs = useDrizzle()
+      .select({
+        validatorId: tables.activity.validatorId,
+        epochNumber: sql<number>`max(${tables.activity.epochNumber})`.as('epochNumber'),
+      })
+      .from(tables.activity)
+      .where(and(
+        lte(tables.activity.epochNumber, epochNumber + 1),
+        inArray(tables.activity.validatorId, validatorIds),
+      ))
+      .groupBy(tables.activity.validatorId)
+      .as('max_activity')
+
+    const activityRows = await useDrizzle()
+      .select({
+        validatorId: tables.activity.validatorId,
+        dominanceRatioViaBalance: tables.activity.dominanceRatioViaBalance,
+        dominanceRatioViaSlots: tables.activity.dominanceRatioViaSlots,
+        balance: tables.activity.balance,
+        stakers: tables.activity.stakers,
+        epochNumber: tables.activity.epochNumber,
+      })
+      .from(tables.activity)
+      .innerJoin(maxActivityEpochs, and(
+        eq(tables.activity.validatorId, maxActivityEpochs.validatorId),
+        eq(tables.activity.epochNumber, maxActivityEpochs.epochNumber),
+      ))
+      .execute()
+
+    const scoresByValidatorId = new Map(scoresRows.map(row => [row.validatorId, row]))
+    const activityByValidatorId = new Map(activityRows.map(row => [row.validatorId, row]))
 
     const validators = dbValidators.map((validator) => {
-      const { scores, logo, contact, activity, hasDefaultLogo, ...rest } = validator
+      const { logo, contact, hasDefaultLogo, ...rest } = validator
+      const scoreRow = scoresByValidatorId.get(validator.id)
+      const activityRow = activityByValidatorId.get(validator.id)
 
-      if (scores.length === 0) {
+      if (!scoreRow) {
         // Gracefully handle the case where the validator has no score equal or lower than the requested epoch
         consola.warn(`Validator ${validator.address} has no score for epoch ${epochNumber} or earlier`)
-        scores.push({ availability: -1, dominance: -1, reliability: -1, total: -1, epochNumber: -1 })
       }
 
-      if (activity.length === 0) {
-        // Gracefully handle the case where the validator has no activity equal or lower than the requested next epoch
-        activity.push({ dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, epochNumber: -1 })
-      }
+      const scoreData = scoreRow || { availability: -1, dominance: -1, reliability: -1, total: -1, epochNumber: -1 }
+      const activityData = activityRow || { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, epochNumber: -1 }
 
-      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1, balance = -1, stakers = 0 } = activity[0]!
+      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1, balance = -1, stakers = 0 } = activityData
       const score: FetchedValidator['score'] = {
-        availability: scores[0]!.availability === -1 ? null : scores[0]!.availability,
-        reliability: scores[0]!.reliability === -1 ? null : scores[0]!.reliability,
-        dominance: scores[0]!.dominance === -1 ? null : scores[0]!.dominance,
-        total: !Object.values(scores[0]!).includes(-1) ? scores[0]!.total : null,
-        epochNumber: scores[0]!.epochNumber,
+        availability: scoreData.availability === -1 ? null : scoreData.availability,
+        reliability: scoreData.reliability === -1 ? null : scoreData.reliability,
+        dominance: scoreData.dominance === -1 ? null : scoreData.dominance,
+        total: !Object.values(scoreData).includes(-1) ? scoreData.total : null,
+        epochNumber: scoreData.epochNumber,
       }
 
       return {
@@ -199,25 +237,37 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
   const { address, range: { fromEpoch, toEpoch } } = params
 
   try {
-    const validator = await useDrizzle().query.validators.findFirst({
-      where: eq(tables.validators.address, address),
-      with: {
-        // Returns all the scores in the range to visualize
-        scores: {
-          where: ({ validatorId: id }) => and(eq(tables.scores.validatorId, id), gte(tables.scores.epochNumber, fromEpoch), lte(tables.scores.epochNumber, toEpoch)),
-        },
-        // Returns all the activity in the range to visualize
-        activity: {
-          where: ({ validatorId: id }) =>
-            and(eq(tables.activity.validatorId, id), gte(tables.activity.epochNumber, fromEpoch), lte(tables.activity.epochNumber, toEpoch)),
-        },
-      },
-    })
+    const validator = await useDrizzle()
+      .select()
+      .from(tables.validators)
+      .where(eq(tables.validators.address, address))
+      .get()
 
     if (!validator)
       return [false, `Validator with address ${address} not found`, undefined]
-    const score = validator?.scores?.sort((a, b) => a.epochNumber < b.epochNumber ? 1 : -1).at(0)
-    return [true, undefined, { ...validator, score }]
+
+    const scores = await useDrizzle()
+      .select()
+      .from(tables.scores)
+      .where(and(
+        eq(tables.scores.validatorId, validator.id),
+        gte(tables.scores.epochNumber, fromEpoch),
+        lte(tables.scores.epochNumber, toEpoch),
+      ))
+      .execute()
+
+    const activity = await useDrizzle()
+      .select()
+      .from(tables.activity)
+      .where(and(
+        eq(tables.activity.validatorId, validator.id),
+        gte(tables.activity.epochNumber, fromEpoch),
+        lte(tables.activity.epochNumber, toEpoch),
+      ))
+      .execute()
+
+    const score = scores.sort((a, b) => a.epochNumber < b.epochNumber ? 1 : -1).at(0)
+    return [true, undefined, { ...validator, scores, activity, score }]
   }
   catch (error) {
     consola.error(`Error fetching validator ${address}: ${error}`)

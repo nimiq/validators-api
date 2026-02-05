@@ -10,10 +10,10 @@ import { description, name, version } from './package.json'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-safe-runtime-config'],
+  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', '@nuxt/fonts', 'reka-ui/nuxt', 'nuxt-safe-runtime-config'],
 
   hub: {
-    database: true,
+    db: 'sqlite',
     blob: true,
     cache: true,
   },
@@ -137,6 +137,12 @@ export default defineNuxtConfig({
   colorMode: {
     classSuffix: '',
   },
+  fonts: {
+    families: [
+      { name: 'Mulish', weights: [400, 600, 700] },
+      { name: 'Fira Code', weights: [400] },
+    ],
+  },
 
   nitro: {
     preset: 'cloudflare_module',
@@ -145,8 +151,8 @@ export default defineNuxtConfig({
       tasks: true,
     },
     scheduledTasks: {
-      // Hourly sync: fetch missing epochs and update validator snapshots
-      '0 * * * *': ['sync:epochs', 'sync:snapshot'],
+      // 12-hour sync: fetch missing epochs and update validator snapshots
+      '0 */12 * * *': ['sync:epochs', 'sync:snapshot'],
     },
     openAPI: {
       meta: { title: name, description, version },

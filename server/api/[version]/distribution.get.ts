@@ -2,11 +2,13 @@ import { posSupplyAt } from '@nimiq/utils/supply-calculator'
 import { not, sql } from 'drizzle-orm'
 import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { getLatestBlock } from 'nimiq-rpc-client-ts/http'
+import { getRpcUrl } from '~~/server/utils/rpc'
 
 export default defineCachedEventHandler(async () => {
-  if (!useRuntimeConfig().albatrossRpcNodeUrl)
+  const rpcUrl = getRpcUrl()
+  if (!rpcUrl)
     throw createError('No Albatross RPC Node URL')
-  initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
+  initRpcClient({ url: rpcUrl })
   const db = useDrizzle()
 
   const result = await db.select({

@@ -54,6 +54,7 @@
     "@antfu/ni": "catalog:",
     "@iconify-json/tabler": "catalog:",
     "@nuxt/eslint": "catalog:",
+    "@nuxt/fonts": "catalog:",
     "@nuxt/image": "catalog:",
     "@nuxtjs/color-mode": "catalog:",
     "@types/node": "catalog:",

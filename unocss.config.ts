@@ -9,6 +9,7 @@ export default defineConfig({
       utilities: true,
       attributifyUtilities: true,
       typography: true,
+      fonts: false,
     }),
     presetIcons(),
   ],

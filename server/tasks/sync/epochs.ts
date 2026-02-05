@@ -2,6 +2,7 @@ import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { fetchActivity } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { getRange } from '~~/packages/nimiq-validator-trustscore/src/range'
 import { storeActivities } from '~~/server/utils/activities'
+import { getRpcUrl } from '~~/server/utils/rpc'
 import { sendNewEpochNotification, sendSyncFailureNotification } from '~~/server/utils/slack'
 
 // In production, limit epochs per run to avoid Cloudflare Workers 30s CPU timeout.
@@ -17,7 +18,10 @@ export default defineTask({
     const config = useRuntimeConfig()
 
     try {
-      initRpcClient({ url: config.albatrossRpcNodeUrl })
+      const rpcUrl = getRpcUrl()
+      if (!rpcUrl)
+        throw new Error('No Albatross RPC Node URL')
+      initRpcClient({ url: rpcUrl })
 
       const [rangeOk, rangeError, range] = await getRange({ network: config.public.nimiqNetwork })
       if (!rangeOk || !range) {

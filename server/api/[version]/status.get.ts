@@ -1,6 +1,7 @@
 import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { getBlockNumber } from 'nimiq-rpc-client-ts/http'
 import { getRange } from 'nimiq-validator-trustscore/range'
+import { getRpcUrl } from '~~/server/utils/rpc'
 
 /**
  * This endpoint returns the status of the API:
@@ -22,9 +23,10 @@ import { getRange } from 'nimiq-validator-trustscore/range'
  */
 
 export default defineCachedEventHandler(async () => {
-  if (!useRuntimeConfig().albatrossRpcNodeUrl)
+  const rpcUrl = getRpcUrl()
+  if (!rpcUrl)
     throw createError('No Albatross RPC Node URL')
-  initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
+  initRpcClient({ url: rpcUrl })
 
   const { nimiqNetwork: network } = useRuntimeConfig().public
 
