@@ -16,11 +16,11 @@ export default defineTask({
         throw new Error('No Albatross RPC Node URL')
       initRpcClient({ url: rpcUrl })
 
-      // Use import.meta.dev for consistent behavior with Cloudflare Workers runtime
-      const source = import.meta.dev ? 'filesystem' : 'github'
       const { nimiqNetwork, gitBranch } = config.public
 
-      const [importSuccess, errorImport, importData] = await importValidators(source, { nimiqNetwork, gitBranch })
+      const [importSuccess, errorImport, importData] = import.meta.dev
+        ? await importValidators('filesystem', { nimiqNetwork, gitBranch })
+        : await importValidatorsBundled(nimiqNetwork)
       if (!importSuccess || !importData) {
         const error = new Error(errorImport || 'Unable to import from GitHub')
         await sendSyncFailureNotification('snapshot', error)
