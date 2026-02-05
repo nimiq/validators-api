@@ -90,9 +90,6 @@ export default defineNuxtConfig({
 
       consola.info(`Nimiq network: \`${nimiqNetwork}\``)
       consola.info(`Git branch: \`${gitBranch}\``)
-
-      const { projectUrl, env } = nuxt.options.runtimeConfig.hub
-      consola.info(`Remote NuxtHub: \`${projectUrl || 'local'}@${env}\``)
     },
   },
 

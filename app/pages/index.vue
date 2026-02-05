@@ -37,7 +37,7 @@ const tooltips = {
 }
 
 function useStats() {
-  const network = useRuntimeConfig().public.nimiqNetwork as 'test-albatross' | 'main-albatross'
+  const network = useSafeRuntimeConfig().public.nimiqNetwork as 'test-albatross' | 'main-albatross'
 
   const averageScore = computed(() => {
     if (!validators?.value?.length)

@@ -15,7 +15,7 @@ export default defineTask({
     description: 'Sync all missing blockchain epochs to D1 database',
   },
   async run() {
-    const config = useRuntimeConfig()
+    const config = useSafeRuntimeConfig()
 
     try {
       const rpcUrl = getRpcUrl()

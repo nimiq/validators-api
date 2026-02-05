@@ -8,7 +8,7 @@ export default defineTask({
     description: 'Sync validator snapshot and calculate scores',
   },
   async run() {
-    const config = useRuntimeConfig()
+    const config = useSafeRuntimeConfig()
 
     try {
       const rpcUrl = getRpcUrl()

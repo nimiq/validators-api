@@ -33,7 +33,7 @@ export default defineCachedEventHandler(async () => {
   if (!latestBlockOk)
     throw createError(latestBlockError)
 
-  const network = useRuntimeConfig().public.nimiqNetwork as 'test-albatross' | 'main-albatross'
+  const network = useSafeRuntimeConfig().public.nimiqNetwork as 'test-albatross' | 'main-albatross'
   const circulating = posSupplyAt(latestBlock.timestamp, { network })
 
   const stakedRatio = staked / circulating

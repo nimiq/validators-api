@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const isValid = ValidationUtils.isValidAddress(address)
   if (!isValid)
     throw createError({ statusCode: 400, statusMessage: 'Invalid address format' })
-  const { nimiqNetwork: network } = useRuntimeConfig().public
+  const { nimiqNetwork: network } = useSafeRuntimeConfig().public
 
   const [rangeSuccess, errorRange, range] = await getRange({ network })
   if (!rangeSuccess || !range)

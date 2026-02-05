@@ -41,14 +41,14 @@ export async function sendSlackNotification(options: SlackNotificationOptions): 
     return
   }
 
-  const { slackWebhookUrl } = useRuntimeConfig()
+  const { slackWebhookUrl } = useSafeRuntimeConfig()
 
   if (!slackWebhookUrl) {
     consola.warn('NUXT_SLACK_WEBHOOK_URL not configured, skipping Slack notification')
     return
   }
 
-  const { nimiqNetwork, gitBranch } = useRuntimeConfig().public
+  const { nimiqNetwork, gitBranch } = useSafeRuntimeConfig().public
 
   // Prepare the message
   let messageText = options.message
@@ -124,7 +124,7 @@ export async function sendSyncFailureNotification(
   error: any,
   endpoint?: string,
 ): Promise<void> {
-  const { nimiqNetwork } = useRuntimeConfig().public
+  const { nimiqNetwork } = useSafeRuntimeConfig().public
 
   await sendSlackNotification({
     message: `🚨 Sync failure detected on ${nimiqNetwork}`,
@@ -157,7 +157,7 @@ export async function sendNewEpochNotification(
   epochNumber: number,
   totalSynced: number,
 ): Promise<void> {
-  const { nimiqNetwork } = useRuntimeConfig().public
+  const { nimiqNetwork } = useSafeRuntimeConfig().public
 
   // Only send for mainnet
   if (nimiqNetwork !== 'main-albatross') {

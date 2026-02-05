@@ -13,7 +13,7 @@ function normalizePath(value: string) {
 
 function extractNetworkFromPath(path: string) {
   const normalized = normalizePath(path)
-  const match = normalized.match(/\/public\/validators\/([^/]+)\/[^/]+\.json$/)
+  const match = normalized.match(/(?:^|\/)public\/validators\/([^/]+)\/[^/]+\.json$/)
   return match?.[1]
 }
 
@@ -30,7 +30,7 @@ export async function importValidatorsBundled(nimiqNetwork?: string, options: Im
       continue
 
     const network = extractNetworkFromPath(path)
-    if (network !== nimiqNetwork)
+    if (!network || network !== nimiqNetwork)
       continue
 
     const data = (mod as any)?.default ?? mod
@@ -43,6 +43,10 @@ export async function importValidatorsBundled(nimiqNetwork?: string, options: Im
 
   if (!shouldStore)
     return [true, undefined, validators]
+
+  if (validators.length === 0) {
+    return [false, `No bundled validators found for network: ${nimiqNetwork}`, undefined]
+  }
 
   const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true })))
   const failures = results.filter(r => r.status === 'rejected')

@@ -98,7 +98,7 @@ interface FetchMissingEpochsParams {
  * Fetches the activities of the epochs that have finished and are missing in the database.
  */
 export async function fetchMissingEpochs({ report, controller }: FetchMissingEpochsParams = {}): Result<number[]> {
-  const { nimiqNetwork: network } = useRuntimeConfig().public
+  const { nimiqNetwork: network } = useSafeRuntimeConfig().public
 
   // The range that we will consider
   const [rangeSuccess, errorRange, range] = await getRange({ network })
