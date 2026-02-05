@@ -10,7 +10,7 @@ const isActivitySync = computed(() => Boolean(status.value?.missingEpochs?.lengt
 const isScoreSync = computed(() => status.value?.missingScore === false)
 const isSynced = computed(() => isActivitySync.value && isScoreSync.value)
 
-const { gitBranch, nimiqNetwork } = useRuntimeConfig().public
+const { gitBranch, nimiqNetwork } = useSafeRuntimeConfig().public
 
 interface EnvItemType { branch: string, network: string, link: string }
 

@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   if (!rpcUrl)
     throw createError('No Albatross RPC Node URL')
   initRpcClient({ url: rpcUrl })
-  const { nimiqNetwork: network } = useRuntimeConfig().public
+  const { nimiqNetwork: network } = useSafeRuntimeConfig().public
 
   const [rangeSuccess, errorRange, range] = await getRange({ network })
   if (!rangeSuccess || !range)

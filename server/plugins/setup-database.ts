@@ -6,7 +6,7 @@ export default defineNitroPlugin(async () => {
 
   // Import validators on dev branch
   hubHooks.hookOnce('database:migrations:done', async () => {
-    const { nimiqNetwork, gitBranch } = useRuntimeConfig().public
+    const { nimiqNetwork, gitBranch } = useSafeRuntimeConfig().public
     if (gitBranch !== 'dev')
       return
 

@@ -28,7 +28,7 @@ export default defineCachedEventHandler(async () => {
     throw createError('No Albatross RPC Node URL')
   initRpcClient({ url: rpcUrl })
 
-  const { nimiqNetwork: network } = useRuntimeConfig().public
+  const { nimiqNetwork: network } = useSafeRuntimeConfig().public
 
   // We get a "window" whose size is determined by the range
   const [rangeSuccess, errorRange, range] = await getRange({ network })

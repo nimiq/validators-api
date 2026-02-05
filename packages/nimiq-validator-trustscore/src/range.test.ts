@@ -301,10 +301,12 @@ describe('get range with mock implementation', () => {
   })
 })
 
-describe('get range without mocking', () => {
-  const rpcUrl = env.ALBATROSS_RPC_NODE_URL
-  const network = env.NUXT_PUBLIC_NIMIQ_NETWORK
+const rpcUrl = env.ALBATROSS_RPC_NODE_URL
+const network = env.NUXT_PUBLIC_NIMIQ_NETWORK
+const hasRpcEnv = Boolean(rpcUrl && network)
+const describeIf = hasRpcEnv ? describe : describe.skip
 
+describeIf('get range without mocking', () => {
   it('env ok', () => {
     expect(rpcUrl).toBeDefined()
     expect(network).toBeDefined()

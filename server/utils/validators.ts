@@ -296,7 +296,7 @@ export const cachedFetchValidator = defineCachedFunction((_event: H3Event, param
  * Deleted validators are the ones that are not in the staking contract anymore, but are still in the database.
  */
 export async function categorizeValidatorsSnapshotEpoch(): Result<SnapshotEpochValidators> {
-  const { nimiqNetwork: network } = useRuntimeConfig().public
+  const { nimiqNetwork: network } = useSafeRuntimeConfig().public
   const [epochOk, error, epoch] = await fetchSnapshotEpoch({ network })
   if (!epochOk)
     return [false, error, undefined]
