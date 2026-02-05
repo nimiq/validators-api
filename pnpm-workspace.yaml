@@ -35,7 +35,7 @@ catalog:
   nimiq-css: ^1.0.0-beta.61
   nimiq-rpc-client-ts: 1.0.0-beta.28
   nuxt: ^4.0.1
-  nuxt-safe-runtime-config: ^0.0.3
+  nuxt-safe-runtime-config: ^0.0.17
   ofetch: ^1.4.1
   pathe: ^2.0.3
   reka-ui: ^2.4.0
