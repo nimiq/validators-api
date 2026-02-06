@@ -215,16 +215,18 @@ Where `env`: `preview`, `testnet`, or `testnet-preview` (omit for mainnet produc
 
 ### D1 Migrations
 
-When adding a new SQL migration under `server/db/migrations/`, apply it to the remote D1 database:
+When adding a new SQL migration under `server/db/migrations/`, apply it to the remote D1 database.
+
+For the `cron_runs` table:
 
 ```bash
-npx wrangler -c .output/server/wrangler.json d1 migrations apply validators-api-mainnet --remote
+pnpm db:apply:cron-runs:mainnet
 ```
 
 Testnet:
 
 ```bash
-npx wrangler -c .output/server/wrangler.json d1 migrations apply validators-api-testnet --remote
+pnpm db:apply:cron-runs:testnet
 ```
 
 **Environments** (configured in `wrangler.json`):

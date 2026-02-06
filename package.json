@@ -25,8 +25,8 @@
     "test": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:delete": "drizzle-kit drop",
-    "db:migrate:mainnet": "wrangler -c .output/server/wrangler.json d1 migrations apply validators-api-mainnet --remote",
-    "db:migrate:testnet": "wrangler -c .output/server/wrangler.json d1 migrations apply validators-api-testnet --remote",
+    "db:apply:cron-runs:mainnet": "wrangler d1 execute validators-api-mainnet --remote --yes --file server/db/migrations/0003_add_cron_runs.sql",
+    "db:apply:cron-runs:testnet": "wrangler d1 execute validators-api-testnet --remote --yes --file server/db/migrations/0003_add_cron_runs.sql",
     "release": "bumpp -r && nr -r publish",
     "validate:json-files": "tsx scripts/validate-json-files.ts"
   },
