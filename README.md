@@ -213,6 +213,20 @@ Where `env`: `preview`, `testnet`, or `testnet-preview` (omit for mainnet produc
 
 **Required secrets:** `ALBATROSS_RPC_NODE_URL`, `NUXT_SLACK_WEBHOOK_URL`
 
+### D1 Migrations
+
+When adding a new SQL migration under `server/db/migrations/`, apply it to the remote D1 database:
+
+```bash
+npx wrangler -c .output/server/wrangler.json d1 migrations apply validators-api-mainnet --remote
+```
+
+Testnet:
+
+```bash
+npx wrangler -c .output/server/wrangler.json d1 migrations apply validators-api-testnet --remote
+```
+
 **Environments** (configured in `wrangler.json`):
 
 | Environment       | Dashboard URL                                                                  | Trigger            |

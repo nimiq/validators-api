@@ -148,8 +148,8 @@ export default defineNuxtConfig({
       tasks: true,
     },
     scheduledTasks: {
-      // 12-hour sync: fetch missing epochs and update validator snapshots
-      '0 */12 * * *': ['sync:epochs', 'sync:snapshot'],
+      // 12-hour sync: wrapper task records run + executes sync tasks
+      '0 */12 * * *': ['cron:sync'],
     },
     openAPI: {
       meta: { title: name, description, version },

@@ -25,6 +25,8 @@
     "test": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:delete": "drizzle-kit drop",
+    "db:migrate:mainnet": "wrangler -c .output/server/wrangler.json d1 migrations apply validators-api-mainnet --remote",
+    "db:migrate:testnet": "wrangler -c .output/server/wrangler.json d1 migrations apply validators-api-testnet --remote",
     "release": "bumpp -r && nr -r publish",
     "validate:json-files": "tsx scripts/validate-json-files.ts"
   },

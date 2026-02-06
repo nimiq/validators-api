@@ -59,6 +59,20 @@ export const activity = sqliteTable('activity', {
   primaryKey({ columns: [table.validatorId, table.epochNumber] }),
 ])
 
+export const cronRuns = sqliteTable('cron_runs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  cron: text('cron').notNull(),
+  network: text('network').notNull(),
+  gitBranch: text('git_branch'),
+  startedAt: text('started_at').notNull(),
+  finishedAt: text('finished_at'),
+  status: text('status').notNull(),
+  errorMessage: text('error_message'),
+  meta: text('meta', { mode: 'json' }),
+}, table => [
+  index('idx_cron_runs_started_at').on(table.startedAt),
+])
+
 export const activityRelations = relations(activity, ({ one }) => ({
   validator: one(validators, {
     fields: [activity.validatorId],
