@@ -213,6 +213,22 @@ Where `env`: `preview`, `testnet`, or `testnet-preview` (omit for mainnet produc
 
 **Required secrets:** `ALBATROSS_RPC_NODE_URL`, `NUXT_SLACK_WEBHOOK_URL`
 
+### D1 Migrations
+
+When adding a new SQL migration under `server/db/migrations/`, apply it to the remote D1 database.
+
+For the `cron_runs` table:
+
+```bash
+pnpm db:apply:cron-runs:mainnet
+```
+
+Testnet:
+
+```bash
+pnpm db:apply:cron-runs:testnet
+```
+
 **Environments** (configured in `wrangler.json`):
 
 | Environment       | Dashboard URL                                                                  | Trigger            |

@@ -14,3 +14,5 @@ export type Activity = typeof schema.activity.$inferSelect
 export type NewActivity = typeof schema.activity.$inferInsert
 export type Score = typeof schema.scores.$inferSelect
 export type NewScore = typeof schema.scores.$inferInsert
+export type CronRun = typeof schema.cronRuns.$inferSelect
+export type NewCronRun = typeof schema.cronRuns.$inferInsert

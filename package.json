@@ -25,6 +25,8 @@
     "test": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:delete": "drizzle-kit drop",
+    "db:apply:cron-runs:mainnet": "wrangler d1 execute validators-api-mainnet --remote --yes --command \"CREATE TABLE IF NOT EXISTS cron_runs (id integer PRIMARY KEY AUTOINCREMENT NOT NULL, cron text NOT NULL, network text NOT NULL, git_branch text, started_at text NOT NULL, finished_at text, status text NOT NULL, error_message text, meta text);\" && wrangler d1 execute validators-api-mainnet --remote --yes --command \"CREATE INDEX IF NOT EXISTS idx_cron_runs_started_at ON cron_runs (started_at);\"",
+    "db:apply:cron-runs:testnet": "wrangler d1 execute validators-api-testnet --remote --yes --command \"CREATE TABLE IF NOT EXISTS cron_runs (id integer PRIMARY KEY AUTOINCREMENT NOT NULL, cron text NOT NULL, network text NOT NULL, git_branch text, started_at text NOT NULL, finished_at text, status text NOT NULL, error_message text, meta text);\" && wrangler d1 execute validators-api-testnet --remote --yes --command \"CREATE INDEX IF NOT EXISTS idx_cron_runs_started_at ON cron_runs (started_at);\"",
     "release": "bumpp -r && nr -r publish",
     "validate:json-files": "tsx scripts/validate-json-files.ts"
   },

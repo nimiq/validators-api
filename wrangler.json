@@ -6,6 +6,13 @@
   "account_id": "cf9baad7d68d7ee717f3339731e81dfb",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": false,
+      "invocation_logs": true
+    }
+  },
   "triggers": { "crons": ["0 */12 * * *"] },
   "vars": { "NUXT_PUBLIC_NIMIQ_NETWORK": "main-albatross" },
   "d1_databases": [{ "binding": "DB", "database_id": "cc9f1d25-676b-4cb3-8af6-887e85a08baa", "database_name": "validators-api-mainnet" }],
