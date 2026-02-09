@@ -10,7 +10,7 @@ export default defineNitroPlugin(async () => {
     if (gitBranch !== 'dev')
       return
 
-    const [ok, error, validators] = await importValidators('filesystem', { nimiqNetwork, gitBranch })
+    const [ok, error, validators] = await importValidatorsBundled(nimiqNetwork)
     if (!ok)
       throw new Error(`Error importing validators: ${error}`)
     consola.success(`${validators.length} validators imported successfully`)

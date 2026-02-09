@@ -1,6 +1,5 @@
 import type { Result } from 'nimiq-validator-trustscore/types'
 import type { ValidatorJSON } from '../server/utils/schemas'
-import { execSync } from 'node:child_process'
 import process from 'node:process'
 import { consola } from 'consola'
 import { importValidators } from '../server/utils/json-files'
@@ -32,10 +31,9 @@ function formatValidationErrors(error: any): ValidationErrorDetails[] {
   })
 }
 
-function logValidationErrors(errors: ValidationErrorDetails[], source: string, network: string) {
-  consola.error(`\n❌ Validation failed for ${network} validators from ${source}:\n`)
+function logValidationErrors(errors: ValidationErrorDetails[], network: string) {
+  consola.error(`\n❌ Validation failed for ${network} validators:\n`)
 
-  // Group errors by validator index
   const errorsByValidator = errors.reduce((acc, error) => {
     if (!acc[error.validatorIndex]) {
       acc[error.validatorIndex] = []
@@ -56,89 +54,47 @@ function logValidationErrors(errors: ValidationErrorDetails[], source: string, n
         consola.error(`      Current value: ${valueStr}`)
       }
     })
-    consola.error('') // Empty line between validators
+    consola.error('')
   })
 
   consola.info(`\n💡 Tips for fixing these errors:`)
 
   const uniqueFields = [...new Set(errors.map(e => e.field))]
-  if (uniqueFields.includes('address')) {
+  if (uniqueFields.includes('address'))
     consola.info(`   • Nimiq addresses should follow format: "NQ## #### #### #### #### #### #### #### ####"`)
-  }
-  if (uniqueFields.includes('logo')) {
+  if (uniqueFields.includes('logo'))
     consola.info(`   • Logos should be data URLs starting with "data:image/png,", "data:image/svg+xml," or "data:image/webp,"`)
-  }
-  if (uniqueFields.some(f => f.includes('contact'))) {
+  if (uniqueFields.some(f => f.includes('contact')))
     consola.info(`   • Social media handles should not include '@' symbol or should follow platform-specific format rules`)
-  }
-  if (uniqueFields.includes('website')) {
+  if (uniqueFields.includes('website'))
     consola.info(`   • Websites must be valid URLs starting with http:// or https://`)
-  }
 }
 
-async function validateValidators(source: 'filesystem' | 'github', nimiqNetwork: string, gitBranch: string): Result<ValidatorJSON[]> {
-  const [importOk, errorReading, _validators] = await importValidators(source, { nimiqNetwork, shouldStore: false, gitBranch })
+async function validateValidators(nimiqNetwork: string): Result<ValidatorJSON[]> {
+  const [importOk, errorReading, _validators] = await importValidators(nimiqNetwork)
   if (!importOk)
     return [false, errorReading, undefined]
 
   const result = validatorsSchema.safeParse(_validators)
   if (!result.success) {
     const errors = formatValidationErrors(result.error)
-    logValidationErrors(errors, source, nimiqNetwork)
+    logValidationErrors(errors, nimiqNetwork)
     return [false, `Found ${errors.length} validation error(s)`, undefined]
   }
 
   return [true, undefined, result.data]
 }
 
-// get flag from --source. should be either 'filesystem' or 'github'
-const args = process.argv.slice(2)
-const source = args[0] || 'filesystem'
-if (source !== 'filesystem' && source !== 'github') {
-  consola.error('Invalid source. Use either "filesystem" or "github".')
-  process.exit(1)
-}
-consola.info(`Validating validators from ${source}...`)
-
-// Try to get git branch, with fallbacks for GitHub Actions environment
-let gitBranch: string = ''
-
-try {
-  gitBranch = execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
-}
-catch {
-  // Fallback for GitHub Actions - git command might fail in detached HEAD state
-  consola.warn('Unable to get current branch from git command, trying environment variables...')
-}
-
-// If git command failed or returned empty, try GitHub Actions environment variables
-if (!gitBranch) {
-  // For pull requests, use the head ref (source branch)
-  gitBranch = process.env.GITHUB_HEAD_REF
-  // For pushes, use the ref name
-    || process.env.GITHUB_REF_NAME
-  // Last resort: use the commit SHA
-    || process.env.GITHUB_SHA
-    || ''
-}
-
-if (!gitBranch) {
-  consola.error('Unable to determine git branch or commit reference. Make sure you are in a git repository or running in a GitHub Actions environment.')
-  process.exit(1)
-}
-
-consola.info(`Using git reference: ${gitBranch}`)
-
-const [okMain, errorMain, validatorsMain] = await validateValidators(source, 'main-albatross', gitBranch)
+const [okMain, errorMain, validatorsMain] = await validateValidators('main-albatross')
 if (!okMain) {
   consola.error(errorMain)
   process.exit(1)
 }
-consola.success(`✅ All ${validatorsMain.length} validators for main-albatross are valid in ${source}!`)
+consola.success(`✅ All ${validatorsMain.length} validators for main-albatross are valid!`)
 
-const [okTest, errorTest, validatorsTest] = await validateValidators(source, 'test-albatross', gitBranch)
+const [okTest, errorTest, validatorsTest] = await validateValidators('test-albatross')
 if (!okTest) {
   consola.error(errorTest)
   process.exit(1)
 }
-consola.success(`✅ All ${validatorsTest.length} validators for test-albatross are valid in ${source}!`)
+consola.success(`✅ All ${validatorsTest.length} validators for test-albatross are valid!`)

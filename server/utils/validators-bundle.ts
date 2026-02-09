@@ -7,46 +7,31 @@ interface ImportValidatorsBundledOptions {
   shouldStore?: boolean
 }
 
-function normalizePath(value: string) {
-  return value.replace(/\\/g, '/')
-}
-
-function extractNetworkFromPath(path: string) {
-  const normalized = normalizePath(path)
-  const match = normalized.match(/(?:^|\/)public\/validators\/([^/]+)\/[^/]+\.json$/)
-  return match?.[1]
-}
-
 export async function importValidatorsBundled(nimiqNetwork?: string, options: ImportValidatorsBundledOptions = {}): Result<ValidatorJSON[]> {
   if (!nimiqNetwork)
     return [false, 'Nimiq network is required', undefined]
 
   const { shouldStore = true } = options
-  const modules = import.meta.glob('../../public/validators/*/*.json', { eager: true, import: 'default' })
+  const storage = useStorage('assets:server:validators')
+  const keys = await storage.getKeys(`${nimiqNetwork}`)
 
   const validators: ValidatorJSON[] = []
-  for (const [path, mod] of Object.entries(modules)) {
-    if (path.endsWith('.example.json'))
+  for (const key of keys) {
+    if (!key.endsWith('.json') || key.endsWith('.example.json'))
       continue
 
-    const network = extractNetworkFromPath(path)
-    if (!network || network !== nimiqNetwork)
-      continue
-
-    const data = (mod as any)?.default ?? mod
+    const data = await storage.getItem(key)
     const parsed = validatorSchema.safeParse(data)
-    if (!parsed.success) {
-      return [false, `Invalid validator data at ${path}: ${parsed.error}`, undefined]
-    }
+    if (!parsed.success)
+      return [false, `Invalid validator data at ${key}: ${parsed.error}`, undefined]
     validators.push(parsed.data)
   }
 
   if (!shouldStore)
     return [true, undefined, validators]
 
-  if (validators.length === 0) {
+  if (validators.length === 0)
     return [false, `No bundled validators found for network: ${nimiqNetwork}`, undefined]
-  }
 
   const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true })))
   const failures = results.filter(r => r.status === 'rejected')
