@@ -16,13 +16,11 @@ export default defineTask({
         throw new Error('No Albatross RPC Node URL')
       initRpcClient({ url: rpcUrl })
 
-      const { nimiqNetwork, gitBranch } = config.public
+      const { nimiqNetwork } = config.public
 
-      const [importSuccess, errorImport, importData] = import.meta.dev
-        ? await importValidators('filesystem', { nimiqNetwork, gitBranch })
-        : await importValidatorsBundled(nimiqNetwork)
+      const [importSuccess, errorImport, importData] = await importValidatorsBundled(nimiqNetwork)
       if (!importSuccess || !importData) {
-        const error = new Error(errorImport || 'Unable to import from GitHub')
+        const error = new Error(errorImport || 'Unable to import validators')
         await sendSyncFailureNotification('snapshot', error)
         return { result: { success: false, error: errorImport } }
       }
