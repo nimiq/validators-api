@@ -74,6 +74,7 @@
     "eslint-plugin-format": "catalog:",
     "lint-staged": "catalog:",
     "nimiq-css": "catalog:",
+    "nuxt-charts": "catalog:",
     "nuxt-safe-runtime-config": "catalog:",
     "ofetch": "catalog:",
     "pathe": "catalog:",
@@ -86,6 +87,7 @@
     "vite-plugin-top-level-await": "catalog:",
     "vite-plugin-wasm": "catalog:",
     "vitest": "catalog:",
+    "vue-chrts": "catalog:",
     "vue-tsc": "catalog:",
     "wrangler": "catalog:"
   },
