@@ -53,7 +53,7 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' 
           <AreaChart
             :data="scoreTrendData" :height="200" :categories="scoreCategories"
             :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => `${Math.round(t * 100)}`"
-            :y-domain="[0, 1]" hide-legend curve-type="monotoneX"
+            :y-domain="[0, 1]" hide-legend :curve-type="('monotoneX' as any)"
           />
         </div>
 
@@ -87,7 +87,7 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' 
           <LineChart
             :data="balanceData" :height="140" :categories="balanceCategories"
             :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => formatLunaAsNim(t * 1e5)"
-            hide-legend curve-type="monotoneX"
+            hide-legend :curve-type="('monotoneX' as any)"
           />
         </div>
 
@@ -95,7 +95,7 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' 
         <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>
           <LineChart
             :data="stakersData" :height="140" :categories="stakersCategories"
-            :x-formatter="(t: number) => `E${t}`" hide-legend curve-type="monotoneX"
+            :x-formatter="(t: number) => `E${t}`" hide-legend :curve-type="('monotoneX' as any)"
           />
         </div>
 

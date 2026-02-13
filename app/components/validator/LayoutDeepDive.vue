@@ -44,7 +44,7 @@ const dualLineCategories = { score: { name: 'Score', color: 'var(--nq-green)' } 
       <AreaChart
         :data="scoreTrendAllData" :height="280" :categories="allScoreCategories"
         :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => `${Math.round(t * 100)}`"
-        :y-domain="[0, 1]" curve-type="monotoneX"
+        :y-domain="[0, 1]" :curve-type="('monotoneX' as any)"
       />
     </div>
 
@@ -65,7 +65,7 @@ const dualLineCategories = { score: { name: 'Score', color: 'var(--nq-green)' } 
         <span nq-label text="11 neutral-800" mb-8 block>Stakers</span>
         <LineChart
           :data="stakersData" :height="200" :categories="stakersCategories"
-          :x-formatter="(t: number) => `E${t}`" hide-legend curve-type="monotoneX"
+          :x-formatter="(t: number) => `E${t}`" hide-legend :curve-type="('monotoneX' as any)"
         />
       </div>
       <div flex="~ col gap-16">

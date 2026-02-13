@@ -67,7 +67,7 @@ const donutCategories = { 0: { name: 'Availability', color: 'var(--nq-blue)' }, 
         <AreaChart
           :data="scoreTrendData" :height="200" :categories="scoreCategories"
           :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => `${Math.round(t * 100)}`"
-          :y-domain="[0, 1]" hide-legend curve-type="monotoneX"
+          :y-domain="[0, 1]" hide-legend :curve-type="('monotoneX' as any)"
         />
       </div>
     </div>
@@ -87,7 +87,7 @@ const donutCategories = { 0: { name: 'Availability', color: 'var(--nq-blue)' }, 
         <LineChart
           :data="balanceData" :height="200" :categories="balanceCategories"
           :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => formatLunaAsNim(t * 1e5)"
-          hide-legend curve-type="monotoneX"
+          hide-legend :curve-type="('monotoneX' as any)"
         />
       </div>
     </div>
