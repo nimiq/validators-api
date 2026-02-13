@@ -25,13 +25,13 @@ const layouts = [
       </div>
       <div flex-auto />
       <div
-        v-if="validator.isMaintainedByNimiq" nq-pill-sm self-start bg-green-400 text-green-1100 nq-pill-secondary
+        v-if="validator.isMaintainedByNimiq" nq-pill self-start bg-green-400 text-green-1100 nq-pill-secondary
         flex="~ items-center gap-8"
       >
         <div aria-hidden i-nimiq:verified-filled />
         <span>Maintained by Nimiq</span>
       </div>
-      <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill-sm ml-auto self-start nq-arrow nq-pill-tertiary>
+      <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill ml-auto self-start nq-arrow nq-pill-tertiary>
         {{ validator.website?.replace(/https?:\/\//, '') }}
       </NuxtLink>
     </div>
@@ -44,7 +44,7 @@ const layouts = [
       <button
         v-for="l in layouts" :key="l.key"
         text-14 font-semibold px-16 py-8 rounded-6 transition-colors
-        :class="layout === l.key ? 'bg-neutral-0 text-neutral-900 shadow-sm' : 'text-neutral-600 hover:text-neutral-800'"
+        :class="layout === l.key ? 'bg-neutral-0 text-neutral-900 shadow' : 'text-neutral-600 hover:text-neutral-800'"
         @click="layout = l.key"
       >
         {{ l.label }}

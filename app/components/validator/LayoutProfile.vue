@@ -25,13 +25,13 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' 
           {{ validator.description }}
         </p>
         <div flex="~ gap-8 wrap" mt-8>
-          <span v-if="validator.isMaintainedByNimiq" nq-pill-sm bg-green-400 text-green-1100 flex="~ items-center gap-4">
+          <span v-if="validator.isMaintainedByNimiq" nq-pill bg-green-400 text-green-1100 flex="~ items-center gap-4">
             <div aria-hidden i-nimiq:verified-filled />
             Maintained by Nimiq
           </span>
-          <span nq-pill-sm nq-pill-tertiary>Fee: {{ feeDisplay }}</span>
-          <span nq-pill-sm nq-pill-tertiary>Payout: {{ payoutDisplay }}</span>
-          <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill-sm nq-arrow nq-pill-tertiary>
+          <span nq-pill nq-pill-tertiary>Fee: {{ feeDisplay }}</span>
+          <span nq-pill nq-pill-tertiary>Payout: {{ payoutDisplay }}</span>
+          <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill nq-arrow nq-pill-tertiary>
             {{ validator.website?.replace(/https?:\/\//, '') }}
           </NuxtLink>
         </div>

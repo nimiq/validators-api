@@ -120,7 +120,7 @@ const dualLineCategories = { score: { name: 'Score', color: 'var(--nq-green)' } 
           {{ payoutDisplay }}
         </p>
       </div>
-      <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill-sm nq-arrow nq-pill-tertiary self-center>
+      <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill nq-arrow nq-pill-tertiary self-center>
         {{ validator.website?.replace(/https?:\/\//, '') }}
       </NuxtLink>
       <p v-if="validator.description" text="14 neutral-700" flex-1>
