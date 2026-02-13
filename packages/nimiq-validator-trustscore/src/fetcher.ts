@@ -11,6 +11,11 @@ export interface FetchActivityOptions extends Pick<BaseAlbatrossPolicyOptions, '
    * @default 5
    */
   maxRetries?: number
+  /**
+   * Max concurrent RPC requests per batch. Workers allows ~6 concurrent outbound connections.
+   * @default 120
+   */
+  maxBatchSize?: number
 }
 
 /**
@@ -18,7 +23,7 @@ export interface FetchActivityOptions extends Pick<BaseAlbatrossPolicyOptions, '
  * The block number MUST be an election block otherwise it will return an error result.
  */
 export async function fetchActivity(epochIndex: number, options: FetchActivityOptions = {}): Result<EpochActivity> {
-  const { maxRetries = 5, network = 'mainnet' } = options
+  const { maxRetries = 5, network = 'mainnet', maxBatchSize: _maxBatchSize = 120 } = options
   // Epochs start at 1, but election block is the first block of the epoch
   const electionBlock = electionBlockOf(epochIndex, { network })!
   const [isBlockOk, errorBlockNumber, block] = await getBlockByNumber({ blockNumber: electionBlock, includeBody: false })
@@ -51,8 +56,8 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
     epochActivity[validator] = { address: validator, likelihood, missed: 0, rewarded: 0, dominanceRatioViaBalance, dominanceRatioViaSlots, balance, elected: true, stakers: 0 } as ElectedValidator
   }
 
-  const maxBatchSize = 120
-  const minBatchSize = 10
+  const maxBatchSize = _maxBatchSize
+  const minBatchSize = Math.min(10, maxBatchSize)
   let batchSize = maxBatchSize
 
   const createPromise = async (index: number, retryCount = 0): Promise<ResultSync<void>> => {

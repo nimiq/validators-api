@@ -69,7 +69,10 @@ export default defineTask({
       for (const taskName of TASKS) {
         consola.info(`[cron:sync] running ${taskName}`)
         const res = await runTask(taskName, { payload: event.payload ?? {}, context: event.context ?? {} })
-        results[taskName] = (res as any)?.result ?? res
+        const result = (res as any)?.result ?? res
+        results[taskName] = result
+        if (result?.success === false)
+          throw new Error(`${taskName} failed: ${result.error || 'unknown'}`)
       }
 
       const failedTasks = Object.entries(results)

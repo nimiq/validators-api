@@ -39,7 +39,7 @@ export default defineTask({
           break
 
         const missingEpoch = missingEpochs.at(0)!
-        const [activityOk, activityError, epochActivity] = await fetchActivity(missingEpoch)
+        const [activityOk, activityError, epochActivity] = await fetchActivity(missingEpoch, { network: config.public.nimiqNetwork, maxBatchSize: import.meta.dev ? 120 : 6 })
         if (!activityOk || !epochActivity) {
           const error = new Error(activityError || 'Unable to fetch activity')
           await sendSyncFailureNotification('missing-epoch', error)
