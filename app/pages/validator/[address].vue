@@ -1,20 +1,20 @@
 <script setup lang="ts">
 const route = useRoute()
 const { data: validator } = await useFetch(`/api/v1/validators/${route.params.address}`)
-
-const scores = computed<[number, number][]>(() => {
-  if (!validator.value?.scores)
-    return []
-  return validator.value.scores.map(({ total, epochNumber }) => [total, epochNumber])
-})
+const layout = ref<'dashboard' | 'deep-dive' | 'profile'>('dashboard')
+const layouts = [
+  { key: 'dashboard' as const, label: 'Dashboard' },
+  { key: 'deep-dive' as const, label: 'Deep Dive' },
+  { key: 'profile' as const, label: 'Profile' },
+]
 </script>
 
 <template>
   <div v-if="validator">
+    <!-- Shared header -->
     <div flex="~ gap-16 items-center">
       <Identicon
-        v-bind="validator"
-        size-64 shrink-0 object-contain
+        v-bind="validator" size-64 shrink-0 object-contain
         :style="{ 'view-transition-name': `logo-${validator.id}` }"
       />
       <div flex="~ col gap-12" relative>
@@ -39,30 +39,22 @@ const scores = computed<[number, number][]>(() => {
       {{ validator.description }}
     </p>
 
-    <div flex="~ col items-center justify-center" mt-96>
-      <h3 text="center neutral-900" mb-0 font-bold>
-        {{ validator.name }}'s score is
-      </h3>
-      <ScorePie
-        mx-auto mt-32 size-128 text-40 :score="validator.score?.total || 0"
-        :style="{ 'view-transition-name': `score-${validator.id}` }"
-      />
-
-      <ScorePies v-if="validator.score" v-bind="validator.score" f-mt-md text-28 />
-
-      <ChartLine :data="scores" f-mt-md />
-
-      <Batches :activity="validator.activity" f-mt-md />
-
-      <details>
-        <summary text-neutral-900 font-semibold mt-32 w-full>
-          More details
-        </summary>
-        <code nq-prose mt-32 block max-w-700 text-neutral-900>
-          {{ JSON.stringify(validator, null, 2) }}
-        </code>
-      </details>
+    <!-- Layout switcher -->
+    <div flex="~ gap-4" mt-24 bg-neutral-100 rounded-8 p-4 w-fit>
+      <button
+        v-for="l in layouts" :key="l.key"
+        text-14 font-semibold px-16 py-8 rounded-6 transition-colors
+        :class="layout === l.key ? 'bg-neutral-0 text-neutral-900 shadow-sm' : 'text-neutral-600 hover:text-neutral-800'"
+        @click="layout = l.key"
+      >
+        {{ l.label }}
+      </button>
     </div>
+
+    <!-- Active layout -->
+    <ValidatorLayoutDashboard v-if="layout === 'dashboard'" :validator="validator" />
+    <ValidatorLayoutDeepDive v-else-if="layout === 'deep-dive'" :validator="validator" />
+    <ValidatorLayoutProfile v-else :validator="validator" />
   </div>
 
   <div v-else>
