@@ -3,8 +3,25 @@ import { consola } from 'consola'
 import { runTask } from 'nitropack/runtime'
 import { eq, tables, useDrizzle } from '~~/server/utils/drizzle'
 
-const CRON_EXPRESSION = '0 */12 * * *'
+const CRON_EXPRESSION = '0 * * * *'
 const TASKS: string[] = ['sync:epochs', 'sync:snapshot']
+
+interface FailedTask {
+  name: string
+  error: unknown
+}
+
+class CronTaskFailureError extends Error {
+  readonly failedTasks: FailedTask[]
+  readonly results: Record<string, unknown>
+
+  constructor(message: string, failedTasks: FailedTask[], results: Record<string, unknown>) {
+    super(message)
+    this.name = 'CronTaskFailureError'
+    this.failedTasks = failedTasks
+    this.results = results
+  }
+}
 
 function toErrorString(error: unknown) {
   if (error instanceof Error)
@@ -58,6 +75,12 @@ export default defineTask({
           throw new Error(`${taskName} failed: ${result.error || 'unknown'}`)
       }
 
+      const failedTasks = Object.entries(results)
+        .filter(([, r]) => (r as any)?.success === false)
+        .map(([name, r]) => ({ name, error: (r as any)?.error ?? 'Unknown task failure' }))
+      if (failedTasks.length > 0)
+        throw new CronTaskFailureError(`Task failures: ${JSON.stringify(failedTasks)}`, failedTasks, results)
+
       if (cronRunId) {
         try {
           await useDrizzle()
@@ -85,6 +108,16 @@ export default defineTask({
     catch (error) {
       const errorMessage = toErrorString(error)
       consola.error('[cron:sync] failed', error)
+      const meta: Record<string, unknown> = {
+        cron: CRON_EXPRESSION,
+        network: nimiqNetwork,
+        tasks: TASKS,
+      }
+
+      if (error instanceof CronTaskFailureError) {
+        meta.results = error.results
+        meta.failedTasks = error.failedTasks
+      }
 
       if (cronRunId) {
         try {
@@ -94,11 +127,7 @@ export default defineTask({
               finishedAt: new Date().toISOString(),
               status: 'error',
               errorMessage,
-              meta: {
-                cron: CRON_EXPRESSION,
-                network: nimiqNetwork,
-                tasks: TASKS,
-              },
+              meta,
             })
             .where(eq(tables.cronRuns.id, cronRunId))
             .execute()
