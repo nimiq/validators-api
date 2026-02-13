@@ -1,10 +1,28 @@
 import type { Result } from 'nimiq-validator-trustscore/types'
 import type { ValidatorJSON } from './schemas'
+import { readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import process from 'node:process'
 import { validatorSchema } from './schemas'
 import { storeValidator } from './validators'
 
 interface ImportValidatorsBundledOptions {
   shouldStore?: boolean
+}
+
+// In dev, Nitro's asset storage doesn't enumerate files via getKeys().
+// We list them from the filesystem and then read via storage.
+function getValidatorKeys(nimiqNetwork: string): string[] {
+  if (import.meta.dev) {
+    try {
+      const dir = join(process.cwd(), 'server', 'assets', 'validators', nimiqNetwork)
+      return readdirSync(dir)
+        .filter(f => f.endsWith('.json') && !f.endsWith('.example.json'))
+        .map(f => `${nimiqNetwork}:${f}`)
+    }
+    catch { return [] }
+  }
+  return []
 }
 
 export async function importValidatorsBundled(nimiqNetwork?: string, options: ImportValidatorsBundledOptions = {}): Result<ValidatorJSON[]> {
@@ -13,7 +31,11 @@ export async function importValidatorsBundled(nimiqNetwork?: string, options: Im
 
   const { shouldStore = true } = options
   const storage = useStorage('assets:server:validators')
-  const keys = await storage.getKeys(`${nimiqNetwork}`)
+
+  // Try storage getKeys first (works in production), fall back to filesystem (dev)
+  let keys = await storage.getKeys(`${nimiqNetwork}`)
+  if (keys.length === 0)
+    keys = getValidatorKeys(nimiqNetwork)
 
   const validators: ValidatorJSON[] = []
   for (const key of keys) {

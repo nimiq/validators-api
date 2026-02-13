@@ -55,6 +55,7 @@
     "@antfu/eslint-config": "catalog:",
     "@antfu/ni": "catalog:",
     "@iconify-json/tabler": "catalog:",
+    "@libsql/client": "catalog:",
     "@nuxt/eslint": "catalog:",
     "@nuxt/fonts": "catalog:",
     "@nuxt/image": "catalog:",
