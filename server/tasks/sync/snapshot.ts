@@ -22,7 +22,7 @@ export default defineTask({
         ? await importValidators('filesystem', { nimiqNetwork, gitBranch })
         : await importValidatorsBundled(nimiqNetwork)
       if (!importSuccess || !importData) {
-        const error = new Error(errorImport || 'Unable to import from GitHub')
+        const error = new Error(errorImport || 'Unable to import bundled validators')
         await sendSyncFailureNotification('snapshot', error)
         return { result: { success: false, error: errorImport } }
       }
