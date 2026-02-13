@@ -5,6 +5,7 @@ catalog:
   '@antfu/eslint-config': ^4.19.0
   '@antfu/ni': ^25.0.0
   '@iconify-json/tabler': ^1.2.20
+  '@libsql/client': ^0.17.0
   '@nimiq/core': ^2.1.1
   '@nimiq/utils': ^0.12.4
   '@nuxt/eslint': ^1.7.1

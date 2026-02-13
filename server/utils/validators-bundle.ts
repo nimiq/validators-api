@@ -1,5 +1,6 @@
 import type { Result } from 'nimiq-validator-trustscore/types'
 import type { ValidatorJSON } from './schemas'
+import { bundledValidatorsByNetwork } from '../generated/validators-bundle.generated'
 import { validatorSchema } from './schemas'
 import { storeValidator } from './validators'
 
@@ -12,26 +13,20 @@ export async function importValidatorsBundled(nimiqNetwork?: string, options: Im
     return [false, 'Nimiq network is required', undefined]
 
   const { shouldStore = true } = options
-  const storage = useStorage('assets:server:validators')
-  const keys = await storage.getKeys(`${nimiqNetwork}`)
+  const bundledValidators = bundledValidatorsByNetwork[nimiqNetwork as keyof typeof bundledValidatorsByNetwork]
+  if (!bundledValidators || bundledValidators.length === 0)
+    return [false, `No bundled validators found for network: ${nimiqNetwork}`, undefined]
 
   const validators: ValidatorJSON[] = []
-  for (const key of keys) {
-    if (!key.endsWith('.json') || key.endsWith('.example.json'))
-      continue
-
-    const data = await storage.getItem(key)
+  for (const data of bundledValidators) {
     const parsed = validatorSchema.safeParse(data)
     if (!parsed.success)
-      return [false, `Invalid validator data at ${key}: ${parsed.error}`, undefined]
+      return [false, `Invalid bundled validator data: ${parsed.error}`, undefined]
     validators.push(parsed.data)
   }
 
   if (!shouldStore)
     return [true, undefined, validators]
-
-  if (validators.length === 0)
-    return [false, `No bundled validators found for network: ${nimiqNetwork}`, undefined]
 
   const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true })))
   const failures = results.filter(r => r.status === 'rejected')

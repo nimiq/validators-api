@@ -13,7 +13,7 @@
     "dev:testnet:prod": "nr dev:packages && nuxt dev --remote=production --dotenv .env.testnet",
     "dev:local": "nr dev:packages && nuxt dev --dotenv .env.local",
     "dev:packages": "nr -C packages -r dev",
-    "build": "nr -r build && nuxt build",
+    "build": "pnpm validators:bundle:generate && nr -r build && nuxt build",
     "generate": "nuxt generate",
     "preview": "npx wrangler --cwd .output dev",
     "postinstall": "nuxt prepare",
@@ -28,7 +28,8 @@
     "db:apply:cron-runs:mainnet": "wrangler d1 execute validators-api-mainnet --remote --yes --command \"CREATE TABLE IF NOT EXISTS cron_runs (id integer PRIMARY KEY AUTOINCREMENT NOT NULL, cron text NOT NULL, network text NOT NULL, git_branch text, started_at text NOT NULL, finished_at text, status text NOT NULL, error_message text, meta text);\" && wrangler d1 execute validators-api-mainnet --remote --yes --command \"CREATE INDEX IF NOT EXISTS idx_cron_runs_started_at ON cron_runs (started_at);\"",
     "db:apply:cron-runs:testnet": "wrangler d1 execute validators-api-testnet --remote --yes --command \"CREATE TABLE IF NOT EXISTS cron_runs (id integer PRIMARY KEY AUTOINCREMENT NOT NULL, cron text NOT NULL, network text NOT NULL, git_branch text, started_at text NOT NULL, finished_at text, status text NOT NULL, error_message text, meta text);\" && wrangler d1 execute validators-api-testnet --remote --yes --command \"CREATE INDEX IF NOT EXISTS idx_cron_runs_started_at ON cron_runs (started_at);\"",
     "release": "bumpp -r && nr -r publish",
-    "validate:json-files": "tsx scripts/validate-json-files.ts"
+    "validate:json-files": "tsx scripts/validate-json-files.ts",
+    "validators:bundle:generate": "tsx scripts/generate-validators-bundle.ts"
   },
   "dependencies": {
     "@nimiq/core": "catalog:",
@@ -55,6 +56,7 @@
     "@antfu/eslint-config": "catalog:",
     "@antfu/ni": "catalog:",
     "@iconify-json/tabler": "catalog:",
+    "@libsql/client": "catalog:",
     "@nuxt/eslint": "catalog:",
     "@nuxt/fonts": "catalog:",
     "@nuxt/image": "catalog:",
