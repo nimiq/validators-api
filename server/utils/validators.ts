@@ -24,6 +24,50 @@ function isMissingIsListedColumnError(error: unknown) {
 
 let hasWarnedMissingIsListedColumn = false
 
+const validatorFieldsWithoutListState = {
+  id: tables.validators.id,
+  name: tables.validators.name,
+  address: tables.validators.address,
+  description: tables.validators.description,
+  fee: tables.validators.fee,
+  payoutType: tables.validators.payoutType,
+  payoutSchedule: tables.validators.payoutSchedule,
+  isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
+  logo: tables.validators.logo,
+  hasDefaultLogo: tables.validators.hasDefaultLogo,
+  accentColor: tables.validators.accentColor,
+  website: tables.validators.website,
+  contact: tables.validators.contact,
+}
+const validatorFieldsWithListState = {
+  ...validatorFieldsWithoutListState,
+  isListed: tables.validators.isListed,
+}
+
+async function selectValidatorsWithOptionalListState(filters: SQLWrapper[] = []) {
+  try {
+    const query = useDrizzle().select(validatorFieldsWithListState).from(tables.validators)
+    return filters.length > 0
+      ? await query.where(and(...filters)).execute()
+      : await query.execute()
+  }
+  catch (error) {
+    if (!isMissingIsListedColumnError(error))
+      throw error
+
+    if (!hasWarnedMissingIsListedColumn) {
+      hasWarnedMissingIsListedColumn = true
+      consola.warn('`validators.is_listed` column is missing, reading validators without list state until migration is applied')
+    }
+
+    const query = useDrizzle().select(validatorFieldsWithoutListState).from(tables.validators)
+    const rows = filters.length > 0
+      ? await query.where(and(...filters)).execute()
+      : await query.execute()
+    return rows.map(row => ({ ...row, isListed: null as boolean | null }))
+  }
+}
+
 export async function getStoredValidatorsListState() {
   try {
     return await useDrizzle()
@@ -207,10 +251,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
     filters.push(eq(tables.validators.payoutType, payoutType))
 
   try {
-    const validatorsQuery = useDrizzle().select().from(tables.validators)
-    const dbValidators = filters.length > 0
-      ? await validatorsQuery.where(and(...filters)).execute()
-      : await validatorsQuery.execute()
+    const dbValidators = await selectValidatorsWithOptionalListState(filters)
 
     const visibleValidators = onlyKnown ? dbValidators.filter(isKnownValidatorProfile) : dbValidators
     const validatorIds = visibleValidators.map(v => v.id)
@@ -343,11 +384,7 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
   const { address, range: { fromEpoch, toEpoch } } = params
 
   try {
-    const validator = await useDrizzle()
-      .select()
-      .from(tables.validators)
-      .where(eq(tables.validators.address, address))
-      .get()
+    const validator = (await selectValidatorsWithOptionalListState([eq(tables.validators.address, address)])).at(0)
 
     if (!validator)
       return [false, `Validator with address ${address} not found`, undefined]
