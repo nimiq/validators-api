@@ -238,6 +238,6 @@ pnpm db:apply:cron-runs:testnet
 | `testnet`         | [Validators API Testnet](https://validators-api-testnet.pages.dev)             | Push to `main`     |
 | `testnet-preview` | [Validators API Testnet Preview](https://dev.validators-api-testnet.pages.dev) | Push to any branch |
 
-Each environment has its own D1 database, KV cache, and R2 blob. Sync runs hourly via Cloudflare cron triggers (see `server/tasks/sync/`).
+Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every 12 hours via Cloudflare cron triggers (see `server/tasks/sync/`).
 
 **Write operations to `main` are restricted**, only via PR.

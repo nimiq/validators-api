@@ -124,7 +124,7 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
         <hr f-my-sm border-red-600>
 
         <p f-mt-md text="f-sm red-1100/80">
-          <strong>Note:</strong> Data synchronization is handled automatically by scheduled tasks that run hourly. Please wait for the next sync cycle or contact an administrator if the issue persists.
+          <strong>Note:</strong> Data synchronization is handled automatically by scheduled tasks that run every 12 hours. A score lag of up to 1 epoch can be expected between sync cycles.
         </p>
       </div>
 
