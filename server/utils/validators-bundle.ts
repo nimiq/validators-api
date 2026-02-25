@@ -12,8 +12,8 @@ export async function importValidatorsBundled(nimiqNetwork?: string, options: Im
     return [false, 'Nimiq network is required', undefined]
 
   const { shouldStore = true } = options
-  const storage = useStorage('assets:server:validators')
-  const keys = await storage.getKeys(`${nimiqNetwork}`)
+  const storage = useStorage('assets:public')
+  const keys = await storage.getKeys(`validators/${nimiqNetwork}`)
 
   const validators: ValidatorJSON[] = []
   for (const key of keys) {
