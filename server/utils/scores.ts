@@ -151,12 +151,3 @@ export async function isScoreMissingWithLag(
     allowedLagEpochs,
   })
 }
-
-export async function isMissingScore(range: Range): Promise<boolean> {
-  const latestScoreEpoch = await getLatestScoreEpoch()
-  return isScoreLagMissing({
-    toEpoch: range.toEpoch,
-    latestScoreEpoch,
-    allowedLagEpochs: 0,
-  })
-}
