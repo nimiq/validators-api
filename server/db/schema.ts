@@ -16,6 +16,7 @@ export const validators = sqliteTable('validators', {
   accentColor: text('accent_color').notNull(),
   website: text('website'),
   contact: text('contact', { mode: 'json' }),
+  isListed: integer('is_listed', { mode: 'boolean' }),
 }, table => [
   uniqueIndex('validators_address_unique').on(table.address),
   check(

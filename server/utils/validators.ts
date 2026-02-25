@@ -10,9 +10,12 @@ import { fetchSnapshotEpoch } from '~~/packages/nimiq-validator-trustscore/src/f
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON } from './schemas'
+import { PayoutType } from './types'
+import { getUnlistedActiveValidatorAddresses, isKnownValidatorProfile } from './validator-listing'
 
 export const getStoredValidatorsId = () => useDrizzle().select({ id: tables.validators.id }).from(tables.validators).execute().then(r => r.map(v => v.id))
 export const getStoredValidatorsAddress = () => useDrizzle().select({ address: tables.validators.address }).from(tables.validators).execute().then(r => r.map(v => v.address))
+export const getStoredValidatorsListState = () => useDrizzle().select({ address: tables.validators.address, isListed: tables.validators.isListed }).from(tables.validators).execute()
 
 const validators = new Map<string, number>()
 
@@ -22,6 +25,12 @@ interface StoreValidatorOptions {
    * @default false
    */
   upsert?: boolean
+
+  /**
+   * Controls if the validator should appear in `only-known=true`.
+   * @default false
+   */
+  isListed?: boolean
 }
 
 export async function storeValidator(address: string, rest: ValidatorJSON = defaultValidatorJSON, options: StoreValidatorOptions = {}): Promise<number | undefined> {
@@ -34,7 +43,7 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
     return
   }
 
-  const { upsert = false } = options
+  const { upsert = false, isListed = false } = options
 
   // If the validator is cached and upsert is not true, return it
   if (!upsert && validators.has(address)) {
@@ -63,14 +72,14 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
     if (validatorId) {
       await useDrizzle()
         .update(tables.validators)
-        .set({ ...rest, ...brandingParameters })
+        .set({ ...rest, ...brandingParameters, isListed })
         .where(eq(tables.validators.id, validatorId))
         .execute()
     }
     else {
       validatorId = await useDrizzle()
         .insert(tables.validators)
-        .values({ ...rest, address, ...brandingParameters })
+        .values({ ...rest, address, ...brandingParameters, isListed })
         .returning()
         .get()
         .then(r => r.id)
@@ -82,6 +91,28 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
 
   validators.set(address, validatorId!)
   return validatorId
+}
+
+export async function markValidatorsAsUnlisted(addresses: string[]) {
+  await Promise.all(addresses.map(async (address) => {
+    const brandingParameters = await handleValidatorLogo(address, defaultValidatorJSON)
+    await useDrizzle()
+      .update(tables.validators)
+      .set({
+        name: 'Unknown validator',
+        description: null,
+        fee: null,
+        payoutType: PayoutType.None,
+        payoutSchedule: '',
+        isMaintainedByNimiq: false,
+        website: null,
+        contact: null,
+        isListed: false,
+        ...brandingParameters,
+      })
+      .where(eq(tables.validators.address, address))
+      .execute()
+  }))
 }
 
 export type FetchValidatorsOptions = MainQuerySchema & { epochNumber: number }
@@ -98,8 +129,6 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
   const filters: SQLWrapper[] = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
-  if (onlyKnown)
-    filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
     const validatorsQuery = useDrizzle().select().from(tables.validators)
@@ -107,7 +136,8 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
       ? await validatorsQuery.where(and(...filters)).execute()
       : await validatorsQuery.execute()
 
-    const validatorIds = dbValidators.map(v => v.id)
+    const visibleValidators = onlyKnown ? dbValidators.filter(isKnownValidatorProfile) : dbValidators
+    const validatorIds = visibleValidators.map(v => v.id)
     if (validatorIds.length === 0)
       return [true, undefined, []]
 
@@ -172,7 +202,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
     const scoresByValidatorId = new Map(scoresRows.map(row => [row.validatorId, row]))
     const activityByValidatorId = new Map(activityRows.map(row => [row.validatorId, row]))
 
-    const validators = dbValidators.map((validator) => {
+    const validators = visibleValidators.map((validator) => {
       const { logo, contact, hasDefaultLogo, ...rest } = validator
       const scoreRow = scoresByValidatorId.get(validator.id)
       const activityRow = activityByValidatorId.get(validator.id)
@@ -301,11 +331,13 @@ export async function categorizeValidatorsSnapshotEpoch(): Result<SnapshotEpochV
   if (!epochOk)
     return [false, error, undefined]
 
-  const dbAddresses = await getStoredValidatorsAddress()
+  const storedValidators = await getStoredValidatorsListState()
+  const dbAddresses = storedValidators.map(v => v.address)
   const electedValidators = epoch.validators.filter(v => v.elected) as ElectedValidator[]
   const unelectedValidators = epoch.validators.filter(v => !v.elected) as UnelectedValidator[]
   const untrackedValidators = electedValidators.filter(v => !dbAddresses.includes(v.address)) as (ElectedValidator & UnelectedValidator)[]
   const deletedValidators = dbAddresses.filter(dbAddress => !epoch.validators.map(v => v.address).includes(dbAddress))
+  const unlistedActiveValidators = getUnlistedActiveValidatorAddresses(epoch.validators, storedValidators)
 
   return [true, undefined, {
     epochNumber: epoch.epochNumber,
@@ -313,5 +345,6 @@ export async function categorizeValidatorsSnapshotEpoch(): Result<SnapshotEpochV
     unelectedValidators,
     untrackedValidators,
     deletedValidators,
+    unlistedActiveValidators,
   }]
 }

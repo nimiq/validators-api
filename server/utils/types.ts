@@ -12,6 +12,7 @@ export interface SnapshotEpochValidators {
   electedValidators: (ElectedValidator | UnelectedValidator)[]
   unelectedValidators: (ElectedValidator | UnelectedValidator)[]
   deletedValidators: string[]
+  unlistedActiveValidators: string[]
 
   /**
    * Validators that are not tracked by the database. The untracked validators are

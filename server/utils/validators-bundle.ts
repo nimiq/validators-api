@@ -2,7 +2,8 @@ import type { Result } from 'nimiq-validator-trustscore/types'
 import type { ValidatorJSON } from './schemas'
 import { bundledValidatorsByNetwork } from '../generated/validators-bundle.generated'
 import { validatorSchema } from './schemas'
-import { storeValidator } from './validators'
+import { getUnlistedAddresses } from './validator-listing'
+import { getStoredValidatorsAddress, markValidatorsAsUnlisted, storeValidator } from './validators'
 
 interface ImportValidatorsBundledOptions {
   shouldStore?: boolean
@@ -28,10 +29,16 @@ export async function importValidatorsBundled(nimiqNetwork?: string, options: Im
   if (!shouldStore)
     return [true, undefined, validators]
 
-  const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true })))
+  const bundledAddresses = new Set(validators.map(v => v.address))
+  const storedAddresses = await getStoredValidatorsAddress()
+  const unlistedAddresses = getUnlistedAddresses(storedAddresses, bundledAddresses)
+
+  const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true, isListed: true })))
   const failures = results.filter(r => r.status === 'rejected')
   if (failures.length > 0)
     return [false, `Errors importing validators: ${failures.map((f: any) => f.reason).join(', ')}`, undefined]
+
+  await markValidatorsAsUnlisted(unlistedAddresses)
 
   return [true, undefined, validators]
 }
