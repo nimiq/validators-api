@@ -1,6 +1,8 @@
 packages:
   - packages/**
 
+patchedDependencies:
+  '@unovis/ts@1.5.2': patches/@unovis__ts@1.5.2.patch
 catalog:
   '@antfu/eslint-config': ^4.19.0
   '@antfu/ni': ^25.0.0

@@ -175,6 +175,11 @@ catalogs:
       specifier: ^4.0.8
       version: 4.0.8
 
+patchedDependencies:
+  '@unovis/ts@1.5.2':
+    hash: a703566dd7d5e86c6b4687bf4ebeaa82f300281f9df54ab2cc0854d144005677
+    path: patches/@unovis__ts@1.5.2.patch
+
 importers:
 
   .:
@@ -193,10 +198,10 @@ importers:
         version: 8.21.3(vue@3.5.18(typescript@5.8.3))
       '@unovis/ts':
         specifier: 'catalog:'
-        version: 1.5.2
+        version: 1.5.2(patch_hash=a703566dd7d5e86c6b4687bf4ebeaa82f300281f9df54ab2cc0854d144005677)
       '@unovis/vue':
         specifier: 'catalog:'
-        version: 1.5.2(@unovis/ts@1.5.2)(vue@3.5.18(typescript@5.8.3))
+        version: 1.5.2(@unovis/ts@1.5.2(patch_hash=a703566dd7d5e86c6b4687bf4ebeaa82f300281f9df54ab2cc0854d144005677))(vue@3.5.18(typescript@5.8.3))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 13.5.0(vue@3.5.18(typescript@5.8.3))
@@ -11882,7 +11887,7 @@ snapshots:
     dependencies:
       lodash-es: 4.17.21
 
-  '@unovis/ts@1.5.2':
+  '@unovis/ts@1.5.2(patch_hash=a703566dd7d5e86c6b4687bf4ebeaa82f300281f9df54ab2cc0854d144005677)':
     dependencies:
       '@emotion/css': 11.13.5
       '@juggle/resize-observer': 3.4.0
@@ -11992,9 +11997,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@unovis/vue@1.5.2(@unovis/ts@1.5.2)(vue@3.5.18(typescript@5.8.3))':
+  '@unovis/vue@1.5.2(@unovis/ts@1.5.2(patch_hash=a703566dd7d5e86c6b4687bf4ebeaa82f300281f9df54ab2cc0854d144005677))(vue@3.5.18(typescript@5.8.3))':
     dependencies:
-      '@unovis/ts': 1.5.2
+      '@unovis/ts': 1.5.2(patch_hash=a703566dd7d5e86c6b4687bf4ebeaa82f300281f9df54ab2cc0854d144005677)
       vue: 3.5.18(typescript@5.8.3)
 
   '@unovis/vue@1.6.4(@unovis/ts@1.6.4)(vue@3.5.18(typescript@5.8.3))':
