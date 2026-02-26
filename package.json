@@ -13,7 +13,7 @@
     "dev:testnet:prod": "nr dev:packages && nuxt dev --remote=production --dotenv .env.testnet",
     "dev:local": "nr dev:packages && nuxt dev --dotenv .env.local",
     "dev:packages": "nr -C packages -r dev",
-    "build": "pnpm validators:bundle:generate && nr -r build && nuxt build",
+    "build": "pnpm validators:bundle:generate && nr -r build && NODE_OPTIONS=--max-old-space-size=4096 nuxt build",
     "generate": "nuxt generate",
     "preview": "npx wrangler --cwd .output dev",
     "postinstall": "nuxt prepare",
