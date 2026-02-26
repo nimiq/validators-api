@@ -44,14 +44,24 @@ export default defineCachedEventHandler(async () => {
   if (!headBlockOk)
     throw createError(errorHeadBlockNumber || 'No head block number')
 
+  const allowedScoreLagEpochs = 1
+  const latestScoreEpoch = await getLatestScoreEpoch()
+  const scoreLagEpochs = getScoreLagEpochs({
+    toEpoch: range.toEpoch,
+    latestScoreEpoch,
+  })
+
   const missingEpochs = await findMissingEpochs(range)
-  const missingScore = await isMissingScore(range)
+  const missingScore = await isScoreMissingWithLag(range, allowedScoreLagEpochs, latestScoreEpoch)
 
   return {
     range,
     validators: validatorsEpoch,
     missingEpochs,
     missingScore,
+    latestScoreEpoch,
+    scoreLagEpochs,
+    allowedScoreLagEpochs,
     blockchain: { network, headBlockNumber },
   }
 })
