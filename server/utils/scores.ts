@@ -1,9 +1,10 @@
 import type { Range, Result, ScoreParams } from 'nimiq-validator-trustscore/types'
 import type { NewScore } from './drizzle'
-import { and, count, desc, eq, gte, lte, or } from 'drizzle-orm'
+import { and, desc, eq, gte, lte, or, sql } from 'drizzle-orm'
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { computeScore } from 'nimiq-validator-trustscore/score'
 import { activity } from '../db/schema'
+import { isScoreLagMissing } from './score-freshness'
 import { getStoredValidatorsId } from './validators'
 
 interface CalculateScoreResult {
@@ -117,12 +118,36 @@ export async function upsertScoresSnapshotEpoch(): Result<CalculateScoreResult> 
   return [true, undefined, { scores, range }]
 }
 
-export async function isMissingScore(range: Range): Promise<boolean> {
-  const scoreCount = await useDrizzle()
-    .select({ count: count(tables.scores.epochNumber) })
+export async function getLatestScoreEpoch(): Promise<number | null> {
+  const latestScoreEpoch = await useDrizzle()
+    .select({
+      latestScoreEpoch: sql<number>`max(${tables.scores.epochNumber})`,
+    })
     .from(tables.scores)
-    .where(eq(tables.scores.epochNumber, range.toEpoch))
     .get()
-    .then(res => res?.count || 0)
-  return scoreCount === 0
+    .then((res) => {
+      const value = res?.latestScoreEpoch
+      if (value === null || value === undefined)
+        return null
+      if (typeof value === 'number')
+        return value
+
+      const parsed = Number(value)
+      return Number.isFinite(parsed) ? parsed : null
+    })
+
+  return latestScoreEpoch
+}
+
+export async function isScoreMissingWithLag(
+  range: Range,
+  allowedLagEpochs = 1,
+  latestScoreEpoch?: number | null,
+): Promise<boolean> {
+  const epoch = latestScoreEpoch === undefined ? await getLatestScoreEpoch() : latestScoreEpoch
+  return isScoreLagMissing({
+    toEpoch: range.toEpoch,
+    latestScoreEpoch: epoch,
+    allowedLagEpochs,
+  })
 }

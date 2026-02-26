@@ -4,7 +4,7 @@
   "main": "dist/server/index.mjs",
   "assets": { "directory": "dist/public" },
   "account_id": "cf9baad7d68d7ee717f3339731e81dfb",
-  "compatibility_date": "2025-01-01",
+  "compatibility_date": "2026-02-26",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
     "enabled": true,

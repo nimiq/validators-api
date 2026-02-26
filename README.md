@@ -238,7 +238,7 @@ pnpm db:apply:cron-runs:testnet
 | `testnet`         | [Validators API Testnet](https://validators-api-test.workers.dev)         | Manual `wrangler deploy --env testnet` |
 | `testnet-preview` | [Validators API Testnet Preview](https://validators-api-test.workers.dev) | Manual deployment                      |
 
-Each environment has its own D1 database, KV cache, and R2 blob. Sync runs hourly via Cloudflare cron triggers (see `server/tasks/sync/`).
+Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every 12 hours via Cloudflare cron triggers (see `server/tasks/sync/`).
 
 ### Deployment Migration
 
