@@ -1,0 +1,10 @@
+{
+  "name": "Synapse LN - Nimiq",
+  "description": "Reliable Validator - Synapse LN Infrastructure powered by AI. Restake with low fees.",
+  "address": "NQ248V0EL24UTGQ6KAGA0KGYSR4FGVV1SXNA",
+  "fee": 0.01,
+  "payoutType": "restake",
+  "contact": {
+    "twitter": "@Schrotti77"
+  }
+}
