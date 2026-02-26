@@ -4,15 +4,12 @@ export default defineNitroPlugin(async () => {
   if (!import.meta.dev)
     return
 
-  // Import validators on dev branch
-  hubHooks.hookOnce('database:migrations:done', async () => {
-    const { nimiqNetwork, gitBranch } = useSafeRuntimeConfig().public
-    if (gitBranch !== 'dev')
-      return
+  const { nimiqNetwork } = useSafeRuntimeConfig().public
 
-    const [ok, error, validators] = await importValidatorsBundled(nimiqNetwork)
-    if (!ok)
-      throw new Error(`Error importing validators: ${error}`)
-    consola.success(`${validators.length} validators imported successfully`)
-  })
+  const [ok, error, validators] = await importValidatorsBundled(nimiqNetwork)
+  if (!ok) {
+    consola.warn(`Skipping validator import: ${error}`)
+    return
+  }
+  consola.success(`${validators.length} validators imported successfully`)
 })

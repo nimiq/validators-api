@@ -20,7 +20,7 @@ export default defineTask({
 
       const [importSuccess, errorImport, importData] = await importValidatorsBundled(nimiqNetwork)
       if (!importSuccess || !importData) {
-        const error = new Error(errorImport || 'Unable to import validators')
+        const error = new Error(errorImport || 'Unable to import bundled validators')
         await sendSyncFailureNotification('snapshot', error)
         return { result: { success: false, error: errorImport } }
       }

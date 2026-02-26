@@ -19,8 +19,8 @@
 <h2 align="center">Dashboards</h2>
 
 <p align="center">
-<a href="https://validators-api-mainnet.pages.dev" target="_blank">Mainnet</a>&nbsp; &nbsp; &nbsp;
-<a href="https://validators-api-testnet.pages.dev" target="_blank">Testnet</a>
+<a href="https://validators-api-main.workers.dev" target="_blank">Mainnet</a>&nbsp; &nbsp; &nbsp;
+<a href="https://validators-api-test.workers.dev" target="_blank">Testnet</a>
 </p>
 
 <br />
@@ -43,7 +43,7 @@ If you operate a staking pool and want to be displayed in the Nimiq Wallet, foll
 3. Review the [Description Guidelines](#recommendations-for-your-validator-description).
 4. Learn about the [JSON Schema](#validator-json-schema).
 5. Submit a PR to this repository. A Nimiq team member will review your submission within 3 days.
-6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.pages.dev/api/v1/validators) returns your information. This process may take a few minutes.
+6. Once the PR is submitted, check that the [API endpoint](https://validators-api-main.workers.dev/api/v1/validators) returns your information. This process may take a few minutes.
 
 > [!WARNING]
 > Nimiq reserves the right to make minor adjustments to the content submitted by validator owners if necessary.
@@ -113,13 +113,13 @@ The VTS is displayed in the Nimiq Wallet, allowing stakers to compare validators
 The Validators API provides endpoints to retrieve validator information for integration with tools, dashboards, and other applications.
 | Endpoint | Description |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [/api/v1/validators](https://validators-api-mainnet.pages.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
-| [/api/v1/validators/:validator_address](https://validators-api-mainnet.pages.dev/api/v1/validators/NQ7700000000000000000000000000000001) | Retrieves the validator information |
-| [/api/v1/supply](https://validators-api-mainnet.pages.dev/api/v1/supply) | Retrieves supply status |
+| [/api/v1/validators](https://validators-api-main.workers.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
+| [/api/v1/validators/:validator_address](https://validators-api-main.workers.dev/api/v1/validators/NQ7700000000000000000000000000000001) | Retrieves the validator information |
+| [/api/v1/supply](https://validators-api-main.workers.dev/api/v1/supply) | Retrieves supply status |
 
 ## Validators Dashboard
 
-The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-mainnet.pages.dev/
+The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-main.workers.dev/
 
 > [!TIP]
 > Check also the [deployment](#deployment) section to learn how to access to the `testnet` and `preview` environments.
@@ -231,13 +231,24 @@ pnpm db:apply:cron-runs:testnet
 
 **Environments** (configured in `wrangler.json`):
 
-| Environment       | Dashboard URL                                                                  | Trigger            |
-| ----------------- | ------------------------------------------------------------------------------ | ------------------ |
-| `production`      | [Validators API Mainnet](https://validators-api-mainnet.pages.dev)             | Push to `main`     |
-| `preview`         | [Validators API Mainnet Preview](https://dev.validators-api-mainnet.pages.dev) | Push to any branch |
-| `testnet`         | [Validators API Testnet](https://validators-api-testnet.pages.dev)             | Push to `main`     |
-| `testnet-preview` | [Validators API Testnet Preview](https://dev.validators-api-testnet.pages.dev) | Push to any branch |
+| Environment       | Dashboard URL                                                             | Trigger                                |
+| ----------------- | ------------------------------------------------------------------------- | -------------------------------------- |
+| `production`      | [Validators API Mainnet](https://validators-api-main.workers.dev)         | Manual `wrangler deploy`               |
+| `preview`         | [Validators API Mainnet Preview](https://validators-api-main.workers.dev) | Manual deployment                      |
+| `testnet`         | [Validators API Testnet](https://validators-api-test.workers.dev)         | Manual `wrangler deploy --env testnet` |
+| `testnet-preview` | [Validators API Testnet Preview](https://validators-api-test.workers.dev) | Manual deployment                      |
 
 Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every 12 hours via Cloudflare cron triggers (see `server/tasks/sync/`).
+
+### Deployment Migration
+
+Migrated from Cloudflare Pages to Workers for cron job support.
+
+**Old URLs (redirect to Workers):**
+
+- `validators-api-mainnet.pages.dev` → `validators-api-main.workers.dev`
+- `validators-api-testnet.pages.dev` → `validators-api-test.workers.dev`
+
+Setup redirects per [MIGRATION.md](./MIGRATION.md).
 
 **Write operations to `main` are restricted**, only via PR.
