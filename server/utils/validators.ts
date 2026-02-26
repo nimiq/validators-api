@@ -10,9 +10,84 @@ import { fetchSnapshotEpoch } from '~~/packages/nimiq-validator-trustscore/src/f
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON } from './schemas'
+import { PayoutType } from './types'
+import { getUnlistedActiveValidatorAddresses, isKnownValidatorProfile } from './validator-listing'
 
 export const getStoredValidatorsId = () => useDrizzle().select({ id: tables.validators.id }).from(tables.validators).execute().then(r => r.map(v => v.id))
 export const getStoredValidatorsAddress = () => useDrizzle().select({ address: tables.validators.address }).from(tables.validators).execute().then(r => r.map(v => v.address))
+
+function isMissingIsListedColumnError(error: unknown) {
+  const message = String(error)
+  return message.includes('is_listed')
+    && (message.includes('no such column') || message.includes('has no column named'))
+}
+
+let hasWarnedMissingIsListedColumn = false
+
+const validatorFieldsWithoutListState = {
+  id: tables.validators.id,
+  name: tables.validators.name,
+  address: tables.validators.address,
+  description: tables.validators.description,
+  fee: tables.validators.fee,
+  payoutType: tables.validators.payoutType,
+  payoutSchedule: tables.validators.payoutSchedule,
+  isMaintainedByNimiq: tables.validators.isMaintainedByNimiq,
+  logo: tables.validators.logo,
+  hasDefaultLogo: tables.validators.hasDefaultLogo,
+  accentColor: tables.validators.accentColor,
+  website: tables.validators.website,
+  contact: tables.validators.contact,
+}
+const validatorFieldsWithListState = {
+  ...validatorFieldsWithoutListState,
+  isListed: tables.validators.isListed,
+}
+
+async function selectValidatorsWithOptionalListState(filters: SQLWrapper[] = []) {
+  try {
+    const query = useDrizzle().select(validatorFieldsWithListState).from(tables.validators)
+    return filters.length > 0
+      ? await query.where(and(...filters)).execute()
+      : await query.execute()
+  }
+  catch (error) {
+    if (!isMissingIsListedColumnError(error))
+      throw error
+
+    if (!hasWarnedMissingIsListedColumn) {
+      hasWarnedMissingIsListedColumn = true
+      consola.warn('`validators.is_listed` column is missing, reading validators without list state until migration is applied')
+    }
+
+    const query = useDrizzle().select(validatorFieldsWithoutListState).from(tables.validators)
+    const rows = filters.length > 0
+      ? await query.where(and(...filters)).execute()
+      : await query.execute()
+    return rows.map(row => ({ ...row, isListed: null as boolean | null }))
+  }
+}
+
+export async function getStoredValidatorsListState() {
+  try {
+    return await useDrizzle()
+      .select({ address: tables.validators.address, isListed: tables.validators.isListed })
+      .from(tables.validators)
+      .execute()
+  }
+  catch (error) {
+    if (!isMissingIsListedColumnError(error))
+      throw error
+
+    if (!hasWarnedMissingIsListedColumn) {
+      hasWarnedMissingIsListedColumn = true
+      consola.warn('`validators.is_listed` column is missing, using backwards-compatible fallback until migration is applied')
+    }
+
+    const addresses = await getStoredValidatorsAddress()
+    return addresses.map(address => ({ address, isListed: null }))
+  }
+}
 
 const validators = new Map<string, number>()
 
@@ -22,6 +97,12 @@ interface StoreValidatorOptions {
    * @default false
    */
   upsert?: boolean
+
+  /**
+   * Controls if the validator should appear in `only-known=true`.
+   * @default false
+   */
+  isListed?: boolean
 }
 
 export async function storeValidator(address: string, rest: ValidatorJSON = defaultValidatorJSON, options: StoreValidatorOptions = {}): Promise<number | undefined> {
@@ -34,7 +115,7 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
     return
   }
 
-  const { upsert = false } = options
+  const { upsert = false, isListed = false } = options
 
   // If the validator is cached and upsert is not true, return it
   if (!upsert && validators.has(address)) {
@@ -59,29 +140,99 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
   consola.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`)
 
   const brandingParameters = await handleValidatorLogo(address, rest)
+  const valuesWithoutListState = { ...rest, ...brandingParameters }
+  const valuesWithListState = { ...valuesWithoutListState, isListed }
+
   try {
     if (validatorId) {
       await useDrizzle()
         .update(tables.validators)
-        .set({ ...rest, ...brandingParameters })
+        .set(valuesWithListState)
         .where(eq(tables.validators.id, validatorId))
         .execute()
     }
     else {
       validatorId = await useDrizzle()
         .insert(tables.validators)
-        .values({ ...rest, address, ...brandingParameters })
+        .values({ ...valuesWithListState, address })
         .returning()
         .get()
         .then(r => r.id)
     }
   }
   catch (e) {
-    consola.error(`There was an error while writing ${address} into the database`, e)
+    if (!isMissingIsListedColumnError(e)) {
+      consola.error(`There was an error while writing ${address} into the database`, e)
+    }
+    else {
+      if (!hasWarnedMissingIsListedColumn) {
+        hasWarnedMissingIsListedColumn = true
+        consola.warn('`validators.is_listed` column is missing, storing validators without list state until migration is applied')
+      }
+
+      try {
+        if (validatorId) {
+          await useDrizzle()
+            .update(tables.validators)
+            .set(valuesWithoutListState)
+            .where(eq(tables.validators.id, validatorId))
+            .execute()
+        }
+        else {
+          validatorId = await useDrizzle()
+            .insert(tables.validators)
+            .values({ ...valuesWithoutListState, address })
+            .returning()
+            .get()
+            .then(r => r.id)
+        }
+      }
+      catch (fallbackError) {
+        consola.error(`There was an error while writing ${address} into the database`, fallbackError)
+      }
+    }
   }
 
   validators.set(address, validatorId!)
   return validatorId
+}
+
+export async function markValidatorsAsUnlisted(addresses: string[]) {
+  await Promise.all(addresses.map(async (address) => {
+    const brandingParameters = await handleValidatorLogo(address, defaultValidatorJSON)
+    const valuesWithoutListState = {
+      name: 'Unknown validator',
+      description: null,
+      fee: null,
+      payoutType: PayoutType.None,
+      payoutSchedule: '',
+      isMaintainedByNimiq: false,
+      website: null,
+      contact: null,
+      ...brandingParameters,
+    }
+
+    try {
+      await useDrizzle()
+        .update(tables.validators)
+        .set({
+          ...valuesWithoutListState,
+          isListed: false,
+        })
+        .where(eq(tables.validators.address, address))
+        .execute()
+    }
+    catch (error) {
+      if (!isMissingIsListedColumnError(error))
+        throw error
+
+      await useDrizzle()
+        .update(tables.validators)
+        .set(valuesWithoutListState)
+        .where(eq(tables.validators.address, address))
+        .execute()
+    }
+  }))
 }
 
 export type FetchValidatorsOptions = MainQuerySchema & { epochNumber: number }
@@ -98,16 +249,12 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
   const filters: SQLWrapper[] = []
   if (payoutType)
     filters.push(eq(tables.validators.payoutType, payoutType))
-  if (onlyKnown)
-    filters.push(sql`lower(${tables.validators.name}) NOT LIKE lower('%Unknown validator%')`)
 
   try {
-    const validatorsQuery = useDrizzle().select().from(tables.validators)
-    const dbValidators = filters.length > 0
-      ? await validatorsQuery.where(and(...filters)).execute()
-      : await validatorsQuery.execute()
+    const dbValidators = await selectValidatorsWithOptionalListState(filters)
 
-    const validatorIds = dbValidators.map(v => v.id)
+    const visibleValidators = onlyKnown ? dbValidators.filter(isKnownValidatorProfile) : dbValidators
+    const validatorIds = visibleValidators.map(v => v.id)
     if (validatorIds.length === 0)
       return [true, undefined, []]
 
@@ -172,7 +319,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
     const scoresByValidatorId = new Map(scoresRows.map(row => [row.validatorId, row]))
     const activityByValidatorId = new Map(activityRows.map(row => [row.validatorId, row]))
 
-    const validators = dbValidators.map((validator) => {
+    const validators = visibleValidators.map((validator) => {
       const { logo, contact, hasDefaultLogo, ...rest } = validator
       const scoreRow = scoresByValidatorId.get(validator.id)
       const activityRow = activityByValidatorId.get(validator.id)
@@ -237,11 +384,7 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
   const { address, range: { fromEpoch, toEpoch } } = params
 
   try {
-    const validator = await useDrizzle()
-      .select()
-      .from(tables.validators)
-      .where(eq(tables.validators.address, address))
-      .get()
+    const validator = (await selectValidatorsWithOptionalListState([eq(tables.validators.address, address)])).at(0)
 
     if (!validator)
       return [false, `Validator with address ${address} not found`, undefined]
@@ -301,11 +444,13 @@ export async function categorizeValidatorsSnapshotEpoch(): Result<SnapshotEpochV
   if (!epochOk)
     return [false, error, undefined]
 
-  const dbAddresses = await getStoredValidatorsAddress()
+  const storedValidators = await getStoredValidatorsListState()
+  const dbAddresses = storedValidators.map(v => v.address)
   const electedValidators = epoch.validators.filter(v => v.elected) as ElectedValidator[]
   const unelectedValidators = epoch.validators.filter(v => !v.elected) as UnelectedValidator[]
   const untrackedValidators = electedValidators.filter(v => !dbAddresses.includes(v.address)) as (ElectedValidator & UnelectedValidator)[]
   const deletedValidators = dbAddresses.filter(dbAddress => !epoch.validators.map(v => v.address).includes(dbAddress))
+  const unlistedActiveValidators = getUnlistedActiveValidatorAddresses(epoch.validators, storedValidators)
 
   return [true, undefined, {
     epochNumber: epoch.epochNumber,
@@ -313,5 +458,6 @@ export async function categorizeValidatorsSnapshotEpoch(): Result<SnapshotEpochV
     unelectedValidators,
     untrackedValidators,
     deletedValidators,
+    unlistedActiveValidators,
   }]
 }
