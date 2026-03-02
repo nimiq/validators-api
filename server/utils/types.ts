@@ -25,7 +25,7 @@ export interface SnapshotEpochValidators {
 type Nullable<T> = {
   [K in keyof T]: T[K] | null
 }
-export type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & Pick<Activity, 'balance' | 'stakers'> & {
+export type FetchedValidator = Omit<Validator, 'logo' | 'contact' | 'isListed'> & Pick<Activity, 'balance' | 'stakers'> & {
   logo?: string
   score: Nullable<Pick<Score, 'total' | 'availability' | 'reliability' | 'dominance' | 'epochNumber'>>
   dominanceRatio: number | null
