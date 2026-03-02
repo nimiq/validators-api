@@ -5,7 +5,7 @@ import type { Activity, Score, Validator } from './drizzle'
 import type { MainQuerySchema, ValidatorJSON } from './schemas'
 import type { FetchedValidator, SnapshotEpochValidators } from './types'
 import { consola } from 'consola'
-import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm'
+import { and, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm'
 import { fetchSnapshotEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
@@ -399,6 +399,18 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
       ))
       .execute()
 
+    const score = await useDrizzle()
+      .select()
+      .from(tables.scores)
+      .where(and(
+        eq(tables.scores.validatorId, validator.id),
+        gte(tables.scores.epochNumber, fromEpoch),
+        lte(tables.scores.epochNumber, toEpoch),
+      ))
+      .orderBy(desc(tables.scores.epochNumber))
+      .limit(1)
+      .then(rows => rows.at(0))
+
     const activity = await useDrizzle()
       .select()
       .from(tables.activity)
@@ -409,7 +421,6 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
       ))
       .execute()
 
-    const score = scores.sort((a, b) => a.epochNumber < b.epochNumber ? 1 : -1).at(0)
     return [true, undefined, { ...validator, scores, activity, score }]
   }
   catch (error) {
