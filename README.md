@@ -229,6 +229,24 @@ Testnet:
 pnpm db:apply:cron-runs:testnet
 ```
 
+Required schema:
+
+- `validators.is_listed` must exist in all remote D1 databases.
+
+If the column is missing, apply it manually:
+
+Mainnet:
+
+```bash
+pnpm db:apply:is-listed:mainnet
+```
+
+Testnet:
+
+```bash
+pnpm db:apply:is-listed:testnet
+```
+
 **Environments** (configured in `wrangler.json`):
 
 | Environment       | Dashboard URL                                                             | Trigger                                |

@@ -1,8 +1,5 @@
-const UNKNOWN_VALIDATOR_NAME = 'Unknown validator'
-
 interface ValidatorListState {
   isListed: boolean | null
-  name: string
 }
 
 interface ValidatorAddress {
@@ -13,10 +10,8 @@ interface StoredValidatorAddressState extends ValidatorAddress {
   isListed: boolean | null
 }
 
-export function isKnownValidatorProfile({ isListed, name }: ValidatorListState) {
-  if (typeof isListed === 'boolean')
-    return isListed
-  return name.toLowerCase() !== UNKNOWN_VALIDATOR_NAME.toLowerCase()
+export function isKnownValidatorProfile({ isListed }: ValidatorListState) {
+  return isListed === true
 }
 
 export function getUnlistedAddresses(storedAddresses: string[], bundledAddresses: Set<string>) {
