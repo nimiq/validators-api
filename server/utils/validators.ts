@@ -44,6 +44,13 @@ const validatorFieldsWithListState = {
   isListed: tables.validators.isListed,
 }
 
+export function filterVisibleValidators<T extends { isListed: boolean | null, name: string }>(validators: T[], onlyKnown: boolean): T[] {
+  if (!onlyKnown)
+    return validators
+
+  return validators.filter(isKnownValidatorProfile)
+}
+
 async function selectValidatorsWithOptionalListState(filters: SQLWrapper[] = []) {
   try {
     const query = useDrizzle().select(validatorFieldsWithListState).from(tables.validators)
@@ -117,12 +124,10 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
 
   const { upsert = false, isListed = false } = options
 
-  // If the validator is cached and upsert is not true, return it
   if (!upsert && validators.has(address)) {
     return validators.get(address)
   }
 
-  // Check if the validator already exists in the database
   let validatorId = await useDrizzle()
     .select({ id: tables.validators.id })
     .from(tables.validators)
@@ -130,7 +135,6 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
     .get()
     .then(r => r?.id)
 
-  // If the validator exists and upsert is not true, return it
   if (!upsert && validatorId) {
     consola.info(`Validator ${address} already exists in the database`)
     validators.set(address, validatorId)
@@ -238,9 +242,8 @@ export async function markValidatorsAsUnlisted(addresses: string[]) {
 export type FetchValidatorsOptions = MainQuerySchema & { epochNumber: number }
 
 export async function fetchValidators(_event: H3Event, params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons, epochNumber } = params
+  const { 'payout-type': payoutType, 'only-known': onlyKnown = true, 'with-identicons': withIdenticons, epochNumber } = params
 
-  // Add safety check for epochNumber
   if (epochNumber === null || epochNumber === undefined || !Number.isInteger(epochNumber)) {
     consola.error(`Invalid epochNumber: ${epochNumber}`)
     return [false, `Invalid epochNumber: ${epochNumber}`, undefined]
@@ -253,7 +256,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
   try {
     const dbValidators = await selectValidatorsWithOptionalListState(filters)
 
-    const visibleValidators = onlyKnown ? dbValidators.filter(isKnownValidatorProfile) : dbValidators
+    const visibleValidators = filterVisibleValidators(dbValidators, onlyKnown)
     const validatorIds = visibleValidators.map(v => v.id)
     if (validatorIds.length === 0)
       return [true, undefined, []]

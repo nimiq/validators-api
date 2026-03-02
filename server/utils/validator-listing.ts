@@ -14,8 +14,10 @@ interface StoredValidatorAddressState extends ValidatorAddress {
 }
 
 export function isKnownValidatorProfile({ isListed, name }: ValidatorListState) {
-  if (typeof isListed === 'boolean')
+  if (typeof isListed === 'boolean') {
     return isListed
+  }
+
   return name.toLowerCase() !== UNKNOWN_VALIDATOR_NAME.toLowerCase()
 }
 
