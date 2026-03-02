@@ -13,6 +13,7 @@ import { getRpcUrl } from '~~/server/utils/rpc'
  *   - The addresses of the active validators in the current epoch
  *   - The addresses of inactive validators
  *   - The addresses of untracked validators (new validators)
+ *   - The addresses of active validators with removed profile metadata (`unlistedActiveValidators`)
  *   - The addresses of all validators regardless of their status
  *
  *   Blockchain information:

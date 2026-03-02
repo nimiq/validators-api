@@ -1,4 +1,4 @@
-CREATE TABLE `cron_runs` (
+CREATE TABLE IF NOT EXISTS `cron_runs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`cron` text NOT NULL,
 	`network` text NOT NULL,
@@ -10,5 +10,4 @@ CREATE TABLE `cron_runs` (
 	`meta` text
 );
 --> statement-breakpoint
-CREATE INDEX `idx_cron_runs_started_at` ON `cron_runs` (`started_at`);
-
+CREATE INDEX IF NOT EXISTS `idx_cron_runs_started_at` ON `cron_runs` (`started_at`);
