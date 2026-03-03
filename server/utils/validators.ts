@@ -11,7 +11,6 @@ import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON } from './schemas'
 import { getUnlistedActiveValidatorAddresses, isKnownValidatorProfile } from './validator-listing'
-import { stripInternalValidatorFields } from './validator-public'
 
 export const getStoredValidatorsId = () => useDrizzle().select({ id: tables.validators.id }).from(tables.validators).execute().then(r => r.map(v => v.id))
 export const getStoredValidatorsAddress = () => useDrizzle().select({ address: tables.validators.address }).from(tables.validators).execute().then(r => r.map(v => v.address))
@@ -37,6 +36,13 @@ async function selectValidatorsWithListState(filters: SQLWrapper[] = []) {
   return filters.length > 0
     ? await query.where(and(...filters)).execute()
     : await query.execute()
+}
+
+export function filterVisibleValidators<T extends { isListed: boolean | null, name: string }>(validators: T[], onlyKnown: boolean): T[] {
+  if (!onlyKnown)
+    return validators
+
+  return validators.filter(isKnownValidatorProfile)
 }
 
 export async function getStoredValidatorsListState() {
@@ -137,7 +143,7 @@ export async function markValidatorsAsUnlisted(addresses: string[]) {
 export type FetchValidatorsOptions = MainQuerySchema & { epochNumber: number }
 
 export async function fetchValidators(_event: H3Event, params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, 'only-known': onlyKnown = false, 'with-identicons': withIdenticons, epochNumber } = params
+  const { 'payout-type': payoutType, 'only-known': onlyKnown = true, 'with-identicons': withIdenticons, epochNumber } = params
 
   // Add safety check for epochNumber
   if (epochNumber === null || epochNumber === undefined || !Number.isInteger(epochNumber)) {
@@ -152,7 +158,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
   try {
     const dbValidators = await selectValidatorsWithListState(filters)
 
-    const visibleValidators = onlyKnown ? dbValidators.filter(isKnownValidatorProfile) : dbValidators
+    const visibleValidators = filterVisibleValidators(dbValidators, onlyKnown)
     const validatorIds = visibleValidators.map(v => v.id)
     if (validatorIds.length === 0)
       return [true, undefined, []]
@@ -219,8 +225,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
     const activityByValidatorId = new Map(activityRows.map(row => [row.validatorId, row]))
 
     const validators = visibleValidators.map((validator) => {
-      const { logo, hasDefaultLogo } = validator
-      const rest = stripInternalValidatorFields(validator)
+      const { logo, hasDefaultLogo, contact: _contact, isListed, ...rest } = validator
       const scoreRow = scoresByValidatorId.get(validator.id)
       const activityRow = activityByValidatorId.get(validator.id)
 
@@ -243,6 +248,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
 
       return {
         ...rest,
+        isListed,
         score,
         hasDefaultLogo,
         logo: withIdenticons === false && hasDefaultLogo ? undefined : logo,
@@ -278,7 +284,7 @@ export const cachedFetchValidators = defineCachedFunction((_event: H3Event, para
 })
 
 export interface FetchValidatorOptions { address: string, range: Range }
-export type FetchedValidatorDetails = Omit<Validator, 'isListed'> & { activity: Activity[], scores: Score[], score?: Score }
+export type FetchedValidatorDetails = Validator & { activity: Activity[], scores: Score[], score?: Score }
 
 export async function fetchValidator(_event: H3Event, params: FetchValidatorOptions): Result<FetchedValidatorDetails> {
   const { address, range: { fromEpoch, toEpoch } } = params
@@ -321,8 +327,7 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
       ))
       .execute()
 
-    const publicValidator = stripInternalValidatorFields(validator)
-    return [true, undefined, { ...publicValidator, scores, activity, score }]
+    return [true, undefined, { ...validator, scores, activity, score }]
   }
   catch (error) {
     consola.error(`Error fetching validator ${address}: ${error}`)
