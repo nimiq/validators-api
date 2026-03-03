@@ -157,7 +157,7 @@ export default defineNuxtConfig({
     },
 
     externals: {
-      external: ['ws'],
+      external: ['ws', '@unovis/ts', '@unovis/vue', 'vue-chrts', 'elkjs'],
     },
   },
 
