@@ -249,12 +249,10 @@ pnpm db:apply:is-listed:testnet
 
 **Environments** (configured in `wrangler.json`):
 
-| Environment | Dashboard URL | Trigger |
-| --- | --- | --- |
-| `production` | [Validators API Mainnet](https://validators-api-mainnet.pages.dev) | Manual `wrangler deploy` |
-| `preview` | [Validators API Mainnet Preview](https://validators-api-mainnet.pages.dev) | Manual deployment |
-| `testnet` | [Validators API Testnet](https://validators-api-testnet.pages.dev) | Manual `wrangler deploy --env testnet` |
-| `testnet-preview` | [Validators API Testnet Preview](https://validators-api-testnet.pages.dev) | Manual deployment |
+- `production`: [Validators API Mainnet](https://validators-api-mainnet.pages.dev) via manual `wrangler deploy`
+- `preview`: [Validators API Mainnet Preview](https://validators-api-mainnet.pages.dev) via manual deployment
+- `testnet`: [Validators API Testnet](https://validators-api-testnet.pages.dev) via manual `wrangler deploy --env testnet`
+- `testnet-preview`: [Validators API Testnet Preview](https://validators-api-testnet.pages.dev) via manual deployment
 
 Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every 12 hours via Cloudflare cron triggers (see `server/tasks/sync/`).
 
