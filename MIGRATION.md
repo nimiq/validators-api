@@ -13,8 +13,8 @@ To maintain backwards compatibility, configure the old Pages deployments to redi
 Create `_redirects` file in the Pages project root:
 
 ```
-/api/*  https://validators-api-main.workers.dev/api/:splat  301
-/*      https://validators-api-main.workers.dev/:splat       301
+/api/*  https://validators-api-main.je-cf9.workers.dev/api/:splat  301
+/*      https://validators-api-main.je-cf9.workers.dev/:splat       301
 ```
 
 Deploy this file to `validators-api-mainnet` Pages project.
@@ -24,8 +24,8 @@ Deploy this file to `validators-api-mainnet` Pages project.
 Create `_redirects` file in the Pages project root:
 
 ```
-/api/*  https://validators-api-test.workers.dev/api/:splat  301
-/*      https://validators-api-test.workers.dev/:splat       301
+/api/*  https://validators-api-test.je-cf9.workers.dev/api/:splat  301
+/*      https://validators-api-test.je-cf9.workers.dev/:splat       301
 ```
 
 Deploy this file to `validators-api-testnet` Pages project.
@@ -36,11 +36,11 @@ Go to Cloudflare Dashboard → Pages → [Project] → Rules → Redirects:
 
 **Mainnet:**
 
-- Source: `/*` → Destination: `https://validators-api-main.workers.dev/$1` (301)
+- Source: `/*` → Destination: `https://validators-api-main.je-cf9.workers.dev/$1` (301)
 
 **Testnet:**
 
-- Source: `/*` → Destination: `https://validators-api-test.workers.dev/$1` (301)
+- Source: `/*` → Destination: `https://validators-api-test.je-cf9.workers.dev/$1` (301)
 
 ## Verification
 
@@ -48,10 +48,10 @@ Test redirects work:
 
 ```bash
 curl -I https://validators-api-mainnet.pages.dev/api/v1/status
-# Should return 301 redirect to validators-api-main.workers.dev
+# Should return 301 redirect to validators-api-main.je-cf9.workers.dev
 
 curl -I https://validators-api-testnet.pages.dev/api/v1/status
-# Should return 301 redirect to validators-api-test.workers.dev
+# Should return 301 redirect to validators-api-test.je-cf9.workers.dev
 ```
 
 ## Timeline
