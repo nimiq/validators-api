@@ -15,8 +15,8 @@ const { gitBranch, nimiqNetwork } = useSafeRuntimeConfig().public
 interface EnvItemType { branch: string, network: string, link: string }
 
 const environments: EnvItemType[] = [
-  { branch: 'main', network: 'main-albatross', link: 'https://validators-api-mainnet.pages.dev/' },
-  { branch: 'main', network: 'test-albatross', link: 'https://validators-api-testnet.pages.dev/' },
+  { branch: 'main', network: 'main-albatross', link: 'https://validators-api-main.je-cf9.workers.dev/' },
+  { branch: 'main', network: 'test-albatross', link: 'https://validators-api-test.je-cf9.workers.dev/' },
   { branch: 'dev', network: 'main-albatross', link: 'https://dev.validators-api-mainnet.pages.dev/' },
   { branch: 'dev', network: 'test-albatross', link: 'https://dev.validators-api-testnet.pages.dev/' },
 

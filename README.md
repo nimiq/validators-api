@@ -19,8 +19,8 @@
 <h2 align="center">Dashboards</h2>
 
 <p align="center">
-<a href="https://validators-api-mainnet.pages.dev" target="_blank">Mainnet</a>&nbsp; &nbsp; &nbsp;
-<a href="https://validators-api-testnet.pages.dev" target="_blank">Testnet</a>
+<a href="https://validators-api-main.je-cf9.workers.dev" target="_blank">Mainnet</a>&nbsp; &nbsp; &nbsp;
+<a href="https://validators-api-test.je-cf9.workers.dev" target="_blank">Testnet</a>
 </p>
 
 <br />
@@ -43,7 +43,7 @@ If you operate a staking pool and want to be displayed in the Nimiq Wallet, foll
 3. Review the [Description Guidelines](#recommendations-for-your-validator-description).
 4. Learn about the [JSON Schema](#validator-json-schema).
 5. Submit a PR to this repository. A Nimiq team member will review your submission within 3 days.
-6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.pages.dev/api/v1/validators) returns your information. This process may take a few minutes.
+6. Once the PR is submitted, check that the [API endpoint](https://validators-api-main.je-cf9.workers.dev/api/v1/validators) returns your information. This process may take a few minutes.
 
 > [!WARNING]
 > Nimiq reserves the right to make minor adjustments to the content submitted by validator owners if necessary.
@@ -113,13 +113,13 @@ The VTS is displayed in the Nimiq Wallet, allowing stakers to compare validators
 The Validators API provides endpoints to retrieve validator information for integration with tools, dashboards, and other applications.
 | Endpoint | Description |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [/api/v1/validators](https://validators-api-mainnet.pages.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
-| [/api/v1/validators/:validator_address](https://validators-api-mainnet.pages.dev/api/v1/validators/NQ7700000000000000000000000000000001) | Retrieves the validator information |
-| [/api/v1/supply](https://validators-api-mainnet.pages.dev/api/v1/supply) | Retrieves supply status |
+| [/api/v1/validators](https://validators-api-main.je-cf9.workers.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
+| [/api/v1/validators/:validator_address](https://validators-api-main.je-cf9.workers.dev/api/v1/validators/NQ7700000000000000000000000000000001) | Retrieves the validator information |
+| [/api/v1/supply](https://validators-api-main.je-cf9.workers.dev/api/v1/supply) | Retrieves supply status |
 
 ## Validators Dashboard
 
-The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-mainnet.pages.dev/
+The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-main.je-cf9.workers.dev/
 
 > [!TIP]
 > Check also the [deployment](#deployment) section to learn how to access to the `testnet` and `preview` environments.
@@ -249,10 +249,10 @@ pnpm db:apply:is-listed:testnet
 
 **Environments** (configured in `wrangler.json`):
 
-- `production`: [Validators API Mainnet](https://validators-api-mainnet.pages.dev) via manual `wrangler deploy`
-- `preview`: [Validators API Mainnet Preview](https://validators-api-mainnet.pages.dev) via manual deployment
-- `testnet`: [Validators API Testnet](https://validators-api-testnet.pages.dev) via manual `wrangler deploy --env testnet`
-- `testnet-preview`: [Validators API Testnet Preview](https://validators-api-testnet.pages.dev) via manual deployment
+- `production`: [Validators API Mainnet](https://validators-api-main.je-cf9.workers.dev) via manual `wrangler deploy`
+- `preview`: [Validators API Mainnet Preview](https://validators-api-main.je-cf9.workers.dev) via manual deployment
+- `testnet`: [Validators API Testnet](https://validators-api-test.je-cf9.workers.dev) via manual `wrangler deploy --env testnet`
+- `testnet-preview`: [Validators API Testnet Preview](https://validators-api-test.je-cf9.workers.dev) via manual deployment
 
 Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every 12 hours via Cloudflare cron triggers (see `server/tasks/sync/`).
 
