@@ -122,7 +122,7 @@ The Validators API provides endpoints to retrieve validator information for inte
 The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-main.je-cf9.workers.dev/
 
 > [!TIP]
-> Check also the [deployment](#deployment) section to learn how to access to the `testnet` and `preview` environments.
+> Check also the [deployment](#deployment) section to learn how to access the `testnet` environment.
 
 ## How the API works
 
@@ -209,7 +209,7 @@ Deployed via Wrangler CLI with `wrangler.json` config:
 pnpm build && npx wrangler --cwd .output deploy [-e env]
 ```
 
-Where `env`: `preview`, `testnet`, or `testnet-preview` (omit for mainnet production).
+Where `env`: `testnet` (omit `-e env` for mainnet production).
 
 **Required secrets:** `ALBATROSS_RPC_NODE_URL`, `NUXT_SLACK_WEBHOOK_URL`
 
@@ -250,15 +250,13 @@ pnpm db:apply:is-listed:testnet
 **Environments** (configured in `wrangler.json`):
 
 - `production`: [Validators API Mainnet](https://validators-api-main.je-cf9.workers.dev) via manual `wrangler deploy`
-- `preview`: [Validators API Mainnet Preview](https://validators-api-main.je-cf9.workers.dev) via manual deployment
 - `testnet`: [Validators API Testnet](https://validators-api-test.je-cf9.workers.dev) via manual `wrangler deploy --env testnet`
-- `testnet-preview`: [Validators API Testnet Preview](https://validators-api-test.je-cf9.workers.dev) via manual deployment
 
 Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every 12 hours via Cloudflare cron triggers (see `server/tasks/sync/`).
 
 ### Deployment Migration
 
-Migrated from Cloudflare Pages to Workers for cron job support.
+Migrated from Cloudflare Pages to Workers for cron job support. Pages URLs remain legacy redirects only and are not active deployment targets.
 
 **Old URLs (redirect to Workers):**
 

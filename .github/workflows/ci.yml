@@ -12,7 +12,7 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    environment: preview-testnet
+    environment: testnet
     steps:
       - uses: actions/checkout@v4
 
