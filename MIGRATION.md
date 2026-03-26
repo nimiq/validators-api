@@ -59,4 +59,4 @@ curl -I https://validators-api-testnet.pages.dev/api/v1/status
 1. Verify Workers fully operational
 2. Deploy redirects to Pages projects
 3. Monitor for 1-2 weeks
-4. (Optional) Deprecate .pages.dev URLs and add custom domain
+4. (Optional) Deprecate legacy `.pages.dev` URLs and add a custom domain

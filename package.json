@@ -15,7 +15,7 @@
     "dev:packages": "nr -C packages -r dev",
     "build": "pnpm validators:bundle:generate && nr -r build && NODE_OPTIONS=--max-old-space-size=4096 nuxt build",
     "generate": "nuxt generate",
-    "preview": "npx wrangler --cwd .output dev",
+    "worker:dev": "npx wrangler --cwd .output dev",
     "postinstall": "nuxt prepare",
     "prepublishOnly": "nr build",
     "typecheck": "nuxt typecheck && nr -r typecheck",

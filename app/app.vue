@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { EnvItemType } from './utils/environments'
+import { environments, getEnvironmentItem } from './utils/environments'
+
 const { data: status, status: statusRequest, refresh: refreshStatus, error } = await useFetch('/api/v1/status', { server: true, lazy: false })
 
 const colorMode = useColorMode()
@@ -10,32 +13,18 @@ const isActivitySync = computed(() => Boolean(status.value?.missingEpochs?.lengt
 const isScoreSync = computed(() => status.value?.missingScore === false)
 const isSynced = computed(() => isActivitySync.value && isScoreSync.value)
 
-const { gitBranch, nimiqNetwork } = useSafeRuntimeConfig().public
-
-interface EnvItemType { branch: string, network: string, link: string }
-
-const environments: EnvItemType[] = [
-  { branch: 'main', network: 'main-albatross', link: 'https://validators-api-main.je-cf9.workers.dev/' },
-  { branch: 'main', network: 'test-albatross', link: 'https://validators-api-test.je-cf9.workers.dev/' },
-  { branch: 'dev', network: 'main-albatross', link: 'https://dev.validators-api-mainnet.pages.dev/' },
-  { branch: 'dev', network: 'test-albatross', link: 'https://dev.validators-api-testnet.pages.dev/' },
-
-]
+const { nimiqNetwork } = useSafeRuntimeConfig().public
 const [DefineEnvItem, EnvItem] = createReusableTemplate<{ item: EnvItemType, component: string }>()
 
-const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environments.find(env => env.branch === gitBranch && env.network === nimiqNetwork)?.link || '' }
+const currentEnvItem = getEnvironmentItem(nimiqNetwork) ?? { network: nimiqNetwork, link: '' }
 </script>
 
 <template>
-  <DefineEnvItem v-slot="{ item: { branch, network, link }, component }">
-    <component :is="component" :href="component === 'a' ? link : undefined" flex="~ col gap-2" f-px-2xs :title="`Nimiq network: ${network}.\nGit branch: ${branch}.`">
+  <DefineEnvItem v-slot="{ item: { network, link }, component }">
+    <component :is="component" :href="component === 'a' ? link : undefined" flex="~ col gap-2" f-px-2xs :title="`Nimiq network: ${network}.`">
       <div text="current f-xs" flex="~ gap-4 items-center">
         <div i-nimiq:globe scale-80 text-neutral-600 />
         <span nq-label text="9 neutral-800">{{ network }}</span>
-      </div>
-      <div text="current f-xs" flex="~ gap-4 items-center">
-        <div i-tabler:git-branch text-neutral-600 />
-        <span nq-label text="9 neutral-800">{{ branch }}</span>
       </div>
     </component>
   </DefineEnvItem>
@@ -64,7 +53,7 @@ const currentEnvItem = { branch: gitBranch, network: nimiqNetwork, link: environ
             </CollapsibleContent>
           </CollapsibleRoot>
 
-          <div flex="~ items-center gap-8" f-px-2xs py-6 whitespace-nowrap :title="`Status for git+${gitBranch}@nimiq+${nimiqNetwork}`" :class="statusRequest === 'pending' ? 'bg-neutral-400' : isSynced ? 'bg-green-400' : 'bg-red-400'">
+          <div flex="~ items-center gap-8" f-px-2xs py-6 whitespace-nowrap :title="`Status for nimiq+${nimiqNetwork}`" :class="statusRequest === 'pending' ? 'bg-neutral-400' : isSynced ? 'bg-green-400' : 'bg-red-400'">
             <template v-if="statusRequest === 'pending'">
               <div i-nimiq:spinner />
               Getting health
