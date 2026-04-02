@@ -7,7 +7,7 @@
   "accentColor": "#D7A711",
   "fee": 0.00,
   "payoutType": "custom",
-  "payoutSchedule": "Stakers can choose between hourly auto-restaking or direct payouts using our dashboard.",
+  "payoutScheme": "Stakers can choose between hourly auto-restaking or direct payouts using our dashboard.",
   "payoutSchedule": "0 * * * *",
   "contact": {
     "email": "info@nimiqpool.es",
