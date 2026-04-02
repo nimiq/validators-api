@@ -7,7 +7,7 @@ export const validatorSchema = z.object({
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
   fee: z.literal(null).or(z.number().min(0).max(1)).default(null),
   payoutType: z.enum(PayoutType).default(PayoutType.None),
-  payoutScheme: z.string().optional().default(''),
+  payoutScheme: z.string().optional(),
   payoutSchedule: z.string().optional().default(''),
   isMaintainedByNimiq: z.boolean().optional(),
   description: z.string().optional(),
@@ -27,6 +27,15 @@ export const validatorSchema = z.object({
     instagram: z.string().regex(/^@?(\w){1,30}$/).optional(),
     youtube: z.string().regex(/^@?(\w){1,50}$/).optional(),
   }).optional(),
+}).superRefine((data, ctx) => {
+  if (data.payoutType === PayoutType.Custom && data.payoutScheme === undefined) {
+    ctx.addIssue({
+      code: 'invalid_value',
+      message: 'payoutScheme is required when payoutType is "custom"',
+      values: ['Describe the custom payout scheme here.'],
+      input: data.payoutScheme,
+    })
+  }
 })
 export const validatorsSchema = z.array(validatorSchema)
 export type ValidatorJSON = z.infer<typeof validatorSchema>
