@@ -14,7 +14,10 @@ export const validatorSchema = z.object({
   website: z.string().url().optional(),
   logo: z.string().regex(logoFormatRe).optional(),
   hasDefaultLogo: z.boolean().default(true),
-  accentColor: z.string().optional(),
+  accentColor: z.string().refine(
+    val => val.startsWith('#') && val.length === 7,
+    { error: 'accentColor must be a HEX color value' },
+  ).optional(),
   contact: z.object({
     email: z.string().email().optional(),
     twitter: z.string().regex(/^@?(\w){1,15}$/).optional(),
@@ -28,12 +31,25 @@ export const validatorSchema = z.object({
     youtube: z.string().regex(/^@?(\w){1,50}$/).optional(),
   }).optional(),
 }).superRefine((data, ctx) => {
+  // Custom validation across fields
+
+  // If payoutType is "custom", payoutScheme must be provided
   if (data.payoutType === PayoutType.Custom && data.payoutScheme === undefined) {
     ctx.addIssue({
       code: 'invalid_value',
       message: 'payoutScheme is required when payoutType is "custom"',
       values: ['Describe the custom payout scheme here.'],
       input: data.payoutScheme,
+    })
+  }
+
+  // If logo is provided, accentColor must also be provided
+  if (data.logo && !data.accentColor) {
+    ctx.addIssue({
+      code: 'invalid_value',
+      message: 'accentColor is required when logo is provided',
+      values: ['Provide a valid accent color in hex format, e.g. #FF5733.'],
+      input: data.accentColor,
     })
   }
 })
