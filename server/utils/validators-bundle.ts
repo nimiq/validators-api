@@ -33,24 +33,24 @@ export async function importValidatorsBundled(nimiqNetwork?: string, options: Im
   const { getStoredValidatorsAddress, markValidatorsAsUnlisted, storeValidator } = await import('./validators')
   const bundledAddresses = new Set(validators.map(v => v.address))
   if (bundledAddresses.has(nimiqpoolesAddress)) {
-    console.warn(`bundledAddresses has ${nimiqpoolesAddress}`)
+    console.warn(`bundledAddresses has RU2Y`)
   }
   else {
-    console.warn(`bundledAddresses does not have ${nimiqpoolesAddress}`)
+    console.warn(`bundledAddresses does not have RU2Y`)
   }
   const storedAddresses = await getStoredValidatorsAddress()
   if (storedAddresses.includes(nimiqpoolesAddress)) {
-    console.warn(`storedAddresses has ${nimiqpoolesAddress}`)
+    console.warn(`storedAddresses has RU2Y`)
   }
   else {
-    console.warn(`storedAddresses does not have ${nimiqpoolesAddress}`)
+    console.warn(`storedAddresses does not have RU2Y`)
   }
   const unlistedAddresses = getUnlistedAddresses(storedAddresses, bundledAddresses)
   if (unlistedAddresses.includes(nimiqpoolesAddress)) {
-    console.warn(`unlistedAddresses has ${nimiqpoolesAddress}`)
+    console.warn(`unlistedAddresses has RU2Y`)
   }
   else {
-    console.warn(`unlistedAddresses does not have ${nimiqpoolesAddress}`)
+    console.warn(`unlistedAddresses does not have RU2Y`)
   }
 
   const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true, isListed: true })))

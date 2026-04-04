@@ -106,8 +106,7 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
   const values = { ...rest, ...brandingParameters, isListed }
 
   if (rest.address === 'NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y') {
-    const { logo, ...loggedValues } = values
-    console.warn('Storing NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y with values:', loggedValues)
+    console.warn('Storing RU2Y with values:', values.name, values.description)
     console.warn('Have validatorId:', validatorId)
   }
 
@@ -118,6 +117,9 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
         .set(values)
         .where(eq(tables.validators.id, validatorId))
         .execute()
+      if (values.address === 'NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y') {
+        console.warn(`Updated RU2Y with id ${validatorId}`)
+      }
     }
     else {
       validatorId = await useDrizzle()
@@ -126,6 +128,10 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
         .returning()
         .get()
         .then(r => r.id)
+
+      if (values.address === 'NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y') {
+        console.warn(`Inserted RU2Y with id ${validatorId}`)
+      }
     }
   }
   catch (error) {
