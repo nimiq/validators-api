@@ -102,6 +102,9 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
 
   // console.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`) // eslint-disable-line no-console
 
+  if (rest.address === 'NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y') {
+    rest.logo = undefined
+  }
   const brandingParameters = await handleValidatorLogo(address, rest)
   const values = { ...rest, ...brandingParameters, isListed }
 
