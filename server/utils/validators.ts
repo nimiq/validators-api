@@ -135,7 +135,10 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
     }
   }
   catch (error) {
-    consola.error(`There was an error while writing ${address} into the database`, error)
+    console.error(
+      `There was an error while writing ${address} into the database`,
+      error instanceof Error ? error.message : String(error),
+    )
   }
 
   validators.set(address, validatorId!)
