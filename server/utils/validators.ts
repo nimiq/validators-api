@@ -106,7 +106,8 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
   const values = { ...rest, ...brandingParameters, isListed }
 
   if (rest.address === 'NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y') {
-    console.warn('Storing NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y with values:', values)
+    const { logo, ...loggedValues } = values
+    console.warn('Storing NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y with values:', loggedValues)
     console.warn('Have validatorId:', validatorId)
   }
 
