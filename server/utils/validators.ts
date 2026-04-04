@@ -66,6 +66,8 @@ interface StoreValidatorOptions {
    * @default false
    */
   isListed?: boolean
+
+  throwOnError?: boolean
 }
 
 export async function storeValidator(address: string, rest: ValidatorJSON = defaultValidatorJSON, options: StoreValidatorOptions = {}): Promise<number | undefined> {
@@ -123,6 +125,10 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
     }
   }
   catch (error) {
+    if (options.throwOnError) {
+      throw error
+    }
+
     consola.error(`There was an error while writing ${address} into the database`, error)
   }
 

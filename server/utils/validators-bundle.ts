@@ -6,13 +6,14 @@ import { getUnlistedAddresses } from './validator-listing'
 
 interface ImportValidatorsBundledOptions {
   shouldStore?: boolean
+  throwOnError?: boolean
 }
 
 export async function importValidatorsBundled(nimiqNetwork?: string, options: ImportValidatorsBundledOptions = {}): Result<ValidatorJSON[]> {
   if (!nimiqNetwork)
     return [false, 'Nimiq network is required', undefined]
 
-  const { shouldStore = true } = options
+  const { shouldStore = true, throwOnError } = options
   const bundledValidators = bundledValidatorsByNetwork[nimiqNetwork as keyof typeof bundledValidatorsByNetwork]
   if (!bundledValidators || bundledValidators.length === 0)
     return [false, `No bundled validators found for network: ${nimiqNetwork}`, undefined]
@@ -33,7 +34,7 @@ export async function importValidatorsBundled(nimiqNetwork?: string, options: Im
   const storedAddresses = await getStoredValidatorsAddress()
   const unlistedAddresses = getUnlistedAddresses(storedAddresses, bundledAddresses)
 
-  const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true, isListed: true })))
+  const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true, isListed: true, throwOnError })))
   const failures = results.filter(r => r.status === 'rejected')
   if (failures.length > 0)
     return [false, `Errors importing validators: ${failures.map((f: any) => f.reason).join(', ')}`, undefined]
