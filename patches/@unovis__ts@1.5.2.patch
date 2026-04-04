@@ -1,0 +1,15 @@
+diff --git a/index.js b/index.js
+index ef97708ce987e88d6db1189a2f735110fe04f6f6..f94a95101593cc1e05fb74e43b80ad6228b80cfd 100644
+--- a/index.js
++++ b/index.js
+@@ -1,10 +1,5 @@
+-import './containers.js';
+-import './components.js';
+-import './data-models/index.js';
+-import './types.js';
+ export { colors, colorsDark, getCSSColorVariable, getDarkerColor, getLighterColor } from './styles/colors.js';
+ export { styleExtraLargeSize, styleLargeSize } from './styles/sizes.js';
+-import './utils/index.js';
+ export { ContainerCore } from './core/container/index.js';
+ export { SingleContainer } from './containers/single-container/index.js';
+ export { XYContainer } from './containers/xy-container/index.js';
