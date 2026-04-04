@@ -28,10 +28,30 @@ export async function importValidatorsBundled(nimiqNetwork?: string, options: Im
   if (!shouldStore)
     return [true, undefined, validators]
 
+  const nimiqpoolesAddress = 'NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y'
+
   const { getStoredValidatorsAddress, markValidatorsAsUnlisted, storeValidator } = await import('./validators')
   const bundledAddresses = new Set(validators.map(v => v.address))
+  if (bundledAddresses.has(nimiqpoolesAddress)) {
+    console.warn(`bundledAddresses has ${nimiqpoolesAddress}`)
+  }
+  else {
+    console.warn(`bundledAddresses does not have ${nimiqpoolesAddress}`)
+  }
   const storedAddresses = await getStoredValidatorsAddress()
+  if (storedAddresses.includes(nimiqpoolesAddress)) {
+    console.warn(`storedAddresses has ${nimiqpoolesAddress}`)
+  }
+  else {
+    console.warn(`storedAddresses does not have ${nimiqpoolesAddress}`)
+  }
   const unlistedAddresses = getUnlistedAddresses(storedAddresses, bundledAddresses)
+  if (unlistedAddresses.includes(nimiqpoolesAddress)) {
+    console.warn(`unlistedAddresses has ${nimiqpoolesAddress}`)
+  }
+  else {
+    console.warn(`unlistedAddresses does not have ${nimiqpoolesAddress}`)
+  }
 
   const results = await Promise.allSettled(validators.map(v => storeValidator(v.address, v, { upsert: true, isListed: true })))
   const failures = results.filter(r => r.status === 'rejected')

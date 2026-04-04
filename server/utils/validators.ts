@@ -100,10 +100,15 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
     return validatorId
   }
 
-  consola.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`)
+  console.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`) // eslint-disable-line no-console
 
   const brandingParameters = await handleValidatorLogo(address, rest)
   const values = { ...rest, ...brandingParameters, isListed }
+
+  if (rest.address === 'NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y') {
+    console.warn('Storing NQ08 RS08 LTKL 62QL B954 S9YP 0G3R XVKM RU2Y with values:', values)
+    console.warn('Have validatorId:', validatorId)
+  }
 
   try {
     if (validatorId) {
