@@ -100,7 +100,7 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
     return validatorId
   }
 
-  console.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`) // eslint-disable-line no-console
+  // console.info(`${upsert ? 'Updating' : 'Storing'} validator ${address}`) // eslint-disable-line no-console
 
   const brandingParameters = await handleValidatorLogo(address, rest)
   const values = { ...rest, ...brandingParameters, isListed }
