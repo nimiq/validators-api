@@ -83,8 +83,6 @@ Use the following schema to create your validator information file. You can star
     - `payoutAddress`: Provide address you will payout from.
     - `payoutSchedule`: Specify the frequency of payouts using the [cron job format](https://crontab.guru/). Example: `0 */6 * * *` for payouts every 6 hours.
   - `none`: No rewards will be paid out.
-  - `custom`: Custom payout scheme. Requires:
-    - `payoutScheme`: A description of the custom payout method (e.g., "Pays 50% of rewards every 1st of the month").
 - `website`: The URL of your validator's website or any similar source of information (Telegram pinned message, Discord...)
 - `logo`: A logo in SVG or PNG format (min size: 224x224px) with a transparent background, encoded in Base64 to represent your validator. Background colors should be avoided unless they ensure clear contrast.
 - `contact`: At least one contact allowing validators to share contact details so users can easily get in touch.

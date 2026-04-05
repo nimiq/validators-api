@@ -4,7 +4,6 @@ import type { Activity, Score } from './drizzle'
 export enum PayoutType {
   Restake = 'restake',
   Direct = 'direct',
-  Custom = 'custom',
   None = 'none',
 }
 
