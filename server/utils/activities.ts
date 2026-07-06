@@ -2,7 +2,7 @@ import type { ElectedValidator, EpochActivity, EpochsActivities, Range, Result, 
 import type { NewActivity } from './drizzle'
 import type { SnapshotEpochValidators, SyncStreamReportFn } from './types'
 import { consola } from 'consola'
-import { eq, gte, lte, not } from 'drizzle-orm'
+import { and, eq, gte, lte, not } from 'drizzle-orm'
 import { fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { storeValidator } from './validators'
@@ -17,8 +17,11 @@ export async function findMissingEpochs(range: Range) {
     .where(and(
       gte(tables.activity.epochNumber, range.fromEpoch),
       lte(tables.activity.epochNumber, range.toEpoch),
-      // If any entry of the same epoch contains a likelihood of -1, then we consider it as missing
+      // Current-epoch snapshots have likelihood but no finalized missed/rewarded data yet.
+      // Only finalized elected rows prove an ended epoch has been backfilled.
       not(eq(tables.activity.likelihood, -1)),
+      gte(tables.activity.missed, 0),
+      gte(tables.activity.rewarded, 0),
     ))
     .all()
     .then(r => r.map(r => r.epochBlockNumber))
