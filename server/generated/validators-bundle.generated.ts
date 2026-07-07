@@ -135,6 +135,20 @@ export const bundledValidatorsByNetwork = {
       }
     },
     {
+      "name": "Synapse LN - Nimiq",
+      "address": "NQ24 8V0E L24U TGQ6 KAGA 0KGY SR4F GVV1 SXNA",
+      "fee": 0.01,
+      "payoutType": "restake",
+      "payoutSchedule": "",
+      "description": "Reliable Validator - Synapse LN Infrastructure powered by AI. Restake with low fees.",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJTeW5hcHNlIExOIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNCIgZmlsbD0iIzA3MTExZiIvPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjIzIiBmaWxsPSIjZmZjMTA3Ii8+PHBhdGggZmlsbD0iIzA3MTExZiIgZD0iTTM0IDcgMTggMzZoMTFsLTQgMjEgMjEtMzFIMzR6Ii8+PGNpcmNsZSBjeD0iMjEiIGN5PSI0MyIgcj0iNCIgZmlsbD0iIzNhYTdmZiIvPjxjaXJjbGUgY3g9IjQzIiBjeT0iMjEiIHI9IjQiIGZpbGw9IiMzYWE3ZmYiLz48cGF0aCBkPSJNMjMuOCA0MC4yIDQwLjIgMjMuOCIgc3Ryb2tlPSIjM2FhN2ZmIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==",
+      "hasDefaultLogo": true,
+      "accentColor": "#ffc107",
+      "contact": {
+        "twitter": "@Schrotti77"
+      }
+    },
+    {
       "name": "$NIM_pool",
       "address": "NQ29 FBVT B4GM S27H UBP4 1MTC GNKQ VPBT 099M",
       "fee": 0,

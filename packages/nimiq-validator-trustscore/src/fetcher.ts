@@ -1,5 +1,6 @@
 import type { BaseAlbatrossPolicyOptions } from '@nimiq/utils/albatross-policy'
 import type { ElectionMacroBlock } from 'nimiq-rpc-client-ts/types'
+import type { ActivityBatchProgress } from './sync-progress'
 import type { ElectedValidator, EpochActivity, Result, ResultSync, SnapshotEpoch, UnelectedValidator } from './types'
 import { batchAt, BATCHES_PER_EPOCH, electionBlockOf, firstBlockOf, isElectionBlockAt, SLOTS } from '@nimiq/utils/albatross-policy'
 import { getBlockByNumber, getEpochNumber, getInherentsByBatchNumber, getStakersByValidatorAddress, getValidatorByAddress, getValidators } from 'nimiq-rpc-client-ts/http'
@@ -16,6 +17,7 @@ export interface FetchActivityOptions extends Pick<BaseAlbatrossPolicyOptions, '
    * @default 120
    */
   maxBatchSize?: number
+  onProgress?: (progress: ActivityBatchProgress) => void
 }
 
 /**
@@ -123,6 +125,15 @@ export async function fetchActivity(epochIndex: number, options: FetchActivityOp
         console.error(errors)
         return [false, `Failed to process batches: ${JSON.stringify(errors)}`, undefined]
       }
+
+      options.onProgress?.({
+        epochIndex,
+        fromBatchIndex: firstBatchIndex + i,
+        toBatchIndex: firstBatchIndex + i + currentBatchSize - 1,
+        completedBatches: Math.min(i + currentBatchSize, BATCHES_PER_EPOCH),
+        totalBatches: BATCHES_PER_EPOCH,
+        batchSize: currentBatchSize,
+      })
     }
 
     return [true, undefined, epochActivity]
