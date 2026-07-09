@@ -25,6 +25,27 @@ function readEnvValue(path: string, name: string) {
 }
 
 const root = process.cwd()
+
+function run(command: string, args: string[]) {
+  return new Promise<void>((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: root,
+      env: process.env,
+      stdio: 'inherit',
+    })
+
+    child.on('error', reject)
+    child.on('exit', (code) => {
+      if (code === 0)
+        resolve()
+      else
+        reject(new Error(`${command} ${args.join(' ')} exited with ${code}`))
+    })
+  })
+}
+
+await run('pnpm', ['build'])
+
 const sourceConfigPath = resolve(root, '.output/server/wrangler.json')
 if (!existsSync(sourceConfigPath)) {
   console.error('Missing .output/server/wrangler.json. Run `pnpm build` first.')
@@ -68,6 +89,7 @@ const wrangler = spawn('pnpm', [
   '--config',
   tempConfigPath,
   '--x-remote-bindings',
+  '--test-scheduled',
   ...process.argv.slice(2),
 ], {
   cwd: root,

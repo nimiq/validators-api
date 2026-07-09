@@ -2,33 +2,41 @@ import type { ElectedValidator, EpochActivity, EpochsActivities, Range, Result, 
 import type { NewActivity } from './drizzle'
 import type { SnapshotEpochValidators, SyncStreamReportFn } from './types'
 import { consola } from 'consola'
-import { and, eq, gte, lte, not } from 'drizzle-orm'
+import { and, desc, eq, gte, lte, not, or } from 'drizzle-orm'
 import { fetchEpochs } from 'nimiq-validator-trustscore/fetcher'
 import { getRange } from 'nimiq-validator-trustscore/range'
+import { isCompleteFinalizedEpochActivity } from './activity-completeness'
+import { resolveLiveActivityMetadata } from './activity-metadata'
 import { storeValidator } from './validators'
 
 /**
  * Given a range, it returns the epochs that are missing in the database.
  */
 export async function findMissingEpochs(range: Range) {
-  const existingEpochs = await useDrizzle()
-    .selectDistinct({ epochBlockNumber: tables.activity.epochNumber })
+  const activityRows = await useDrizzle()
+    .select({
+      epochNumber: tables.activity.epochNumber,
+      likelihood: tables.activity.likelihood,
+      missed: tables.activity.missed,
+      rewarded: tables.activity.rewarded,
+    })
     .from(tables.activity)
     .where(and(
       gte(tables.activity.epochNumber, range.fromEpoch),
       lte(tables.activity.epochNumber, range.toEpoch),
-      // Current-epoch snapshots have likelihood but no finalized missed/rewarded data yet.
-      // Only finalized elected rows prove an ended epoch has been backfilled.
-      not(eq(tables.activity.likelihood, -1)),
-      gte(tables.activity.missed, 0),
-      gte(tables.activity.rewarded, 0),
     ))
     .all()
-    .then(r => r.map(r => r.epochBlockNumber))
+
+  const epochs = new Map<number, typeof activityRows>()
+  for (const row of activityRows) {
+    const rows = epochs.get(row.epochNumber) || []
+    rows.push(row)
+    epochs.set(row.epochNumber, rows)
+  }
 
   const missingEpochs = []
   for (let i = range.fromEpoch; i <= range.toEpoch; i++) {
-    if (!existingEpochs.includes(i))
+    if (!isCompleteFinalizedEpochActivity(epochs.get(i) || []))
       missingEpochs.push(i)
   }
   return missingEpochs
@@ -37,14 +45,61 @@ export async function findMissingEpochs(range: Range) {
 /**
  * We loop over all the pairs activities/epochBlockNumber and store the validator activities.
  */
-export async function storeActivities(epochs: EpochsActivities) {
+interface StoreActivitiesOptions {
+  finalizeEpoch?: boolean
+}
+
+export async function storeActivities(epochs: EpochsActivities, options: StoreActivitiesOptions = {}) {
   const promises = Object.entries(epochs).map(async ([_epochNumber, activities]) => {
     const epochNumber = Number(_epochNumber)
     const activePromises = Object.entries(activities)
       .map(async ([address, activity]) => storeSingleActivity({ address, activity, epochNumber }))
-    return await Promise.all(activePromises)
+    await Promise.all(activePromises)
+    if (options.finalizeEpoch)
+      await clearStaleElectedPlaceholders({ epochNumber, finalizedAddresses: Object.keys(activities) })
   })
   await Promise.all(promises)
+}
+
+interface ClearStaleElectedPlaceholdersParams {
+  epochNumber: number
+  finalizedAddresses: string[]
+}
+
+export async function clearStaleElectedPlaceholders({ epochNumber, finalizedAddresses }: ClearStaleElectedPlaceholdersParams) {
+  const finalizedAddressSet = new Set(finalizedAddresses)
+  const staleRows = await useDrizzle()
+    .select({
+      validatorId: tables.activity.validatorId,
+      address: tables.validators.address,
+    })
+    .from(tables.activity)
+    .innerJoin(tables.validators, eq(tables.activity.validatorId, tables.validators.id))
+    .where(and(
+      eq(tables.activity.epochNumber, epochNumber),
+      not(eq(tables.activity.likelihood, -1)),
+      eq(tables.activity.missed, -1),
+      eq(tables.activity.rewarded, -1),
+    ))
+    .all()
+
+  const staleUnelectedRows = staleRows.filter(row => !finalizedAddressSet.has(row.address))
+  if (staleUnelectedRows.length === 0)
+    return
+
+  await Promise.all(staleUnelectedRows.map(row => useDrizzle()
+    .update(tables.activity)
+    .set({
+      likelihood: -1,
+      missed: 0,
+      rewarded: 0,
+      dominanceRatioViaSlots: -1,
+    })
+    .where(and(
+      eq(tables.activity.epochNumber, epochNumber),
+      eq(tables.activity.validatorId, row.validatorId),
+    ))
+    .execute()))
 }
 
 interface StoreActivityParams {
@@ -54,6 +109,25 @@ interface StoreActivityParams {
 }
 
 const defaultActivity: ElectedValidator = { likelihood: -1, balance: -1, dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, missed: -1, rewarded: -1, address: '', elected: true, stakers: 0 }
+
+async function fetchLatestActivityMetadata(validatorId: number) {
+  return useDrizzle()
+    .select({
+      balance: tables.activity.balance,
+      stakers: tables.activity.stakers,
+    })
+    .from(tables.activity)
+    .where(and(
+      eq(tables.activity.validatorId, validatorId),
+      or(
+        gte(tables.activity.balance, 0),
+        gte(tables.activity.stakers, 1),
+      ),
+    ))
+    .orderBy(desc(tables.activity.epochNumber))
+    .limit(1)
+    .then(rows => rows.at(0))
+}
 
 export async function storeSingleActivity({ address, activity, epochNumber }: StoreActivityParams) {
   const validatorId = await storeValidator(address)
@@ -80,8 +154,8 @@ export async function storeSingleActivity({ address, activity, epochNumber }: St
 
   const dominanceRatioViaSlots = (stored.dominanceRatioViaSlots === -1 ? activity?.dominanceRatioViaSlots : stored.dominanceRatioViaSlots) || -1
   const dominanceRatioViaBalance = (stored.dominanceRatioViaBalance === -1 ? activity?.dominanceRatioViaBalance : stored.dominanceRatioViaBalance) || -1
-  const balance = (stored.balance === -1 ? activity?.balance : stored.balance) || -1
-  const stakers = (stored.stakers === 0 ? activity?.stakers : stored.stakers) || -1
+  const latestActivityMetadata = await fetchLatestActivityMetadata(validatorId)
+  const { balance, stakers } = resolveLiveActivityMetadata(stored, activity || defaultActivity, latestActivityMetadata)
 
   await useDrizzle().delete(tables.activity).where(and(
     eq(tables.activity.epochNumber, epochNumber),

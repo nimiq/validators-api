@@ -29,6 +29,10 @@
     "./range": {
       "types": "./dist/range.d.mts",
       "import": "./dist/range.mjs"
+    },
+    "./epoch-status": {
+      "types": "./dist/epoch-status.d.mts",
+      "import": "./dist/epoch-status.mjs"
     }
   },
   "files": ["dist"],

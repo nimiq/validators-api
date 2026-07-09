@@ -8,23 +8,56 @@ interface ValidatorData {
   payoutType: string | null
 }
 
+interface EpochData {
+  epoch: number
+}
+
+export function createEpochFormatter(data: readonly EpochData[]) {
+  return (index: number) => {
+    const roundedIndex = Math.round(index)
+    if (Math.abs(index - roundedIndex) > 0.01)
+      return ''
+
+    const epoch = data[roundedIndex]?.epoch
+    return epoch === undefined ? '' : `E${epoch}`
+  }
+}
+
+export function ensureDrawableLineData<T>(data: readonly T[]): T[] {
+  return data.length === 1 ? [data[0]!, { ...data[0]! }] : [...data]
+}
+
+export function createPaddedDomain<T extends Record<string, number>>(data: readonly T[], key: keyof T): [number, number] | undefined {
+  const values = data.map(row => row[key]).filter(Number.isFinite)
+  if (values.length === 0)
+    return
+
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  if (min !== max)
+    return [min, max]
+
+  const padding = Math.max(Math.abs(min) * 0.005, 1)
+  return [min - padding, max + padding]
+}
+
 export function useValidatorCharts(validator: Ref<ValidatorData | null>) {
   const scoreTrendData = computed(() => {
     if (!validator.value?.scores)
       return []
-    return validator.value.scores.map(s => ({ epoch: s.epochNumber, total: s.total }))
+    return ensureDrawableLineData(validator.value.scores.map(s => ({ epoch: s.epochNumber, total: s.total })))
   })
 
   const scoreTrendAllData = computed(() => {
     if (!validator.value?.scores)
       return []
-    return validator.value.scores.map(s => ({
+    return ensureDrawableLineData(validator.value.scores.map(s => ({
       epoch: s.epochNumber,
       total: s.total,
       availability: s.availability,
       dominance: s.dominance,
       reliability: s.reliability,
-    }))
+    })))
   })
 
   const balanceData = computed(() => {
@@ -44,6 +77,14 @@ export function useValidatorCharts(validator: Ref<ValidatorData | null>) {
       return []
     return validator.value.activity.map(a => ({ epoch: a.epochNumber, rewarded: a.rewarded, missed: a.missed }))
   })
+
+  const scoreTrendXFormatter = computed(() => createEpochFormatter(scoreTrendData.value))
+  const scoreTrendAllXFormatter = computed(() => createEpochFormatter(scoreTrendAllData.value))
+  const balanceXFormatter = computed(() => createEpochFormatter(balanceData.value))
+  const balanceYDomain = computed(() => createPaddedDomain(balanceData.value, 'balance'))
+  const stakersXFormatter = computed(() => createEpochFormatter(stakersData.value))
+  const stakersYDomain = computed(() => createPaddedDomain(stakersData.value, 'stakers'))
+  const activityXFormatter = computed(() => createEpochFormatter(activityData.value))
 
   const activityStats = computed(() => {
     if (!validator.value?.activity?.length)
@@ -95,11 +136,18 @@ export function useValidatorCharts(validator: Ref<ValidatorData | null>) {
     scoreTrendData,
     scoreTrendAllData,
     balanceData,
+    balanceXFormatter,
+    balanceYDomain,
     stakersData,
+    stakersXFormatter,
+    stakersYDomain,
     activityData,
+    activityXFormatter,
     activityStats,
     feeDisplay,
     payoutDisplay,
+    scoreTrendXFormatter,
+    scoreTrendAllXFormatter,
     currentBalance,
     currentStakers,
     donutScoreData,

@@ -52,7 +52,7 @@ const formattedStakedAmount = computed(() => `${formatLunaAsNim(supply.value?.st
     {{ error }}
   </div>
   <div v-else flex="~ items-center gap-12" w-max f-text-md>
-    <div i-nimiq:spinner />
+    <div class="i-nimiq:spinner" />
     Loading
   </div>
 </template>

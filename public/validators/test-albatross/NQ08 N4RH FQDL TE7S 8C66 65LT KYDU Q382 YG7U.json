@@ -3,5 +3,7 @@
   "address": "NQ08 N4RH FQDL TE7S 8C66 65LT KYDU Q382 YG7U",
   "fee": 0.11,
   "payoutType": "restake",
-  "isMaintainedByNimiq": true
+  "isMaintainedByNimiq": true,
+  "accentColor": "#e65f5c",
+  "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9Ik5vdC1BLVBvb2wgbG9nbyI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0iI2U2NWY1YyIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iMzIiIHI9IjE4IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4yMikiLz48dGV4dCB4PSI2NCIgeT0iNzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSJ3aGl0ZSI+TkE8L3RleHQ+PC9zdmc+"
 }

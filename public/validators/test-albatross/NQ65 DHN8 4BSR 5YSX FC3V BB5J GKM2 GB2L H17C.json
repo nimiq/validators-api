@@ -3,5 +3,7 @@
   "description": "The Ace in staking",
   "address": "NQ65 DHN8 4BSR 5YSX FC3V BB5J GKM2 GB2L H17C",
   "fee": 0.1,
-  "payoutType": "direct"
+  "payoutType": "direct",
+  "accentColor": "#5f6ee6",
+  "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkFjZVN0YWtpbmcgbG9nbyI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0iIzVmNmVlNiIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iMzIiIHI9IjE4IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4yMikiLz48dGV4dCB4PSI2NCIgeT0iNzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSJ3aGl0ZSI+QTwvdGV4dD48L3N2Zz4="
 }

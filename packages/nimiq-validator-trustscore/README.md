@@ -1,6 +1,6 @@
 # Nimiq Validator Score
 
-The algorithm to compute the Nimiq's Validator Score. It is a metric that helps to evaluate the trustworthiness of a validator. You can read more about the Algorithm of the Score [here](https://nimiq-validators.pages.dev/scores).
+The algorithm to compute the Nimiq's Validator Score. It is a metric that helps to evaluate the trustworthiness of a validator. You can read more about the algorithm in the [Validators API docs](../../README.md#validator-trustscore).
 
 This package is the implementation of such algorithm. Anyone with access to a node should be able to run the same algorithm and get the same result.
 

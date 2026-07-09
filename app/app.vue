@@ -32,7 +32,7 @@ const currentEnvItem = getEnvironmentItem(nimiqNetwork) ?? { network: nimiqNetwo
   <div flex="~ col gap-64" mx-auto size-screen max-h-screen max-w-1200 px-32 py-20>
     <header flex="~ gap-32 row items-center">
       <NuxtLink to="/" flex>
-        <div aria-hidden i-nimiq:logos-nimiq-horizontal class="!ml-16 !h-24 !w-90" dark:i-nimiq:logos-nimiq-white-horizontal />
+        <div aria-hidden class="i-nimiq:logos-nimiq-horizontal dark:i-nimiq:logos-nimiq-white-horizontal !ml-16 !h-24 !w-90" />
         <span ml-8 text-16 font-light tracking-0.75>Validators</span>
       </NuxtLink>
       <NuxtLink v-if="validatorDetail" to="/" block w-max nq-arrow-back nq-ghost-btn>
@@ -55,7 +55,7 @@ const currentEnvItem = getEnvironmentItem(nimiqNetwork) ?? { network: nimiqNetwo
 
           <div flex="~ items-center gap-8" f-px-2xs py-6 whitespace-nowrap :title="`Status for nimiq+${nimiqNetwork}`" :class="statusRequest === 'pending' ? 'bg-neutral-400' : isSynced ? 'bg-green-400' : 'bg-red-400'">
             <template v-if="statusRequest === 'pending'">
-              <div i-nimiq:spinner />
+              <div class="i-nimiq:spinner" />
               Getting health
             </template>
             <template v-else-if="isSynced">
@@ -70,7 +70,7 @@ const currentEnvItem = getEnvironmentItem(nimiqNetwork) ?? { network: nimiqNetwo
         </div>
       </div>
       <NuxtLink to="https://github.com/nimiq/validators-api" i-nimiq:logos-github-mono target="_blank" />
-      <button i-nimiq:moon @click="() => toggleDark()" />
+      <button class="i-nimiq:moon" @click="() => toggleDark()" />
     </header>
     <main flex-1>
       <div v-if="(!isSynced || error) && $route.path === '/'" bg="red/8" outline="1.5 ~ red-600" rounded-12 f-p-md text="14 red-1100" nq-prose-compact children:max-w-none f-mb-lg>

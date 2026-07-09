@@ -4,11 +4,11 @@ import { CurveType } from 'vue-chrts'
 
 const props = defineProps<{ validator: FetchedValidatorDetails }>()
 const validatorRef = computed(() => props.validator)
-const { scoreTrendData, balanceData, stakersData, activityStats, feeDisplay, payoutDisplay, currentBalance, currentStakers } = useValidatorCharts(validatorRef)
+const { scoreTrendData, scoreTrendXFormatter, balanceData, balanceXFormatter, balanceYDomain, stakersData, stakersXFormatter, stakersYDomain, activityStats, feeDisplay, payoutDisplay, currentBalance, currentStakers } = useValidatorCharts(validatorRef)
 
-const scoreCategories = { total: { name: 'Score', color: 'var(--nq-green)' } }
-const balanceCategories = { balance: { name: 'Balance (NIM)', color: 'var(--nq-gold)' } }
-const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' } }
+const scoreCategories = { total: { name: 'Score', color: 'var(--colors-green)' } }
+const balanceCategories = { balance: { name: 'Balance (NIM)', color: 'var(--colors-gold)' } }
+const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--colors-blue)' } }
 </script>
 
 <template>
@@ -26,7 +26,7 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' 
         </p>
         <div flex="~ gap-8 wrap" mt-8>
           <span v-if="validator.isMaintainedByNimiq" nq-pill bg-green-400 text-green-1100 flex="~ items-center gap-4">
-            <div aria-hidden i-nimiq:verified-filled />
+            <div aria-hidden class="i-nimiq:verified-filled" />
             Maintained by Nimiq
           </span>
           <span nq-pill nq-pill-tertiary>Fee: {{ feeDisplay }}</span>
@@ -53,7 +53,7 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' 
           <span nq-label text="11 neutral-800" mb-8 block>Score Trend</span>
           <AreaChart
             :data="scoreTrendData" :height="200" :categories="scoreCategories"
-            :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => `${Math.round(t * 100)}`"
+            :x-formatter="scoreTrendXFormatter" :y-formatter="(t: number) => `${Math.round(t * 100)}`"
             :y-domain="[0, 1]" hide-legend :curve-type="CurveType.MonotoneX"
           />
         </div>
@@ -87,7 +87,8 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' 
         <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>
           <LineChart
             :data="balanceData" :height="140" :categories="balanceCategories"
-            :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => formatLunaAsNim(t * 1e5)"
+            :x-formatter="balanceXFormatter" :y-formatter="(t: number) => formatLunaAsNim(t * 1e5)"
+            :y-domain="balanceYDomain"
             hide-legend :curve-type="CurveType.MonotoneX"
           />
         </div>
@@ -96,7 +97,7 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' 
         <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>
           <LineChart
             :data="stakersData" :height="140" :categories="stakersCategories"
-            :x-formatter="(t: number) => `E${t}`" hide-legend :curve-type="CurveType.MonotoneX"
+            :x-formatter="stakersXFormatter" :y-domain="stakersYDomain" hide-legend :curve-type="CurveType.MonotoneX"
           />
         </div>
 

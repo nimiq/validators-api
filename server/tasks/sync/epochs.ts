@@ -62,7 +62,7 @@ export default defineTask({
           return { result: { success: false, error: activityError, totalSynced, epochsSynced } }
         }
 
-        await storeActivities({ [`${missingEpoch}`]: epochActivity })
+        await storeActivities({ [`${missingEpoch}`]: epochActivity }, { finalizeEpoch: true })
         consola.info(`[sync:epochs] epoch ${missingEpoch} stored (${totalSynced + 1}/${maxEpochsPerRunLabel})`)
         await sendNewEpochNotification(missingEpoch, missingEpochs.length)
 

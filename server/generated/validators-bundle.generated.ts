@@ -98,7 +98,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "direct",
       "payoutSchedule": "",
       "description": "reliable staking, low fees",
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlRlY2hiaXRzIFZhbGlkYXRvciBsb2dvIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjMWY4ZmNiIi8+PGNpcmNsZSBjeD0iOTYiIGN5PSIzMiIgcj0iMTgiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsLjIyKSIvPjx0ZXh0IHg9IjY0IiB5PSI3NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IndoaXRlIj5UVjwvdGV4dD48L3N2Zz4=",
+      "hasDefaultLogo": true,
+      "accentColor": "#1f8fcb"
     },
     {
       "name": "ObsidianStake",
@@ -335,7 +337,7 @@ export const bundledValidatorsByNetwork = {
       "payoutSchedule": "Every 12 hours",
       "description": "Smooth Staking and Rewards Distribution Experience",
       "website": "https://stake.keyring.so/nimiq",
-      "logo": "data:image/png;base64,UklGRtgIAABXRUJQVlA4WAoAAAAQAAAAfwAAfwAAQUxQSHgDAAABoLvtt2nb+Y05Zuyks21Udjon3d6nip1qnRXb+Q9s27bdGZ1tzDHH7/reveYeZZ4nIiYA/zcsmnOS4eacZLqICgYvKlMkJSy39wV3Pvn0YJ+4/axdlkGSqaFY9rgPOXR/f0YlTQnFFm/Qayk24FLc+eQ60Kmg2P17FuPga+GX2yBNgYQtv6WxycJP14I0J1j6ZRY2+h/vQ9YkbSmOZ2GzxkOhEJWGBMt8wNpO5fsnHLFZhmg7ij3pbNid/Pftk1aGNpNxFq0lVqvu/OQAaDu3sDQ1vxn9NGgjCY/QmiNrZY8sjTw2FejGDlkCoxt7qARGN/ZQCYxu7KCR0Y2zUAmMbuygkdGNHbIERjf2yBIY3dhBJTC6sYdKYHRjD5XA6MYOKoHRjT00MrpxFlkCoxtnkSUwuvF0qARGN3bQyOjGHiqB0Y09NDK6sUOOjG7skSUwunEWWQKjGzuoBEY39tDI6MYOKoHRjT1UAqMbe2QJjG6cRZbA6MYeWQKjGzuoBEY3dtDI6MYeKoHRjR00MrqxR5bA6MYeWQKjG2eRJTC6sYdKYHTjLDQyurGDRkY3ziJFRjceA42Mzt93RIqMxocgoZG+C1JohVdBQzO+Ckhkzu9Wiu6PtcJbM7qvVojN+BwWNaLC85Ejc/69LVJkhTcgIbDKrzYIrXo5EIq4qtsYiriqlxEy4qpuI2TEVavNICMudxshIy53GyMjLncbIyOu6jZCRlzVbQYZcVW3ETLi8mpjZMTlbjPIiMvdRsiIq7qNkTHFvE6ouo2RMc2K14m42wgZk3mkrcq772WZQHUbI2OiGTeztGS8FM+yLLHqNkLGpM6itXUkVn2KZQm52xgZE1bsSW/I+fc2kJWeZlki7jZGxqQFy7zP2o7xWUjCSk/RlkB1GyFj8orjWNqpPByKhBWfZlms6jZGxgAFS7/M0krhvRAACSs/zbIY1W0GGYNM2OpbWhv/8dO1F4CElZ5kqYvgxW2EjIEm7PE9i/nQ3Aq/3BYJC0xY4Q66FZ+/FuPPhyJjsIrN36DXYoMu7nxqbSgWmpIc/TWddM7/0KZQDFixzAkfcej+wUglYRFFscZJz/1o9L8/v3p3iGLQKWHZ/c694+lnB/vUrWfslpESFl0BrLHzPrtvujSQFAMXxfBFBYubsmCBqmhQNCcZcMqKJStJNeF/kgFWUDggOgUAALAgAJ0BKoAAgAA+kUCaSKWkIqEqk9vosBIJZBDANVRiK2CAzwB+AfwCzbHK+wdnR4jznKu78eJeb7RR6a/A/jLqHeYB+mHSb8wH65+rJ6UvQA/u/UW+gB+unpnew/+637he09//+sA4GOPXdiMqfrJpK6S/8+17L5H0AP1cQeLnLv8/bfGTSHBC7Oqj/xPwyTcPFBIBLnm9vHnuLBvOBvCUTUAkIIDzspObvj+VpFZ/9+fGX8X6K0hhfgZl28qdlsRmPc/Tvr6DnyMA+wUG7VRQI3/VTGhgP9422dSDKsEkjYetsaqS7gm19f0qVH5Ce+cyZG0dZEZ2BWAZbaj8d+9W55ARpZJme+bEFCyAAAD+zWcVd5vi10Q03CUEc5AdGZWcxW+AcGjRncbFqzB0dZByTkPY2uScgHUT5W8jGFNKkv5uj1jOvg2LZRpgwrO2A7FBtXZurTipzENhrj3E9eaoXXUhyhjYT/qIifnRyRdUGx9QJBlkb3zp/GM1xEvL+VKTYH5b2S+SUjmDUi1K33KfI9S4MSrMIUYxOkQ3N/pogoWf+A8avmPChn02YemgEg4y5G2n8HkOMt75JaKnJGJrfSF+5rcyxHsCpdAZkuiTWNH7GxNx+SQOpJ8L/i9GXThmfYC9IE5MqwCt3zxhcvUdfFv/fl7v0LKOC8DkQFgCA07E/yrj3vpVL1fvdq4uTEheFF1fWngp+sEYRyPC0MFftfdIXbmO99/tL+Bjqg/EsvlFcQ0y7ti5nkdU0PRYNXucvXH92rRgK09otMz5XUQZDqcWOV9UKh6dtf9+E/Ufzen7ust2orBV2EeOM/dtVOmS1xYrrKyKlwg8KCv8uhG/6enQ3WjahU1XRwpRRSLTlWhALyn6rdk/DjR46Ebvlce85bzbKvud8rA8+6cG5WGk3RuFmHH400E7U0ZR3hA7McdYsjEcgLLlOE5F79Xk47pDKCkMA1OuvaWv1JPLJyDKVxm6bQjLBCE5QzPkmwzMKbwUZ2YL5gf8VO+pf9dBJ3j8U1cYGVu/InjFLcGGigjgKujqkLhL3XbR61LrPIu/ZaUaEGFXOt74GLI7O8zpCtUbPPIVbDl6BJVQaR1kAD46vDv4prhI08kD2YczgLvjeNF7JQ8uFKR98JmTg8Ku098ncZIW5BHxLNuLxblMYrPgzjfx8O5okPtyIsA2mze+CthRU/1+muGU6KWrD9DgB2vdi5QsYAWJ3XX7CnDAQFkX4iEA4iuH6C3YE+prdMLkWIKAExjJ/SQ1aI5ic1PGOHO2lKOdWF+lrPpdKZGg8RHtn60kHJQBCPT0n5RebwYXHpInHuH0g8kw3FH8prX3i4HtVKasxn8RXM0wXkBC3SQpQ35ekO//hhGtHMDUFMHDKZ/RT6yxPdCU5LOCLpgBqmfr8K+BNZUzVRAOw4ePB/GvO9hirML6qz6Tdc09EtvA/CA90tPHkfynIhac+R4AF1Th0OeWTFANHrO2FaSWWeWEfuhU/Dxu6/IgInWYcnb6Q+fTJUUO/FeheMWbgCfUsFFHI0IUnxsVOt5EDaTezzAGhWN0o15ZQO//E8c8I4UrbyGR0+tPnh2D5pXn+DUnWeZzYH4NQ7RYznMetcJG2euybtm30EoHNCjfT628oDMmLmGj9kb39WXTOPAH01E93HcSCVUKJkedzBgiMwyQqoABIZepRx6ZIhYQY9joJ/0DHgwOiXn7fa67NjjRnZ0w7RoNC0AGsH40E2CHfen+DIuye+1Zf516Qx13mm9PKhtp/sS+2J4GbgAAAA==",
+      "logo": "data:image/webp;base64,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",
       "hasDefaultLogo": true,
       "accentColor": "#60b3f9",
       "contact": {
@@ -397,7 +399,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "restake",
       "payoutSchedule": "",
       "isMaintainedByNimiq": true,
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9Ik5vdC1BLVBvb2wgbG9nbyI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0iI2U2NWY1YyIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iMzIiIHI9IjE4IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4yMikiLz48dGV4dCB4PSI2NCIgeT0iNzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSJ3aGl0ZSI+TkE8L3RleHQ+PC9zdmc+",
+      "hasDefaultLogo": true,
+      "accentColor": "#e65f5c"
     },
     {
       "name": "ObsidianStake",
@@ -423,7 +427,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "restake",
       "payoutSchedule": "",
       "isMaintainedByNimiq": true,
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlBvb2x5IE1jUG9vbGZhY2UgbG9nbyI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0iIzdjNWNmZiIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iMzIiIHI9IjE4IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4yMikiLz48dGV4dCB4PSI2NCIgeT0iNzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSJ3aGl0ZSI+UE08L3RleHQ+PC9zdmc+",
+      "hasDefaultLogo": true,
+      "accentColor": "#7c5cff"
     },
     {
       "name": "Siam Testnet Pool",
@@ -444,7 +450,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "restake",
       "payoutSchedule": "",
       "isMaintainedByNimiq": true,
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlN3aW1taW5nIFBvb2wgbG9nbyI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0iIzJmYTdkOCIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iMzIiIHI9IjE4IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4yMikiLz48dGV4dCB4PSI2NCIgeT0iNzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSJ3aGl0ZSI+U1A8L3RleHQ+PC9zdmc+",
+      "hasDefaultLogo": true,
+      "accentColor": "#2fa7d8"
     },
     {
       "name": "Helvetia Staking",
@@ -465,7 +473,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "restake",
       "payoutSchedule": "",
       "isMaintainedByNimiq": true,
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlBvb2wgQmlsbGFyZCBsb2dvIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjMmU3ZDMyIi8+PGNpcmNsZSBjeD0iOTYiIGN5PSIzMiIgcj0iMTgiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsLjIyKSIvPjx0ZXh0IHg9IjY0IiB5PSI3NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IndoaXRlIj5QQjwvdGV4dD48L3N2Zz4=",
+      "hasDefaultLogo": true,
+      "accentColor": "#2e7d32"
     },
     {
       "name": "Mint Pool",
@@ -475,7 +485,7 @@ export const bundledValidatorsByNetwork = {
       "payoutSchedule": "",
       "description": "Minting together",
       "website": "https://mintpool.io",
-      "logo": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22161%22%20height%3D%22147%22%20fill%3D%22none%22%3E%3Cpath%20fill%3D%22url(%23a)%22%20d%3D%22m36.932%206.24%2019.39%2033.705-40.845.07S27.517%2018.63%2031.857%2011.7l.98-1.47a25.497%2025.497%200%200%201%202.625-2.87l1.47-1.12Z%22%2F%3E%3Cpath%20fill%3D%22url(%23b)%22%20d%3D%22M13.026%2048.87h49.105l27.72%2048.16-78.82.14S4.906%2086.915%203.086%2083.38a26.003%2026.003%200%200%201-1.33-3.045%2020.23%2020.23%200%200%201%20.105-11.48l.665-1.68.595-1.225a842.904%20842.904%200%200%201%209.905-17.08Z%22%2F%3E%3Cpath%20fill%3D%22url(%23c)%22%20d%3D%22M15.23%20105.85h78.75l22.47%2039.13-.735.315-.91.315-1.05.35-1.12.28-1.05.14-.84.105-.735.035-.735.035s-45.57.805-60.76%200a37.32%2037.32%200%200%201-4.13-.595%2015.828%2015.828%200%200%201-4.023-1.645%2022.397%2022.397%200%200%201-3.745-2.73l-1.085-1.12a25.147%2025.147%200%200%201-1.715-2.275l-1.12-1.96-17.466-30.38Z%22%2F%3E%3Cpath%20fill%3D%22url(%23d)%22%20d%3D%22m111.934%20115.23%2013.72%2023.94.63-.63.56-.7.525-.665.35-.49.77-1.295a1279.96%201279.96%200%200%200%2030.905-53.795l.35-.945.35-1.12.28-1.015.21-1.26.14-1.12.07-1.225v-.595l-.035-.84-.035-.665-.105-.875-.14-.84-.245-1.085-.245-.84a12.206%2012.206%200%200%200-.385-1.015l-.385-1.05-.42-.84c-2.52-4.655-10.535-18.305-10.535-18.305l-36.33%2067.27Z%22%2F%3E%3Cpath%20fill%3D%22url(%23e)%22%20d%3D%22m79.246%2059.615%2026.775%2046.69%2036.295-67.235s-11.76-21.245-16.205-28a21.584%2021.584%200%200%200-3.605-4.06l-1.995-1.47a23.828%2023.828%200%200%200-1.61-.875l-1.68-.735a34.031%2034.031%200%200%200-2.03-.63l-1.4-.245a18.993%2018.993%200%200%200-2.73-.28h-1.19l-30.625%2056.84Z%22%2F%3E%3Cpath%20fill%3D%22url(%23f)%22%20d%3D%22M100.106%201.13s-38.815-.595-51.73%200l-.91.07-1.33.21-.98.21%2028.175%2049.07%2026.775-49.56Z%22%2F%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22a%22%20x1%3D%22146.202%22%20x2%3D%22101.962%22%20y1%3D%22-25.19%22%20y2%3D%22-3.735%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%2355C2B2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2343BEAB%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22b%22%20x1%3D%22166.676%22%20x2%3D%22122.436%22%20y1%3D%2217.055%22%20y2%3D%2238.51%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%2355C2B2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2343BEAB%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22c%22%20x1%3D%22190.02%22%20x2%3D%22145.78%22%20y1%3D%2265.215%22%20y2%3D%2286.67%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%2355C2B2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2343BEAB%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22d%22%20x1%3D%22191.069%22%20x2%3D%22146.829%22%20y1%3D%2267.385%22%20y2%3D%2288.84%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%2355C2B2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2343BEAB%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22e%22%20x1%3D%22170.211%22%20x2%3D%22125.971%22%20y1%3D%2224.37%22%20y2%3D%2245.825%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%2355C2B2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2343BEAB%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22f%22%20x1%3D%22149.771%22%20x2%3D%22105.531%22%20y1%3D%22-17.77%22%20y2%3D%223.685%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%2355C2B2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2343BEAB%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3C%2Fsvg%3E",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjEiIGhlaWdodD0iMTQ3IiBmaWxsPSJub25lIj48cGF0aCBmaWxsPSJ1cmwoI2EpIiBkPSJtMzYuOTMyIDYuMjQgMTkuMzkgMzMuNzA1LTQwLjg0NS4wN1MyNy41MTcgMTguNjMgMzEuODU3IDExLjdsLjk4LTEuNDdhMjUuNDk3IDI1LjQ5NyAwIDAgMSAyLjYyNS0yLjg3bDEuNDctMS4xMloiLz48cGF0aCBmaWxsPSJ1cmwoI2IpIiBkPSJNMTMuMDI2IDQ4Ljg3aDQ5LjEwNWwyNy43MiA0OC4xNi03OC44Mi4xNFM0LjkwNiA4Ni45MTUgMy4wODYgODMuMzhhMjYuMDAzIDI2LjAwMyAwIDAgMS0xLjMzLTMuMDQ1IDIwLjIzIDIwLjIzIDAgMCAxIC4xMDUtMTEuNDhsLjY2NS0xLjY4LjU5NS0xLjIyNWE4NDIuOTA0IDg0Mi45MDQgMCAwIDEgOS45MDUtMTcuMDhaIi8+PHBhdGggZmlsbD0idXJsKCNjKSIgZD0iTTE1LjIzIDEwNS44NWg3OC43NWwyMi40NyAzOS4xMy0uNzM1LjMxNS0uOTEuMzE1LTEuMDUuMzUtMS4xMi4yOC0xLjA1LjE0LS44NC4xMDUtLjczNS4wMzUtLjczNS4wMzVzLTQ1LjU3LjgwNS02MC43NiAwYTM3LjMyIDM3LjMyIDAgMCAxLTQuMTMtLjU5NSAxNS44MjggMTUuODI4IDAgMCAxLTQuMDIzLTEuNjQ1IDIyLjM5NyAyMi4zOTcgMCAwIDEtMy43NDUtMi43M2wtMS4wODUtMS4xMmEyNS4xNDcgMjUuMTQ3IDAgMCAxLTEuNzE1LTIuMjc1bC0xLjEyLTEuOTYtMTcuNDY2LTMwLjM4WiIvPjxwYXRoIGZpbGw9InVybCgjZCkiIGQ9Im0xMTEuOTM0IDExNS4yMyAxMy43MiAyMy45NC42My0uNjMuNTYtLjcuNTI1LS42NjUuMzUtLjQ5Ljc3LTEuMjk1YTEyNzkuOTYgMTI3OS45NiAwIDAgMCAzMC45MDUtNTMuNzk1bC4zNS0uOTQ1LjM1LTEuMTIuMjgtMS4wMTUuMjEtMS4yNi4xNC0xLjEyLjA3LTEuMjI1di0uNTk1bC0uMDM1LS44NC0uMDM1LS42NjUtLjEwNS0uODc1LS4xNC0uODQtLjI0NS0xLjA4NS0uMjQ1LS44NGExMi4yMDYgMTIuMjA2IDAgMCAwLS4zODUtMS4wMTVsLS4zODUtMS4wNS0uNDItLjg0Yy0yLjUyLTQuNjU1LTEwLjUzNS0xOC4zMDUtMTAuNTM1LTE4LjMwNWwtMzYuMzMgNjcuMjdaIi8+PHBhdGggZmlsbD0idXJsKCNlKSIgZD0ibTc5LjI0NiA1OS42MTUgMjYuNzc1IDQ2LjY5IDM2LjI5NS02Ny4yMzVzLTExLjc2LTIxLjI0NS0xNi4yMDUtMjhhMjEuNTg0IDIxLjU4NCAwIDAgMC0zLjYwNS00LjA2bC0xLjk5NS0xLjQ3YTIzLjgyOCAyMy44MjggMCAwIDAtMS42MS0uODc1bC0xLjY4LS43MzVhMzQuMDMxIDM0LjAzMSAwIDAgMC0yLjAzLS42M2wtMS40LS4yNDVhMTguOTkzIDE4Ljk5MyAwIDAgMC0yLjczLS4yOGgtMS4xOWwtMzAuNjI1IDU2Ljg0WiIvPjxwYXRoIGZpbGw9InVybCgjZikiIGQ9Ik0xMDAuMTA2IDEuMTNzLTM4LjgxNS0uNTk1LTUxLjczIDBsLS45MS4wNy0xLjMzLjIxLS45OC4yMSAyOC4xNzUgNDkuMDcgMjYuNzc1LTQ5LjU2WiIvPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iYSIgeDE9IjE0Ni4yMDIiIHgyPSIxMDEuOTYyIiB5MT0iLTI1LjE5IiB5Mj0iLTMuNzM1IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iIzU1QzJCMiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzQzQkVBQiIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJiIiB4MT0iMTY2LjY3NiIgeDI9IjEyMi40MzYiIHkxPSIxNy4wNTUiIHkyPSIzOC41MSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIHN0b3AtY29sb3I9IiM1NUMyQjIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM0M0JFQUIiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iYyIgeDE9IjE5MC4wMiIgeDI9IjE0NS43OCIgeTE9IjY1LjIxNSIgeTI9Ijg2LjY3IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iIzU1QzJCMiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzQzQkVBQiIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJkIiB4MT0iMTkxLjA2OSIgeDI9IjE0Ni44MjkiIHkxPSI2Ny4zODUiIHkyPSI4OC44NCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIHN0b3AtY29sb3I9IiM1NUMyQjIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM0M0JFQUIiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iZSIgeDE9IjE3MC4yMTEiIHgyPSIxMjUuOTcxIiB5MT0iMjQuMzciIHkyPSI0NS44MjUiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBzdG9wLWNvbG9yPSIjNTVDMkIyIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNDNCRUFCIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImYiIHgxPSIxNDkuNzcxIiB4Mj0iMTA1LjUzMSIgeTE9Ii0xNy43NyIgeTI9IjMuNjg1IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iIzU1QzJCMiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzQzQkVBQiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjwvc3ZnPg==",
       "hasDefaultLogo": true,
       "accentColor": "#68bbab"
     },
@@ -486,7 +496,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "restake",
       "payoutSchedule": "",
       "isMaintainedByNimiq": true,
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IktpZGRpZSBQb29sIGxvZ28iPjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiByeD0iMjgiIGZpbGw9IiNmMmE5M2IiLz48Y2lyY2xlIGN4PSI5NiIgY3k9IjMyIiByPSIxOCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwuMjIpIi8+PHRleHQgeD0iNjQiIHk9Ijc1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0MiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0id2hpdGUiPktQPC90ZXh0Pjwvc3ZnPg==",
+      "hasDefaultLogo": true,
+      "accentColor": "#f2a93b"
     },
     {
       "name": "AceStaking",
@@ -495,7 +507,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "direct",
       "payoutSchedule": "",
       "description": "The Ace in staking",
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkFjZVN0YWtpbmcgbG9nbyI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0iIzVmNmVlNiIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iMzIiIHI9IjE4IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4yMikiLz48dGV4dCB4PSI2NCIgeT0iNzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSJ3aGl0ZSI+QTwvdGV4dD48L3N2Zz4=",
+      "hasDefaultLogo": true,
+      "accentColor": "#5f6ee6"
     },
     {
       "name": "Monopooly",
@@ -504,7 +518,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "restake",
       "payoutSchedule": "",
       "isMaintainedByNimiq": true,
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9Ik1vbm9wb29seSBsb2dvIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjZDQzZjhkIi8+PGNpcmNsZSBjeD0iOTYiIGN5PSIzMiIgcj0iMTgiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsLjIyKSIvPjx0ZXh0IHg9IjY0IiB5PSI3NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IndoaXRlIj5NPC90ZXh0Pjwvc3ZnPg==",
+      "hasDefaultLogo": true,
+      "accentColor": "#d43f8d"
     },
     {
       "name": "Puddle",
@@ -513,7 +529,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "direct",
       "payoutSchedule": "",
       "isMaintainedByNimiq": true,
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlB1ZGRsZSBsb2dvIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjM2FhNmE2Ii8+PGNpcmNsZSBjeD0iOTYiIGN5PSIzMiIgcj0iMTgiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsLjIyKSIvPjx0ZXh0IHg9IjY0IiB5PSI3NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IndoaXRlIj5QPC90ZXh0Pjwvc3ZnPg==",
+      "hasDefaultLogo": true,
+      "accentColor": "#3aa6a6"
     },
     {
       "name": "Cool Pool",
@@ -522,7 +540,9 @@ export const bundledValidatorsByNetwork = {
       "payoutType": "restake",
       "payoutSchedule": "",
       "isMaintainedByNimiq": true,
-      "hasDefaultLogo": true
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkNvb2wgUG9vbCBsb2dvIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjMWU4OGU1Ii8+PGNpcmNsZSBjeD0iOTYiIGN5PSIzMiIgcj0iMTgiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsLjIyKSIvPjx0ZXh0IHg9IjY0IiB5PSI3NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IndoaXRlIj5DUDwvdGV4dD48L3N2Zz4=",
+      "hasDefaultLogo": true,
+      "accentColor": "#1e88e5"
     }
   ]
 } as unknown as Record<'main-albatross' | 'test-albatross', ValidatorJSON[]>

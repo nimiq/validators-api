@@ -103,7 +103,7 @@ The VTS is a metric designed to help stakers evaluate the performance and reliab
 
 The VTS is displayed in the Nimiq Wallet, allowing stakers to compare validators and select the one that best meets their needs.
 
-- [Read the docs](https://nimiq.com/developers/validators/validator-trustscore)
+- [Read the docs](./packages/nimiq-validator-trustscore/)
 - Checkout the [pnpm package](./packages/nimiq-validator-trustscore/)
 
 ## Validators API
@@ -112,7 +112,7 @@ The Validators API provides endpoints to retrieve validator information for inte
 | Endpoint | Description |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [/api/v1/validators](https://validators-api-main.je-cf9.workers.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
-| [/api/v1/validators/:validator_address](https://validators-api-main.je-cf9.workers.dev/api/v1/validators/NQ7700000000000000000000000000000001) | Retrieves the validator information |
+| [/api/v1/validators/:validator_address](https://validators-api-main.je-cf9.workers.dev/api/v1/validators/NQ98%20D3KE%208EQ8%20Y7DK%20G1MT%203P5T%202PHX%2018V5%20UEC1) | Retrieves the validator information |
 | [/api/v1/supply](https://validators-api-main.je-cf9.workers.dev/api/v1/supply) | Retrieves supply status |
 
 ## Validators Dashboard

@@ -1,12 +1,25 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
+import type { FetchedValidatorDetails } from '~~/server/utils/validators'
+
+type LayoutKey = 'dashboard' | 'deep-dive' | 'profile'
+type ValidatorDetail = FetchedValidatorDetails & { range?: unknown }
+
 const route = useRoute()
-const { data: validator } = await useFetch(`/api/v1/validators/${route.params.address}`)
-const layout = ref<'dashboard' | 'deep-dive' | 'profile'>('dashboard')
+const address = computed(() => Array.isArray(route.params.address) ? route.params.address.join('/') : String(route.params.address || ''))
+const { data: validator } = await useFetch<ValidatorDetail>(() => `/api/v1/validators/${encodeURIComponent(address.value)}`)
+const layout = shallowRef<LayoutKey>('dashboard')
 const layouts = [
   { key: 'dashboard' as const, label: 'Dashboard' },
   { key: 'deep-dive' as const, label: 'Deep Dive' },
   { key: 'profile' as const, label: 'Profile' },
 ]
+const layoutComponents = {
+  'dashboard': defineAsyncComponent(() => import('~/components/validator/LayoutDashboard.vue')),
+  'deep-dive': defineAsyncComponent(() => import('~/components/validator/LayoutDeepDive.vue')),
+  'profile': defineAsyncComponent(() => import('~/components/validator/LayoutProfile.vue')),
+} satisfies Record<LayoutKey, Component>
+const activeLayoutComponent = computed(() => layoutComponents[layout.value])
 </script>
 
 <template>
@@ -28,7 +41,7 @@ const layouts = [
         v-if="validator.isMaintainedByNimiq" nq-pill self-start bg-green-400 text-green-1100 nq-pill-secondary
         flex="~ items-center gap-8"
       >
-        <div aria-hidden i-nimiq:verified-filled />
+        <div aria-hidden class="i-nimiq:verified-filled" />
         <span>Maintained by Nimiq</span>
       </div>
       <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill ml-auto self-start nq-arrow nq-pill-tertiary>
@@ -52,9 +65,9 @@ const layouts = [
     </div>
 
     <!-- Active layout -->
-    <ValidatorLayoutDashboard v-if="layout === 'dashboard'" :validator="validator" />
-    <ValidatorLayoutDeepDive v-else-if="layout === 'deep-dive'" :validator="validator" />
-    <ValidatorLayoutProfile v-else :validator="validator" />
+    <ClientOnly>
+      <component :is="activeLayoutComponent" :validator="validator" />
+    </ClientOnly>
   </div>
 
   <div v-else>

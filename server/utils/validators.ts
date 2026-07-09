@@ -1,15 +1,18 @@
 import type { SQLWrapper } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import type { ElectedValidator, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
-import type { Activity, Score, Validator } from './drizzle'
+import type { Score, Validator } from './drizzle'
 import type { MainQuerySchema, ValidatorJSON } from './schemas'
 import type { FetchedValidator, SnapshotEpochValidators } from './types'
+import type { ActivityWithStatus } from './validator-activity-status'
 import { consola } from 'consola'
-import { and, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm'
 import { fetchSnapshotEpoch } from '~~/packages/nimiq-validator-trustscore/src/fetcher'
+import { resolveLiveActivityMetadata } from './activity-metadata'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON } from './schemas'
+import { withValidatorEpochStatus } from './validator-activity-status'
 import { getUnlistedActiveValidatorAddresses, isKnownValidatorProfile } from './validator-listing'
 
 export const getStoredValidatorsId = () => useDrizzle().select({ id: tables.validators.id }).from(tables.validators).execute().then(r => r.map(v => v.id))
@@ -227,13 +230,44 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
       ))
       .execute()
 
+    const maxLiveActivityEpochs = useDrizzle()
+      .select({
+        validatorId: tables.activity.validatorId,
+        epochNumber: sql<number>`max(${tables.activity.epochNumber})`.as('epochNumber'),
+      })
+      .from(tables.activity)
+      .where(and(
+        inArray(tables.activity.validatorId, validatorIds),
+        or(
+          gte(tables.activity.balance, 0),
+          gte(tables.activity.stakers, 1),
+        ),
+      ))
+      .groupBy(tables.activity.validatorId)
+      .as('max_live_activity')
+
+    const latestActivityMetadataRows = await useDrizzle()
+      .select({
+        validatorId: tables.activity.validatorId,
+        balance: tables.activity.balance,
+        stakers: tables.activity.stakers,
+      })
+      .from(tables.activity)
+      .innerJoin(maxLiveActivityEpochs, and(
+        eq(tables.activity.validatorId, maxLiveActivityEpochs.validatorId),
+        eq(tables.activity.epochNumber, maxLiveActivityEpochs.epochNumber),
+      ))
+      .execute()
+
     const scoresByValidatorId = new Map(scoresRows.map(row => [row.validatorId, row]))
     const activityByValidatorId = new Map(activityRows.map(row => [row.validatorId, row]))
+    const latestActivityMetadataByValidatorId = new Map(latestActivityMetadataRows.map(row => [row.validatorId, row]))
 
     const validators = visibleValidators.map((validator) => {
       const { logo, hasDefaultLogo, contact: _contact, isListed, ...rest } = validator
       const scoreRow = scoresByValidatorId.get(validator.id)
       const activityRow = activityByValidatorId.get(validator.id)
+      const latestActivityMetadata = latestActivityMetadataByValidatorId.get(validator.id)
 
       if (!scoreRow) {
         // Gracefully handle the case where the validator has no score equal or lower than the requested epoch
@@ -242,8 +276,10 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
 
       const scoreData = scoreRow || { availability: -1, dominance: -1, reliability: -1, total: -1, epochNumber: -1 }
       const activityData = activityRow || { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, epochNumber: -1 }
+      const activityMetadata = resolveLiveActivityMetadata(activityData, activityData, latestActivityMetadata)
 
-      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1, balance = -1, stakers = 0 } = activityData
+      const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1 } = activityData
+      const { balance, stakers } = activityMetadata
       const score: FetchedValidator['score'] = {
         availability: scoreData.availability === -1 ? null : scoreData.availability,
         reliability: scoreData.reliability === -1 ? null : scoreData.reliability,
@@ -290,7 +326,7 @@ export const cachedFetchValidators = defineCachedFunction((_event: H3Event, para
 })
 
 export interface FetchValidatorOptions { address: string, range: Range }
-export type FetchedValidatorDetails = Validator & { activity: Activity[], scores: Score[], score?: Score }
+export type FetchedValidatorDetails = Validator & { activity: ActivityWithStatus[], scores: Score[], score?: Score }
 
 export async function fetchValidator(_event: H3Event, params: FetchValidatorOptions): Result<FetchedValidatorDetails> {
   const { address, range: { fromEpoch, toEpoch } } = params
@@ -331,9 +367,32 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
         gte(tables.activity.epochNumber, fromEpoch),
         lte(tables.activity.epochNumber, toEpoch),
       ))
+      .orderBy(asc(tables.activity.epochNumber))
       .execute()
 
-    return [true, undefined, { ...validator, scores, activity, score }]
+    const latestActivityMetadata = await useDrizzle()
+      .select({
+        balance: tables.activity.balance,
+        stakers: tables.activity.stakers,
+      })
+      .from(tables.activity)
+      .where(and(
+        eq(tables.activity.validatorId, validator.id),
+        or(
+          gte(tables.activity.balance, 0),
+          gte(tables.activity.stakers, 1),
+        ),
+      ))
+      .orderBy(desc(tables.activity.epochNumber))
+      .limit(1)
+      .then(rows => rows.at(0))
+
+    const activityWithLiveMetadata = activity.map(row => ({
+      ...row,
+      ...resolveLiveActivityMetadata(row, row, latestActivityMetadata),
+    }))
+
+    return [true, undefined, { ...validator, scores, activity: activityWithLiveMetadata.map(withValidatorEpochStatus), score }]
   }
   catch (error) {
     consola.error(`Error fetching validator ${address}: ${error}`)

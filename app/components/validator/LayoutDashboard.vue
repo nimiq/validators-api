@@ -4,12 +4,12 @@ import { CurveType } from 'vue-chrts'
 
 const props = defineProps<{ validator: FetchedValidatorDetails }>()
 const validatorRef = computed(() => props.validator)
-const { scoreTrendData, balanceData, activityData, feeDisplay, payoutDisplay, currentStakers, donutScoreData } = useValidatorCharts(validatorRef)
+const { scoreTrendData, scoreTrendXFormatter, balanceData, balanceXFormatter, balanceYDomain, activityData, activityXFormatter, feeDisplay, payoutDisplay, currentStakers, donutScoreData } = useValidatorCharts(validatorRef)
 
-const scoreCategories = { total: { name: 'Score', color: 'var(--nq-green)' } }
-const balanceCategories = { balance: { name: 'Balance (NIM)', color: 'var(--nq-gold)' } }
-const activityCategories = { rewarded: { name: 'Rewarded', color: 'var(--nq-green-400)' }, missed: { name: 'Missed', color: 'var(--nq-red-400)' } }
-const donutCategories = { 0: { name: 'Availability', color: 'var(--nq-blue)' }, 1: { name: 'Dominance', color: 'var(--nq-purple)' }, 2: { name: 'Reliability', color: 'var(--nq-orange)' } }
+const scoreCategories = { total: { name: 'Score', color: 'var(--colors-green)' } }
+const balanceCategories = { balance: { name: 'Balance (NIM)', color: 'var(--colors-gold)' } }
+const activityCategories = { rewarded: { name: 'Rewarded', color: 'var(--colors-green-400)' }, missed: { name: 'Missed', color: 'var(--colors-red-400)' } }
+const donutCategories = { 0: { name: 'Availability', color: 'var(--colors-blue)' }, 1: { name: 'Dominance', color: 'var(--colors-purple)' }, 2: { name: 'Reliability', color: 'var(--colors-orange)' } }
 </script>
 
 <template>
@@ -67,7 +67,7 @@ const donutCategories = { 0: { name: 'Availability', color: 'var(--nq-blue)' }, 
         <span nq-label text="11 neutral-800" mb-8 block>Score Trend</span>
         <AreaChart
           :data="scoreTrendData" :height="200" :categories="scoreCategories"
-          :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => `${Math.round(t * 100)}`"
+          :x-formatter="scoreTrendXFormatter" :y-formatter="(t: number) => `${Math.round(t * 100)}`"
           :y-domain="[0, 1]" hide-legend :curve-type="CurveType.MonotoneX"
         />
       </div>
@@ -80,14 +80,15 @@ const donutCategories = { 0: { name: 'Availability', color: 'var(--nq-blue)' }, 
         <BarChart
           :data="activityData" :height="200" :categories="activityCategories"
           :y-axis="['rewarded', 'missed']" stacked hide-legend
-          :x-formatter="(t: number) => `E${t}`"
+          :x-formatter="activityXFormatter"
         />
       </div>
       <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>
         <span nq-label text="11 neutral-800" mb-8 block>Balance</span>
         <LineChart
           :data="balanceData" :height="200" :categories="balanceCategories"
-          :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => formatLunaAsNim(t * 1e5)"
+          :x-formatter="balanceXFormatter" :y-formatter="(t: number) => formatLunaAsNim(t * 1e5)"
+          :y-domain="balanceYDomain"
           hide-legend :curve-type="CurveType.MonotoneX"
         />
       </div>

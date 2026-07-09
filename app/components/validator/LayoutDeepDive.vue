@@ -4,15 +4,15 @@ import { CurveType } from 'vue-chrts'
 
 const props = defineProps<{ validator: FetchedValidatorDetails }>()
 const validatorRef = computed(() => props.validator)
-const { scoreTrendAllData, stakersData, activityStats, feeDisplay, payoutDisplay } = useValidatorCharts(validatorRef)
+const { scoreTrendAllData, scoreTrendAllXFormatter, stakersData, stakersXFormatter, stakersYDomain, activityStats, feeDisplay, payoutDisplay } = useValidatorCharts(validatorRef)
 
 const allScoreCategories = {
-  total: { name: 'Total', color: 'var(--nq-green)' },
-  availability: { name: 'Availability', color: 'var(--nq-blue)' },
-  dominance: { name: 'Dominance', color: 'var(--nq-purple)' },
-  reliability: { name: 'Reliability', color: 'var(--nq-orange)' },
+  total: { name: 'Total', color: 'var(--colors-green)' },
+  availability: { name: 'Availability', color: 'var(--colors-blue)' },
+  dominance: { name: 'Dominance', color: 'var(--colors-purple)' },
+  reliability: { name: 'Reliability', color: 'var(--colors-orange)' },
 }
-const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--nq-blue)' } }
+const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--colors-blue)' } }
 
 // Combined balance + score data for DualChart
 const dualChartData = computed(() => {
@@ -25,8 +25,12 @@ const dualChartData = computed(() => {
     score: scoreMap.get(a.epochNumber) ?? 0,
   }))
 })
-const dualBarCategories = { balance: { name: 'Balance (NIM)', color: 'var(--nq-gold)' } }
-const dualLineCategories = { score: { name: 'Score', color: 'var(--nq-green)' } }
+const dualChartXFormatter = computed(() => (index: number) => {
+  const epoch = dualChartData.value[Math.round(index)]?.epoch
+  return epoch === undefined ? '' : `E${epoch}`
+})
+const dualBarCategories = { balance: { name: 'Balance (NIM)', color: 'var(--colors-gold)' } }
+const dualLineCategories = { score: { name: 'Score', color: 'var(--colors-green)' } }
 </script>
 
 <template>
@@ -44,7 +48,7 @@ const dualLineCategories = { score: { name: 'Score', color: 'var(--nq-green)' } 
       <span nq-label text="11 neutral-800" mb-8 block>Score Trends</span>
       <AreaChart
         :data="scoreTrendAllData" :height="280" :categories="allScoreCategories"
-        :x-formatter="(t: number) => `E${t}`" :y-formatter="(t: number) => `${Math.round(t * 100)}`"
+        :x-formatter="scoreTrendAllXFormatter" :y-formatter="(t: number) => `${Math.round(t * 100)}`"
         :y-domain="[0, 1]" :curve-type="CurveType.MonotoneX"
       />
     </div>
@@ -56,7 +60,7 @@ const dualLineCategories = { score: { name: 'Score', color: 'var(--nq-green)' } 
         :data="dualChartData" :height="240"
         :bar-categories="dualBarCategories" :line-categories="dualLineCategories"
         :bar-y-axis="['balance']" :line-y-axis="['score']"
-        :x-formatter="(t: number) => `E${t}`"
+        :x-formatter="dualChartXFormatter"
       />
     </div>
 
@@ -66,7 +70,7 @@ const dualLineCategories = { score: { name: 'Score', color: 'var(--nq-green)' } 
         <span nq-label text="11 neutral-800" mb-8 block>Stakers</span>
         <LineChart
           :data="stakersData" :height="200" :categories="stakersCategories"
-          :x-formatter="(t: number) => `E${t}`" hide-legend :curve-type="CurveType.MonotoneX"
+          :x-formatter="stakersXFormatter" :y-domain="stakersYDomain" hide-legend :curve-type="CurveType.MonotoneX"
         />
       </div>
       <div flex="~ col gap-16">

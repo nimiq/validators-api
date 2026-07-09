@@ -6,6 +6,7 @@ export default defineBuildConfig({
     'src/score',
     'src/types',
     'src/range',
+    'src/epoch-status',
   ],
   declaration: 'node16',
   clean: true,

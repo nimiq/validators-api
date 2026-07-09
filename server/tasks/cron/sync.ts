@@ -3,7 +3,7 @@ import { consola } from 'consola'
 import { runTask } from 'nitropack/runtime'
 import { eq, tables, useDrizzle } from '~~/server/utils/drizzle'
 
-const CRON_EXPRESSION = '0 * * * *'
+const CRON_EXPRESSION = '0 */12 * * *'
 const TASKS: string[] = ['sync:epochs', 'sync:snapshot']
 
 interface FailedTask {
