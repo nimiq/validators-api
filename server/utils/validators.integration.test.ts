@@ -1,3 +1,4 @@
+import type { Range } from 'nimiq-validator-trustscore/types'
 import type { TestDbHarness } from '../test/db-harness'
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as schema from '../db/schema'
@@ -139,5 +140,123 @@ describe('versioned validator cache keys', () => {
 
     expect(listCache.getKey({}, { ...baseList, scoreVersion: 1 })).not.toBe(listCache.getKey({}, { ...baseList, scoreVersion: 2 }))
     expect(detailCache.getKey({}, { ...baseDetail, scoreVersion: 1 })).not.toBe(detailCache.getKey({}, { ...baseDetail, scoreVersion: 2 }))
+  })
+})
+
+describe('validator activity history', () => {
+  it('exposes an improbable high-stake non-election only for score v2', async () => {
+    const address = 'offline-validator'
+    const [validator] = await harness.db.insert(schema.validators).values({
+      address,
+      name: 'Offline validator',
+      logo: 'logo',
+      hasDefaultLogo: true,
+      accentColor: '#000000',
+      isListed: true,
+    }).returning().all()
+    await harness.db.insert(schema.activity).values([
+      {
+        validatorId: validator!.id,
+        epochNumber: 10,
+        likelihood: 33,
+        rewarded: 720,
+        missed: 0,
+        dominanceRatioViaBalance: -1,
+        dominanceRatioViaSlots: 0.064,
+        balance: 1_000,
+        stakers: 1,
+      },
+      {
+        validatorId: validator!.id,
+        epochNumber: 12,
+        likelihood: 33,
+        rewarded: 720,
+        missed: 0,
+        dominanceRatioViaBalance: -1,
+        dominanceRatioViaSlots: 0.064,
+        balance: 1_000,
+        stakers: 1,
+      },
+    ]).execute()
+    await harness.db.insert(schema.activityEpochs).values([
+      {
+        epochNumber: 10,
+        status: 'finalized',
+        expectedElectedCount: 1,
+        storedElectedCount: 1,
+        electedSetHash: 'marker-10',
+        attemptCount: 1,
+        startedAt: '2026-07-31T08:00:00.000Z',
+        finalizedAt: '2026-07-31T08:05:00.000Z',
+      },
+      {
+        epochNumber: 11,
+        status: 'finalized',
+        expectedElectedCount: 0,
+        storedElectedCount: 0,
+        electedSetHash: 'marker-11',
+        attemptCount: 1,
+        startedAt: '2026-07-31T08:00:00.000Z',
+        finalizedAt: '2026-07-31T08:05:00.000Z',
+      },
+      {
+        epochNumber: 12,
+        status: 'finalized',
+        expectedElectedCount: 1,
+        storedElectedCount: 1,
+        electedSetHash: 'marker-12',
+        attemptCount: 1,
+        startedAt: '2026-07-31T08:00:00.000Z',
+        finalizedAt: '2026-07-31T08:05:00.000Z',
+      },
+    ]).execute()
+    const range: Range = {
+      head: 13,
+      headEpoch: 13,
+      epochCount: 3,
+      epochDurationMs: 12 * 60 * 60 * 1000,
+      fromEpoch: 10,
+      fromBlockNumber: 0,
+      fromTimestamp: 0,
+      toEpoch: 12,
+      toBlockNumber: 12,
+      toTimestamp: 0,
+      snapshotEpoch: 13,
+      snapshotBlock: 13,
+      snapshotTimestamp: 0,
+    }
+
+    const [success, error, result] = await validators.fetchValidator({} as never, {
+      address,
+      range,
+      scoreVersion: 2,
+      recentCoverage: 1,
+    })
+
+    expect(success).toBe(true)
+    expect(error).toBeUndefined()
+    expect(result!.activity).toEqual([
+      expect.objectContaining({ epochNumber: 10, status: 'elected_online' }),
+      expect.objectContaining({
+        epochNumber: 11,
+        status: 'inferred_offline',
+        inferred: true,
+      }),
+      expect.objectContaining({ epochNumber: 12, status: 'elected_online' }),
+    ])
+
+    const [v1Success, v1Error, v1Result] = await validators.fetchValidator({} as never, {
+      address,
+      range,
+      scoreVersion: 1,
+      recentCoverage: 1,
+    })
+
+    expect(v1Success).toBe(true)
+    expect(v1Error).toBeUndefined()
+    expect(v1Result!.activity).toEqual([
+      expect.objectContaining({ epochNumber: 10, status: 'elected_online' }),
+      expect.objectContaining({ epochNumber: 12, status: 'elected_online' }),
+    ])
   })
 })

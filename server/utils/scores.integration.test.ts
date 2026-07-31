@@ -278,6 +278,43 @@ describe('marker-gated v1 score persistence', () => {
 })
 
 describe('score v2 rollout persistence', () => {
+  it('penalizes improbable high-stake non-election only in score v2', async () => {
+    const range = createRange(10, 12)
+    const [validator] = await insertValidators(1, 'offline-inference-validator')
+    runtimeConfigState.scoreV2Mode = 'shadow'
+    mocks.getRange.mockResolvedValue([true, undefined, range])
+    await harness.db.insert(schema.activityEpochs).values([
+      finalizedMarker(10, 1),
+      finalizedMarker(11, 0),
+      finalizedMarker(12, 1),
+    ]).execute()
+    await harness.db.insert(schema.activity).values([
+      activityRow(validator!.id, 10, 720, 0, {
+        dominanceRatioViaBalance: -1,
+        dominanceRatioViaSlots: 0.064,
+      }),
+      activityRow(validator!.id, 12, 720, 0, {
+        dominanceRatioViaBalance: -1,
+        dominanceRatioViaSlots: 0.064,
+      }),
+    ]).execute()
+
+    const result = await scores.upsertScoresSnapshotEpoch()
+    expect(result[0]).toBe(true)
+
+    const stored = await harness.db.select()
+      .from(schema.scores)
+      .where(and(
+        eq(schema.scores.validatorId, validator!.id),
+        eq(schema.scores.epochNumber, 12),
+      ))
+      .orderBy(asc(schema.scores.scoreVersion))
+      .all()
+    expect(stored).toHaveLength(2)
+    expect(stored[0]!.availability).toBe(1)
+    expect(stored[1]!.recentAvailability).toBeCloseTo(2 / 3, 12)
+  })
+
   it('writes coexisting v1 and v2 rows in shadow mode and reruns idempotently', async () => {
     const range = createRange(10, 11)
     const [validator] = await insertValidators(1, 'shadow-score-validator')

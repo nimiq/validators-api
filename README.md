@@ -118,6 +118,8 @@ The Validators API provides endpoints to retrieve validator information for inte
 
 Validator list, detail, and status endpoints accept `score-version=1|2`. Without it, `NUXT_SCORE_V2_MODE=off` and `shadow` select v1, while `active` selects v2. Queries filter by the selected version before choosing the latest score, so responses never mix v1 and v2 history.
 
+For score v2, finalized gaps after a validator has been elected estimate the chance of receiving zero of the 512 validator slots from the nearest surrounding stake observations. A complete gap with less than 0.1% estimated random-election probability is marked `inferred_offline`, shown in v2 validator activity, and penalized by v2. Lower-confidence gaps remain `not_elected_randomness` and do not reduce availability. Score v1 behavior remains unchanged.
+
 Every score includes its version and data state:
 
 - `current`: selected-version score covers the latest completed epoch.

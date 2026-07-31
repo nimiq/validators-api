@@ -48,22 +48,31 @@ function formatCoverage(value: number | null) {
       </div>
       <template v-else>
         <div>
-          <h4 nq-label text="0.5em center">
-            recent
+          <h4 nq-label text="0.5em center" whitespace-nowrap>
+            recent availability
+            <span block mt-1 text="0.8em neutral/50" font-normal tracking-normal normal-case>
+              Last 14 days
+            </span>
           </h4>
-          <ScorePie text="neutral/70" mx-auto mt-6 size-2.75em :score="recentAvailability" />
+          <ScorePie text="neutral/70" mx-auto mt-4 size-2.75em :score="recentAvailability" />
         </div>
         <div>
-          <h4 nq-label text="0.5em center">
-            long-term
+          <h4 nq-label text="0.5em center" whitespace-nowrap>
+            long-term availability
+            <span block mt-1 text="0.8em neutral/50" font-normal tracking-normal normal-case>
+              About 9 months
+            </span>
           </h4>
-          <ScorePie text="neutral/70" mx-auto mt-6 size-2.75em :score="longTermAvailability" />
+          <ScorePie text="neutral/70" mx-auto mt-4 size-2.75em :score="longTermAvailability" />
         </div>
         <div>
-          <h4 nq-label text="0.5em center">
-            combined
+          <h4 nq-label text="0.5em center" whitespace-nowrap>
+            combined availability
+            <span block mt-1 text="0.8em neutral/50" font-normal tracking-normal normal-case>
+              50% recent + 50% long-term
+            </span>
           </h4>
-          <ScorePie text="neutral/70" mx-auto mt-6 size-2.75em :score="availability" />
+          <ScorePie text="neutral/70" mx-auto mt-4 size-2.75em :score="availability" />
         </div>
       </template>
       <div>

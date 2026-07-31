@@ -23,6 +23,7 @@ import {
   calculateActivityCoverage,
   getRecentEpochRange,
 } from './activity-epochs'
+import { inferMissingNonElections } from './non-election-inference'
 import { isScoreLagMissing } from './score-freshness'
 import { getStoredValidatorsId } from './validators'
 
@@ -145,12 +146,22 @@ export function buildScoreV2Epochs(
   }
 
   const epochs: ScoreV2Epoch[] = []
+  const inferredNonElections = inferMissingNonElections({
+    fromEpoch: range.fromEpoch,
+    toEpoch: range.toEpoch,
+    activities: activities.map(row => ({
+      epochNumber: row.epoch,
+      dominanceRatioViaBalance: row.dominanceViaBalance,
+      dominanceRatioViaSlots: row.dominanceViaSlots,
+    })),
+  })
   for (let epochNumber = range.toEpoch; epochNumber >= range.fromEpoch; epochNumber--) {
     const row = activityByEpoch.get(epochNumber)
     if (!row) {
       epochs.push({
         epochNumber,
-        status: ValidatorEpochStatus.NotElectedRandomness,
+        status: inferredNonElections.get(epochNumber)?.status
+          ?? ValidatorEpochStatus.NotElectedRandomness,
         rewarded: -1,
         missed: -1,
       })

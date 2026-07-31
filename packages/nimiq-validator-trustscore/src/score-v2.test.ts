@@ -65,6 +65,12 @@ describe('score v2 recent availability', () => {
       epoch(1, ValidatorEpochStatus.InactiveByChoiceOrRemoved, -1, -1),
     ])).toEqual([true, undefined, 0])
   })
+
+  it('treats inferred offline non-election as zero availability', () => {
+    expect(getRecentAvailabilityV2([
+      epoch(1, 'inferred_offline' as ValidatorEpochStatus, -1, -1),
+    ])).toEqual([true, undefined, 0])
+  })
 })
 
 describe('score v2 long-term availability', () => {

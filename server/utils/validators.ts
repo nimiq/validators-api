@@ -13,7 +13,7 @@ import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON } from './schemas'
 import { selectScoreHistory, toScoreApiValue } from './score-api'
-import { withValidatorEpochStatus } from './validator-activity-status'
+import { buildValidatorActivityTimeline, withValidatorEpochStatus } from './validator-activity-status'
 import { getUnlistedActiveValidatorAddresses, isKnownValidatorProfile } from './validator-listing'
 
 export const getStoredValidatorsId = () => useDrizzle().select({ id: tables.validators.id }).from(tables.validators).execute().then(r => r.map(v => v.id))
@@ -414,6 +414,19 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
       .orderBy(asc(tables.activity.epochNumber))
       .execute()
 
+    const finalizedEpochs = scoreVersion === 2
+      ? await useDrizzle()
+          .select({ epochNumber: tables.activityEpochs.epochNumber })
+          .from(tables.activityEpochs)
+          .where(and(
+            eq(tables.activityEpochs.status, 'finalized'),
+            gte(tables.activityEpochs.epochNumber, fromEpoch),
+            lte(tables.activityEpochs.epochNumber, toEpoch),
+          ))
+          .execute()
+          .then(rows => new Set(rows.map(row => row.epochNumber)))
+      : undefined
+
     const latestActivityMetadata = await useDrizzle()
       .select({
         balance: tables.activity.balance,
@@ -439,7 +452,13 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
     return [true, undefined, {
       ...validator,
       scores: scoreHistory,
-      activity: activityWithLiveMetadata.map(withValidatorEpochStatus),
+      activity: scoreVersion === 2
+        ? buildValidatorActivityTimeline(
+            { fromEpoch, toEpoch },
+            activityWithLiveMetadata,
+            finalizedEpochs,
+          )
+        : activityWithLiveMetadata.map(withValidatorEpochStatus),
       score,
     }]
   }

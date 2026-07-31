@@ -53,6 +53,7 @@ function validateEpochs(epochs: readonly ScoreV2Epoch[]): string | undefined {
           return `Invalid availability counters for epoch ${epoch.epochNumber}`
         break
       case ValidatorEpochStatus.InactiveByChoiceOrRemoved:
+      case ValidatorEpochStatus.InferredOffline:
         if (!(
           (epoch.rewarded === -1 && epoch.missed === -1)
           || (epoch.rewarded === 0 && epoch.missed === 0)
@@ -99,6 +100,7 @@ export function getRecentAvailabilityV2(
         break
       case ValidatorEpochStatus.ElectedFailedOrOffline:
       case ValidatorEpochStatus.InactiveByChoiceOrRemoved:
+      case ValidatorEpochStatus.InferredOffline:
         eligible++
         break
     }
@@ -174,7 +176,8 @@ export function getReliabilityV2(
   if (electedPerformance.length === 0) {
     const availabilityOwnsPenalty = epochs.some(
       epoch => epoch.status === ValidatorEpochStatus.ElectedFailedOrOffline
-        || epoch.status === ValidatorEpochStatus.InactiveByChoiceOrRemoved,
+        || epoch.status === ValidatorEpochStatus.InactiveByChoiceOrRemoved
+        || epoch.status === ValidatorEpochStatus.InferredOffline,
     )
     return availabilityOwnsPenalty
       ? [true, undefined, 1]

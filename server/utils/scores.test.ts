@@ -62,6 +62,34 @@ describe('score v2 rollout mode', () => {
 })
 
 describe('score v2 finalized activity mapping', () => {
+  it('maps an improbable high-stake non-election to inferred offline', () => {
+    const result = buildScoreV2Epochs({
+      validatorId: 7,
+      range: { fromEpoch: 10, toEpoch: 12 },
+      activities: [
+        activity(10, {
+          dominanceViaBalance: -1,
+          dominanceViaSlots: 0.064,
+        }),
+        activity(12, {
+          dominanceViaBalance: -1,
+          dominanceViaSlots: 0.064,
+        }),
+      ],
+    })
+
+    expect(result).toEqual([true, undefined, [
+      expect.objectContaining({ epochNumber: 12, status: 'elected_online' }),
+      {
+        epochNumber: 11,
+        status: 'inferred_offline',
+        rewarded: -1,
+        missed: -1,
+      },
+      expect.objectContaining({ epochNumber: 10, status: 'elected_online' }),
+    ]])
+  })
+
   it('maps an absent validator row in a finalized epoch to random non-election', () => {
     const result = buildScoreV2Epochs({
       validatorId: 7,
