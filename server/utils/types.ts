@@ -1,5 +1,5 @@
 import type { ElectedValidator, UnelectedValidator } from 'nimiq-validator-trustscore/types'
-import type { Activity, Score } from './drizzle'
+import type { Activity, ScoreVersion } from './drizzle'
 
 export enum PayoutType {
   Restake = 'restake',
@@ -22,13 +22,30 @@ export interface SnapshotEpochValidators {
   untrackedValidators: (ElectedValidator | UnelectedValidator)[]
 }
 
-type Nullable<T> = {
-  [K in keyof T]: T[K] | null
+export interface StoredSnapshotEpochValidators extends SnapshotEpochValidators {
+  storageOutcome: 'stored' | 'provisioning'
 }
+
 export type FetchedValidator = Omit<Validator, 'logo' | 'contact'> & Pick<Activity, 'balance' | 'stakers'> & {
   logo?: string
-  score: Nullable<Pick<Score, 'total' | 'availability' | 'reliability' | 'dominance' | 'epochNumber'>>
+  score: ScoreApiValue
   dominanceRatio: number | null
+}
+
+export interface ScoreApiValue {
+  scoreVersion: ScoreVersion
+  total: number | null
+  availability: number | null
+  recentAvailability: number | null
+  longTermAvailability: number | null
+  dominance: number | null
+  reliability: number | null
+  epochNumber: number | null
+  scoreEpoch: number | null
+  dataStatus: 'current' | 'stale' | 'no_score'
+  recentCoverage: number
+  longTermCoverage: number | null
+  longTermAsOfEpoch: number | null
 }
 
 export interface SyncStream { kind: 'success' | 'data' | 'log' | 'error', message: string, payload?: any }

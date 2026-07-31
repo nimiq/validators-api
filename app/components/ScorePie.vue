@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { decimals = 1, score = -1 } = defineProps<{ score?: number, decimals?: number }>()
+const { decimals = 1, score } = defineProps<{ score: number | null, decimals?: number }>()
 
 const viewBoxSize = 100
 const center = viewBoxSize / 2
@@ -23,7 +23,7 @@ function generateArcPath(score: number) {
 }
 
 const strokeColor = computed(() => {
-  if (!score || score < 0.6)
+  if (score === null || score < 0.6)
     return 'stroke-red'
   if (score < 0.85)
     return 'stroke-gold'
@@ -50,7 +50,7 @@ const strokeColor = computed(() => {
     </template>
     <template v-else>
       <div font-bold size-full grid="~ place-content-center">
-        NA
+        N/A
       </div>
       <svg
         bg-transparent :viewBox="`0 0 ${viewBoxSize} ${viewBoxSize}`" height="100%" width="100%"

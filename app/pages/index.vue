@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { calculateStakingRewards } from '@nimiq/utils/rewards-calculator'
 import { formatTimeAgo } from '@vueuse/core'
+import { calculateAverageScore } from '~/utils/score-display'
+import { resolveDashboardScoreVersion } from '~/utils/score-version'
 
 // Helper function to convert Luna to NIM for display
 function formatLunaAsNim(lunaValue: number): string {
@@ -11,12 +13,31 @@ function formatLunaAsNim(lunaValue: number): string {
   }).format(lunaValue / 1e5)
 }
 
-const { data: status, status: statusFetch, error: statusError } = await useFetch('/api/v1/status')
+const route = useRoute()
+const { scoreVersionRequestQuery } = useScoreVersionQuery()
+const validatorsQuery = computed(() => ({
+  'only-known': false,
+  ...scoreVersionRequestQuery.value,
+}))
+const { data: status, status: statusFetch, error: statusError } = await useFetch('/api/v1/status', {
+  query: scoreVersionRequestQuery,
+})
 const { data: validators, status: validatorsStatus, error: validatorsError } = await useFetch('/api/v1/validators', {
-  query: { 'only-known': false },
+  query: validatorsQuery,
 })
 const { data: supply } = await useFetch('/api/v1/supply')
+const selectedScoreVersion = computed(() =>
+  resolveDashboardScoreVersion(
+    route.query['score-version'],
+    status.value?.selectedScoreVersion,
+  ),
+)
 const { averageAPY, averageScore, averageStakeSize, totalPools, totalRegistered, totalStakers, averageFee, windowSizeMonths, totalValidators, totalElected } = useStats()
+const averageScoreDisplay = computed(() =>
+  averageScore.value === null
+    ? 'N/A'
+    : decimalsFormatter.format(averageScore.value * 100),
+)
 
 const [DefineStat, Stat] = createReusableTemplate<{ value?: number | string, label: string, color?: string, paddingXs?: boolean, tooltip: MaybeRef<string> }>()
 
@@ -40,11 +61,9 @@ function useStats() {
   const network = useSafeRuntimeConfig().public.nimiqNetwork as 'test-albatross' | 'main-albatross'
 
   const averageScore = computed(() => {
-    if (!validators?.value?.length)
-      return 0
-    const scores = validators.value.map(validator => validator.score?.total).filter(t => !!t) as number[]
-    const totalScore = scores?.reduce((acc, score) => acc + score, 0) || 0
-    return totalScore / scores.length
+    return calculateAverageScore(
+      validators.value?.map(validator => validator.score.total) ?? [],
+    )
   })
 
   const totalStakers = computed(() => validators.value?.reduce((acc, validator) => acc + validator.stakers, 0) || 0)
@@ -141,7 +160,7 @@ function useStats() {
           </span>
         </Stat>
 
-        <Stat :value="decimalsFormatter.format(averageScore * 100)" label="Avg. Score" color="purple" :padding-xs="true" :tooltip="tooltips.averageScore.value" grid-col="1/6 md:1/4 sm:span-1" grid-row="2" />
+        <Stat :value="averageScoreDisplay" label="Avg. Score" color="purple" :padding-xs="true" :tooltip="tooltips.averageScore.value" grid-col="1/6 md:1/4 sm:span-1" grid-row="2" />
         <Stat :value="totalPools" label="Pools" color="red" :padding-xs="true" :tooltip="tooltips.pools.value" grid-col="6/11 md:4/7 sm:span-1" grid-row="2" />
         <Stat :value="percentageFormatter.format(averageFee)" label="Avg. Fee" color="orange" :padding-xs="true" :tooltip="tooltips.averageFee" grid-col="11/16 md:7/10 sm:span-1" grid-row="2" />
         <Stat :value="totalRegistered" label="Tracked" color="blue" :padding-xs="true" :tooltip="tooltips.tracked" grid-col="16/20 md:10/13 sm:span-1" grid-row="2" />
@@ -187,7 +206,7 @@ function useStats() {
         </Stat>
       </div>
 
-      <ValidatorsTable :validators mt-96 />
+      <ValidatorsTable :validators :score-version="selectedScoreVersion" mt-96 />
     </div>
   </div>
 </template>

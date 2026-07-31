@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { FetchedValidatorDetails } from '~~/server/utils/validators'
 import { CurveType } from 'vue-chrts'
+import { mapScoreDisplay } from '~/utils/score-display'
 
 const props = defineProps<{ validator: FetchedValidatorDetails }>()
 const validatorRef = computed(() => props.validator)
 const { scoreTrendAllData, scoreTrendAllXFormatter, stakersData, stakersXFormatter, stakersYDomain, activityStats, feeDisplay, payoutDisplay } = useValidatorCharts(validatorRef)
+const scoreState = computed(() => mapScoreDisplay(props.validator.score))
 
 const allScoreCategories = {
   total: { name: 'Total', color: 'var(--colors-green)' },
@@ -18,12 +20,30 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--colors-blu
 const dualChartData = computed(() => {
   if (!props.validator?.activity || !props.validator?.scores)
     return []
-  const scoreMap = new Map(props.validator.scores.map(s => [s.epochNumber, s.total]))
-  return props.validator.activity.map(a => ({
-    epoch: a.epochNumber,
-    balance: a.balance / 1e5,
-    score: scoreMap.get(a.epochNumber) ?? 0,
-  }))
+  const activityByEpoch = new Map(props.validator.activity.map(activity => [activity.epochNumber, activity]))
+  const scores = prepareScoreHistory(
+    props.validator.scores,
+    props.validator.score.scoreVersion,
+    ['total'],
+  )
+  return scores.flatMap((score) => {
+    if (
+      typeof score.epochNumber !== 'number'
+      || !Number.isFinite(score.epochNumber)
+      || typeof score.total !== 'number'
+      || !Number.isFinite(score.total)
+    ) {
+      return []
+    }
+    const activity = activityByEpoch.get(score.epochNumber)
+    return activity
+      ? [{
+          epoch: score.epochNumber,
+          balance: activity.balance / 1e5,
+          score: score.total,
+        }]
+      : []
+  })
 })
 const dualChartXFormatter = computed(() => (index: number) => {
   const epoch = dualChartData.value[Math.round(index)]?.epoch
@@ -38,9 +58,12 @@ const dualLineCategories = { score: { name: 'Score', color: 'var(--colors-green)
     <!-- Hero: Score -->
     <div flex="~ col items-center" bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>
       <span nq-label text="11 neutral-800">Current Score</span>
-      <ScorePie size-128 text-40 :score="validator.score?.total || 0" mt-16 />
-      <span text-14 text-neutral-700 mt-8>Epoch {{ validator.score?.epochNumber }}</span>
-      <ScorePies v-if="validator.score" v-bind="validator.score" text-28 mt-24 />
+      <ScorePie size-128 text-40 :score="scoreState.value" mt-16 />
+      <span text-14 text-neutral-700 mt-8>
+        {{ scoreState.versionLabel }} · {{ scoreState.statusLabel }}
+      </span>
+      <span text-14 text-neutral-700 mt-4>Epoch {{ validator.score.scoreEpoch ?? 'N/A' }}</span>
+      <ScorePies v-bind="validator.score" text-28 mt-24 />
     </div>
 
     <!-- Score trends: 4 overlapping areas -->

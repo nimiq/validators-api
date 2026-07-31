@@ -1,10 +1,11 @@
 import type { TaskEvent } from 'nitropack'
 import { consola } from 'consola'
 import { runTask } from 'nitropack/runtime'
+import { runTasksBestEffort } from '~~/server/utils/cron-task-runner'
 import { eq, tables, useDrizzle } from '~~/server/utils/drizzle'
 
-const CRON_EXPRESSION = '0 */12 * * *'
-const TASKS: string[] = ['sync:epochs', 'sync:snapshot']
+const CRON_EXPRESSION = '0 */6 * * *'
+const TASKS: string[] = ['sync:epochs', 'sync:snapshot', 'sync:scores']
 
 interface FailedTask {
   name: string
@@ -64,20 +65,19 @@ export default defineTask({
     }
 
     try {
-      const results: Record<string, unknown> = {}
-
-      for (const taskName of TASKS) {
+      const executions = await runTasksBestEffort(TASKS, async (taskName) => {
         consola.info(`[cron:sync] running ${taskName}`)
-        const res = await runTask(taskName, { payload: event.payload ?? {}, context: event.context ?? {} })
-        const result = (res as any)?.result ?? res
-        results[taskName] = result
-        if (result?.success === false)
-          throw new Error(`${taskName} failed: ${result.error || 'unknown'}`)
-      }
-
-      const failedTasks = Object.entries(results)
-        .filter(([, r]) => (r as any)?.success === false)
-        .map(([name, r]) => ({ name, error: (r as any)?.error ?? 'Unknown task failure' }))
+        return runTask(taskName, { payload: event.payload ?? {}, context: event.context ?? {} })
+      })
+      const results = Object.fromEntries(executions.map(execution => [
+        execution.name,
+        execution.success
+          ? ((execution.value as any)?.result ?? execution.value)
+          : { success: false, error: execution.error },
+      ]))
+      const failedTasks = executions
+        .filter(execution => !execution.success)
+        .map(execution => ({ name: execution.name, error: execution.error || 'Unknown task failure' }))
       if (failedTasks.length > 0)
         throw new CronTaskFailureError(`Task failures: ${JSON.stringify(failedTasks)}`, failedTasks, results)
 

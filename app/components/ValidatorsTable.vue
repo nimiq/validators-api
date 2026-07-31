@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import type { ColumnDef, SortDirection, SortingState } from '@tanstack/vue-table'
 import type { FetchedValidator } from '~~/server/utils/types'
+import type { ScoreVersion } from '~/utils/score-version'
 import { getCoreRowModel, getFilteredRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table'
+import { compareScoreValues, mapScoreDisplay } from '~/utils/score-display'
+import { mergeScoreVersionQuery } from '~/utils/score-version'
 
 // @unocss-include
 
-const { validators } = defineProps<{ validators: FetchedValidator[] }>()
+const { validators, scoreVersion } = defineProps<{
+  validators: FetchedValidator[]
+  scoreVersion: ScoreVersion
+}>()
 
 // Helper function to convert Luna to NIM for display
 function formatLunaAsNim(lunaValue: number): string {
@@ -92,7 +98,7 @@ const columns: ColumnDef<FetchedValidator>[] = [
     header: 'Score',
     enableSorting: true,
     enableGlobalFilter: false,
-    sortingFn: (a, b) => (a.original.score?.total || 0) - (b.original.score?.total || 0),
+    sortingFn: (a, b) => compareScoreValues(a.original.score.total, b.original.score.total),
   },
 ]
 
@@ -125,11 +131,16 @@ const table = useVueTable({
 })
 
 const apiUrl = computed(() => {
-  let base = '/api/v1/validators'
-  if (showUnknown.value)
-    base += '?only-known=false'
-  return base
+  const onlyKnownQuery = showUnknown.value ? '&only-known=false' : ''
+  return `/api/v1/validators?score-version=${scoreVersion}${onlyKnownQuery}`
 })
+
+function openValidator(address: string) {
+  return navigateTo({
+    path: `/validator/${address}`,
+    query: mergeScoreVersionQuery({}, scoreVersion),
+  })
+}
 
 // Clear search with proper state management
 async function clearSearch() {
@@ -167,6 +178,10 @@ const filteredRowsCount = computed(() => {
     return 0
   }
 })
+
+function getScoreDisplay(validator: FetchedValidator) {
+  return mapScoreDisplay(validator.score)
+}
 </script>
 
 <template>
@@ -178,13 +193,13 @@ const filteredRowsCount = computed(() => {
     >
       <!-- API and Trust Score links -->
       <div flex="~ items-center gap-32">
-        <NuxtLink
-          :to="apiUrl" class="flex items-center" target="_blank" nq-arrow
+        <a
+          :href="apiUrl" class="flex items-center" target="_blank" nq-arrow
           un-text="f-xs neutral-700 hocus:neutral-800" transition-colors font-semibold
         >
           <div i-nimiq:code mr-8 />
           API
-        </NuxtLink>
+        </a>
 
         <NuxtLink
           to="https://github.com/nimiq/validators-api/tree/main/packages/nimiq-validator-trustscore" external class="flex items-center"
@@ -296,7 +311,7 @@ const filteredRowsCount = computed(() => {
         <tbody>
           <tr
             v-for="row in tableRows" :key="`validator-${row.original.id}-${globalFilter}`" class="table-row"
-            @click="navigateTo(`/validator/${row.original.address}`)"
+            @click="openValidator(row.original.address)"
           >
             <td class="cell-identicon">
               <Identicon
@@ -349,10 +364,16 @@ const filteredRowsCount = computed(() => {
             </td>
 
             <td class="cell-score">
-              <ScorePie
-                size-32 text-12 mx-auto :score="row.original.score.total!" :decimals="0"
-                :style="{ 'view-transition-name': `score-${row.original.id}-${globalFilter}` }"
-              />
+              <div flex="~ col items-center gap-4">
+                <ScorePie
+                  size-32 text-12 :score="getScoreDisplay(row.original).value" :decimals="0"
+                  :style="{ 'view-transition-name': `score-${row.original.id}-${globalFilter}` }"
+                />
+                <div flex="~ gap-4" text="9 neutral-600" whitespace-nowrap>
+                  <span>v{{ getScoreDisplay(row.original).version }}</span>
+                  <span>{{ getScoreDisplay(row.original).statusLabel }}</span>
+                </div>
+              </div>
             </td>
           </tr>
         </tbody>

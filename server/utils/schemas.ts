@@ -61,6 +61,8 @@ export const mainQuerySchema = z.object({
   'with-identicons': z.literal('true').or(z.literal('false')).optional().transform(v => v === undefined ? undefined : v === 'true'),
   'force': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'epoch-number': z.coerce.number().min(1).default(1),
+  'score-version': z.coerce.number().pipe(z.literal(1).or(z.literal(2))).optional(),
 })
 
 export type MainQuerySchema = z.infer<typeof mainQuerySchema>
+export const scoreVersionQuerySchema = mainQuerySchema.pick({ 'score-version': true })

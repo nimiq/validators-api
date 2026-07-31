@@ -22,6 +22,27 @@
       "when": 1746604297839,
       "tag": "0002_magenta_anita_blake",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1770359882000,
+      "tag": "0003_add_cron_runs",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1772449289000,
+      "tag": "0004_add_validator_is_listed",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1785251589431,
+      "tag": "0005_validator_activity_integrity_score_v2",
+      "breakpoints": true
     }
   ]
 }

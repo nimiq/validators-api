@@ -7,19 +7,32 @@ import wasm from 'vite-plugin-wasm'
 import { z } from 'zod'
 import { description, name, version } from './package.json'
 
+const remoteMigrationRequested = process.env.NUXT_HUB_REMOTE_MIGRATION === '1'
+const hasRemoteMigrationCredentials = Boolean(
+  process.env.NUXT_HUB_CLOUDFLARE_ACCOUNT_ID
+  && process.env.NUXT_HUB_CLOUDFLARE_DATABASE_ID
+  && process.env.NUXT_HUB_CLOUDFLARE_API_TOKEN,
+)
+
+if (remoteMigrationRequested && !hasRemoteMigrationCredentials)
+  throw new Error('Remote migration requires all NUXT_HUB_CLOUDFLARE_* credentials')
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', '@nuxt/fonts', 'reka-ui/nuxt', 'nuxt-safe-runtime-config', 'nuxt-charts'],
 
   hub: {
-    db: 'sqlite',
+    db: remoteMigrationRequested && hasRemoteMigrationCredentials
+      ? { dialect: 'sqlite', driver: 'd1-http' }
+      : 'sqlite',
     blob: true,
     cache: true,
   },
 
   runtimeConfig: {
     albatrossRpcNodeUrl: process.env.ALBATROSS_RPC_NODE_URL || '',
+    scoreV2Mode: process.env.NUXT_SCORE_V2_MODE || 'off',
     slackWebhookUrl: process.env.NUXT_SLACK_WEBHOOK_URL || '',
     public: {
       gitBranch: execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(),
@@ -30,6 +43,7 @@ export default defineNuxtConfig({
   safeRuntimeConfig: {
     $schema: z.object({
       albatrossRpcNodeUrl: z.string().describe('Albatross RPC Node URL is required'),
+      scoreV2Mode: z.enum(['off', 'shadow', 'active']).default('off').describe('Score v2 rollout mode'),
       slackWebhookUrl: z.string().describe('Slack webhook URL must be a valid string'),
       public: z.object({
         gitBranch: z.string().describe('Git branch is required'),
@@ -148,8 +162,8 @@ export default defineNuxtConfig({
       tasks: true,
     },
     scheduledTasks: {
-      // 12-hour sync: wrapper task records run + executes sync tasks
-      '0 */12 * * *': ['cron:sync'],
+      // Six-hour sync: wrapper task records run + executes sync tasks
+      '0 */6 * * *': ['cron:sync'],
     },
     openAPI: {
       meta: { title: name, description, version },

@@ -1,9 +1,9 @@
 import type { SQLWrapper } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import type { ElectedValidator, Range, Result, UnelectedValidator } from 'nimiq-validator-trustscore/types'
-import type { Score, Validator } from './drizzle'
+import type { ScoreVersion, Validator } from './drizzle'
 import type { MainQuerySchema, ValidatorJSON } from './schemas'
-import type { FetchedValidator, SnapshotEpochValidators } from './types'
+import type { FetchedValidator, ScoreApiValue, SnapshotEpochValidators } from './types'
 import type { ActivityWithStatus } from './validator-activity-status'
 import { consola } from 'consola'
 import { and, asc, desc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm'
@@ -12,6 +12,7 @@ import { resolveLiveActivityMetadata } from './activity-metadata'
 import { tables, useDrizzle } from './drizzle'
 import { handleValidatorLogo } from './logo'
 import { defaultValidatorJSON } from './schemas'
+import { selectScoreHistory, toScoreApiValue } from './score-api'
 import { withValidatorEpochStatus } from './validator-activity-status'
 import { getUnlistedActiveValidatorAddresses, isKnownValidatorProfile } from './validator-listing'
 
@@ -86,8 +87,11 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
   const { upsert = false, isListed = false } = options
 
   // If the validator is cached and upsert is not true, return it
-  if (!upsert && validators.has(address)) {
-    return validators.get(address)
+  if (!upsert) {
+    const cachedValidatorId = validators.get(address)
+    if (cachedValidatorId !== undefined)
+      return cachedValidatorId
+    validators.delete(address)
   }
 
   // Check if the validator already exists in the database
@@ -135,7 +139,15 @@ export async function storeValidator(address: string, rest: ValidatorJSON = defa
     consola.error(`There was an error while writing ${address} into the database`, error)
   }
 
-  validators.set(address, validatorId!)
+  if (validatorId !== undefined)
+    validators.set(address, validatorId)
+  return validatorId
+}
+
+export async function storeValidatorStrict(address: string, rest: ValidatorJSON = defaultValidatorJSON): Promise<number> {
+  const validatorId = await storeValidator(address, rest, { throwOnError: true })
+  if (validatorId === undefined)
+    throw new Error(`Failed to resolve validator ID for ${address}`)
   return validatorId
 }
 
@@ -149,10 +161,21 @@ export async function markValidatorsAsUnlisted(addresses: string[]) {
   }))
 }
 
-export type FetchValidatorsOptions = MainQuerySchema & { epochNumber: number }
+export type FetchValidatorsOptions = MainQuerySchema & {
+  epochNumber: number
+  scoreVersion: ScoreVersion
+  recentCoverage?: number
+}
 
 export async function fetchValidators(_event: H3Event, params: FetchValidatorsOptions): Result<FetchedValidator[]> {
-  const { 'payout-type': payoutType, 'only-known': onlyKnown = true, 'with-identicons': withIdenticons, epochNumber } = params
+  const {
+    'payout-type': payoutType,
+    'only-known': onlyKnown = true,
+    'with-identicons': withIdenticons,
+    epochNumber,
+    recentCoverage = 0,
+    scoreVersion,
+  } = params
 
   // Add safety check for epochNumber
   if (epochNumber === null || epochNumber === undefined || !Number.isInteger(epochNumber)) {
@@ -179,6 +202,7 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
       })
       .from(tables.scores)
       .where(and(
+        eq(tables.scores.scoreVersion, scoreVersion),
         lte(tables.scores.epochNumber, epochNumber),
         inArray(tables.scores.validatorId, validatorIds),
       ))
@@ -188,16 +212,23 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
     const scoresRows = await useDrizzle()
       .select({
         validatorId: tables.scores.validatorId,
+        scoreVersion: tables.scores.scoreVersion,
         total: tables.scores.total,
         availability: tables.scores.availability,
+        recentAvailability: tables.scores.recentAvailability,
+        longTermAvailability: tables.scores.longTermAvailability,
         dominance: tables.scores.dominance,
         reliability: tables.scores.reliability,
         epochNumber: tables.scores.epochNumber,
+        dataStatus: tables.scores.dataStatus,
+        longTermCoverage: tables.scores.longTermCoverage,
+        longTermAsOfEpoch: tables.scores.longTermAsOfEpoch,
       })
       .from(tables.scores)
       .innerJoin(maxScoreEpochs, and(
         eq(tables.scores.validatorId, maxScoreEpochs.validatorId),
         eq(tables.scores.epochNumber, maxScoreEpochs.epochNumber),
+        eq(tables.scores.scoreVersion, scoreVersion),
       ))
       .execute()
 
@@ -274,19 +305,16 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
         consola.warn(`Validator ${validator.address} has no score for epoch ${epochNumber} or earlier`)
       }
 
-      const scoreData = scoreRow || { availability: -1, dominance: -1, reliability: -1, total: -1, epochNumber: -1 }
       const activityData = activityRow || { dominanceRatioViaBalance: -1, dominanceRatioViaSlots: -1, balance: -1, stakers: 0, epochNumber: -1 }
       const activityMetadata = resolveLiveActivityMetadata(activityData, activityData, latestActivityMetadata)
 
       const { dominanceRatioViaBalance = -1, dominanceRatioViaSlots = -1 } = activityData
       const { balance, stakers } = activityMetadata
-      const score: FetchedValidator['score'] = {
-        availability: scoreData.availability === -1 ? null : scoreData.availability,
-        reliability: scoreData.reliability === -1 ? null : scoreData.reliability,
-        dominance: scoreData.dominance === -1 ? null : scoreData.dominance,
-        total: !Object.values(scoreData).includes(-1) ? scoreData.total : null,
-        epochNumber: scoreData.epochNumber,
-      }
+      const score = toScoreApiValue(scoreRow ?? null, {
+        requestedEpoch: epochNumber,
+        scoreVersion,
+        recentCoverage,
+      })
 
       return {
         ...rest,
@@ -322,14 +350,28 @@ export async function fetchValidators(_event: H3Event, params: FetchValidatorsOp
 export const cachedFetchValidators = defineCachedFunction((_event: H3Event, params: FetchValidatorsOptions) => fetchValidators(_event, params), {
   maxAge: import.meta.dev ? 0.01 : 10 * 60, // 10 minutes
   name: 'validators',
-  getKey: (_event, p) => `validators:${p['only-known']}:${p['with-identicons']}:${p['payout-type']}:${p.epochNumber}`,
+  getKey: (_event, p) => `validators:${p['only-known']}:${p['with-identicons']}:${p['payout-type']}:${p.epochNumber}:${p.scoreVersion}`,
 })
 
-export interface FetchValidatorOptions { address: string, range: Range }
-export type FetchedValidatorDetails = Validator & { activity: ActivityWithStatus[], scores: Score[], score?: Score }
+export interface FetchValidatorOptions {
+  address: string
+  range: Range
+  scoreVersion: ScoreVersion
+  recentCoverage?: number
+}
+export type FetchedValidatorDetails = Validator & {
+  activity: ActivityWithStatus[]
+  scores: ScoreApiValue[]
+  score: ScoreApiValue
+}
 
 export async function fetchValidator(_event: H3Event, params: FetchValidatorOptions): Result<FetchedValidatorDetails> {
-  const { address, range: { fromEpoch, toEpoch } } = params
+  const {
+    address,
+    range: { fromEpoch, toEpoch },
+    recentCoverage = 0,
+    scoreVersion,
+  } = params
 
   try {
     const validator = (await selectValidatorsWithListState([eq(tables.validators.address, address)])).at(0)
@@ -342,22 +384,24 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
       .from(tables.scores)
       .where(and(
         eq(tables.scores.validatorId, validator.id),
+        eq(tables.scores.scoreVersion, scoreVersion),
         gte(tables.scores.epochNumber, fromEpoch),
         lte(tables.scores.epochNumber, toEpoch),
       ))
+      .orderBy(asc(tables.scores.epochNumber))
       .execute()
 
-    const score = await useDrizzle()
-      .select()
-      .from(tables.scores)
-      .where(and(
-        eq(tables.scores.validatorId, validator.id),
-        gte(tables.scores.epochNumber, fromEpoch),
-        lte(tables.scores.epochNumber, toEpoch),
-      ))
-      .orderBy(desc(tables.scores.epochNumber))
-      .limit(1)
-      .then(rows => rows.at(0))
+    const selectedScores = selectScoreHistory(scores, scoreVersion)
+    const score = toScoreApiValue(selectedScores.at(-1) ?? null, {
+      requestedEpoch: toEpoch,
+      scoreVersion,
+      recentCoverage,
+    })
+    const scoreHistory = selectedScores.map(historyScore => toScoreApiValue(historyScore, {
+      requestedEpoch: toEpoch,
+      scoreVersion,
+      recentCoverage,
+    }))
 
     const activity = await useDrizzle()
       .select()
@@ -392,7 +436,12 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
       ...resolveLiveActivityMetadata(row, row, latestActivityMetadata),
     }))
 
-    return [true, undefined, { ...validator, scores, activity: activityWithLiveMetadata.map(withValidatorEpochStatus), score }]
+    return [true, undefined, {
+      ...validator,
+      scores: scoreHistory,
+      activity: activityWithLiveMetadata.map(withValidatorEpochStatus),
+      score,
+    }]
   }
   catch (error) {
     consola.error(`Error fetching validator ${address}: ${error}`)
@@ -403,7 +452,7 @@ export async function fetchValidator(_event: H3Event, params: FetchValidatorOpti
 export const cachedFetchValidator = defineCachedFunction((_event: H3Event, params: FetchValidatorOptions) => fetchValidator(_event, params), {
   maxAge: import.meta.dev ? 0.01 : 10 * 60, // 10 minutes
   name: 'validator',
-  getKey: (_event, p) => `validator:${p.address}:${p.range.fromEpoch}:${p.range.toEpoch}`,
+  getKey: (_event, p) => `validator:${p.address}:${p.range.fromEpoch}:${p.range.toEpoch}:${p.scoreVersion}`,
 })
 
 /**

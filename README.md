@@ -113,7 +113,16 @@ The Validators API provides endpoints to retrieve validator information for inte
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [/api/v1/validators](https://validators-api-main.je-cf9.workers.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
 | [/api/v1/validators/:validator_address](https://validators-api-main.je-cf9.workers.dev/api/v1/validators/NQ98%20D3KE%208EQ8%20Y7DK%20G1MT%203P5T%202PHX%2018V5%20UEC1) | Retrieves the validator information |
+| [/api/v1/status](https://validators-api-main.je-cf9.workers.dev/api/v1/status) | Retrieves activity coverage and selected score status |
 | [/api/v1/supply](https://validators-api-main.je-cf9.workers.dev/api/v1/supply) | Retrieves supply status |
+
+Validator list, detail, and status endpoints accept `score-version=1|2`. Without it, `NUXT_SCORE_V2_MODE=off` and `shadow` select v1, while `active` selects v2. Queries filter by the selected version before choosing the latest score, so responses never mix v1 and v2 history.
+
+Every score includes its version and data state:
+
+- `current`: selected-version score covers the latest completed epoch.
+- `stale`: an older valid score remains available while current activity or scoring is incomplete.
+- `no_score`: no selected-version score exists; numeric fields remain `null`, not zero.
 
 ## Validators Dashboard
 
@@ -138,7 +147,18 @@ We also do have an UI component to visualize the range, check the status, and de
 
 ### Fetcher
 
-The fetcher is a process that retrieves data from the Nimiq network and stores it in a D1 database. The fetcher runs every hour and collects data about the validators in two different ways:
+The fetcher retrieves data from the Nimiq network and stores it in D1. It runs every six hours in this order:
+
+1. Discover completed epochs and verify or repair activity snapshots.
+2. Store the current validator snapshot.
+3. Calculate scores from finalized activity markers.
+
+Completed-epoch activity uses marker-backed integrity checks. Operator-facing marker states are:
+
+- `syncing`: repair attempt owns a fresh six-hour lease.
+- `complete`: stored `finalized` marker has matching election-set hash and elected counts.
+- `incomplete`: expected epoch has no finalized marker or exact stored set.
+- `failed`: attempt rolled back and retained its error for retry.
 
 #### Ended epochs
 
@@ -213,44 +233,35 @@ Where `env`: `testnet` (omit `-e env` for mainnet production).
 
 ### D1 Migrations
 
-When adding a new SQL migration under `server/db/migrations/`, apply it to the remote D1 database.
+Never assume remote migration state. Authenticate Wrangler, inspect `_hub_migrations` and relevant schemas, and export a backup outside the repository before applying migrations. Set the migration-only `NUXT_HUB_CLOUDFLARE_ACCOUNT_ID`, `NUXT_HUB_CLOUDFLARE_DATABASE_ID`, and `NUXT_HUB_CLOUDFLARE_API_TOKEN` values in the target `.env` file.
 
-For the `cron_runs` table:
-
-```bash
-pnpm db:apply:cron-runs:mainnet
-```
-
-Testnet:
+Generic migration commands use NuxtHub's `_hub_migrations` basenames and apply all pending files under `server/db/migrations/`:
 
 ```bash
-pnpm db:apply:cron-runs:testnet
+pnpm db:migrate:testnet
+pnpm db:migrate:mainnet
 ```
 
-Required schema:
+Always migrate and validate testnet first. See [MIGRATION.md](./MIGRATION.md) for inspection, backup, rollout, and rollback steps.
 
-- `validators.is_listed` must exist in all remote D1 databases.
-
-If the column is missing, apply it manually:
-
-Mainnet:
-
-```bash
-pnpm db:apply:is-listed:mainnet
-```
-
-Testnet:
-
-```bash
-pnpm db:apply:is-listed:testnet
-```
+This implementation does not run any remote migration or deployment.
 
 **Environments** (configured in `wrangler.json`):
 
 - `production`: [Validators API Mainnet](https://validators-api-main.je-cf9.workers.dev) via manual `wrangler deploy`
 - `testnet`: [Validators API Testnet](https://validators-api-test.je-cf9.workers.dev) via manual `wrangler deploy --env testnet`
 
-Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every 12 hours via Cloudflare cron triggers (see `server/tasks/sync/`).
+Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every six hours via Cloudflare cron triggers (see `server/tasks/sync/`).
+
+### Score v2 rollout
+
+Set `NUXT_SCORE_V2_MODE` per environment:
+
+- `off`: write and serve v1 only.
+- `shadow`: keep v1 writes, also write v2, and serve v1 by default.
+- `active`: keep v1 and v2 writes, and serve v2 by default.
+
+Rollback requires no destructive schema or data change: set `NUXT_SCORE_V2_MODE=off`, keep all v1/v2 rows intact, and request `score-version=1` explicitly while the configuration change propagates.
 
 ### Deployment Migration
 

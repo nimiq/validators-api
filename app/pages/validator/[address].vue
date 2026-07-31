@@ -6,8 +6,11 @@ type LayoutKey = 'dashboard' | 'deep-dive' | 'profile'
 type ValidatorDetail = FetchedValidatorDetails & { range?: unknown }
 
 const route = useRoute()
+const { scoreVersionRequestQuery } = useScoreVersionQuery()
 const address = computed(() => Array.isArray(route.params.address) ? route.params.address.join('/') : String(route.params.address || ''))
-const { data: validator } = await useFetch<ValidatorDetail>(() => `/api/v1/validators/${encodeURIComponent(address.value)}`)
+const { data: validator } = await useFetch<ValidatorDetail>(() => `/api/v1/validators/${encodeURIComponent(address.value)}`, {
+  query: scoreVersionRequestQuery,
+})
 const layout = shallowRef<LayoutKey>('dashboard')
 const layouts = [
   { key: 'dashboard' as const, label: 'Dashboard' },
