@@ -90,6 +90,29 @@ describe('score v2 finalized activity mapping', () => {
     ]])
   })
 
+  it('keeps a long gap between one-slot elections as random non-election', () => {
+    const [success, error, epochs] = buildScoreV2Epochs({
+      validatorId: 7,
+      range: { fromEpoch: 10, toEpoch: 142 },
+      activities: [
+        activity(10, {
+          dominanceViaBalance: -1,
+          dominanceViaSlots: 1 / 512,
+        }),
+        activity(142, {
+          dominanceViaBalance: -1,
+          dominanceViaSlots: 1 / 512,
+        }),
+      ],
+    })
+
+    expect(success).toBe(true)
+    expect(error).toBeUndefined()
+    const missingEpochs = epochs!.filter(epoch => epoch.rewarded === -1)
+    expect(missingEpochs).toHaveLength(131)
+    expect(missingEpochs.every(epoch => epoch.status === 'not_elected_randomness')).toBe(true)
+  })
+
   it('maps an absent validator row in a finalized epoch to random non-election', () => {
     const result = buildScoreV2Epochs({
       validatorId: 7,

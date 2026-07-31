@@ -2,6 +2,7 @@ import { SLOTS } from '@nimiq/utils/albatross-policy'
 import { ValidatorEpochStatus } from '../../packages/nimiq-validator-trustscore/src/epoch-status'
 
 export const MAX_RANDOM_NON_ELECTION_PROBABILITY = 0.001
+export const MIN_HIGH_STAKE_RATIO = 0.01
 
 export interface ElectionObservation {
   epochNumber: number
@@ -46,7 +47,8 @@ function classifyGap(
   const randomnessProbability = stakeRatio > 0
     ? Math.exp(epochNumbers.length * SLOTS * Math.log1p(-stakeRatio))
     : 1
-  const status = randomnessProbability < maxRandomnessProbability
+  const status = stakeRatio >= MIN_HIGH_STAKE_RATIO
+    && randomnessProbability < maxRandomnessProbability
     ? ValidatorEpochStatus.InferredOffline
     : ValidatorEpochStatus.NotElectedRandomness
 
