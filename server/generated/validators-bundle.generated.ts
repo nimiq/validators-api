@@ -153,10 +153,10 @@ export const bundledValidatorsByNetwork = {
     {
       "name": "$NIM_pool",
       "address": "NQ29 FBVT B4GM S27H UBP4 1MTC GNKQ VPBT 099M",
-      "fee": 0,
+      "fee": 0.015,
       "payoutType": "restake",
       "payoutSchedule": "Every 4 hours",
-      "description": "Promo 0% fee for first 30 days!!! Community driven staking pool FROM the people FOR the people!",
+      "description": "Community driven staking pool FROM the people FOR the people!",
       "website": "https://snimpool.com/",
       "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OTkiIGhlaWdodD0iNDQwIj48cGF0aCBmaWxsPSIjZmZjMTA3IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0zODkgMjFjLTYtMTItMjMtMjEtMzYtMjFIMTQ1Yy0xMyAwLTI5IDktMzYgMjFMNSAxOTljLTYgMTEtNiAzMCAwIDQxbDEwNCAxNzhjNyAxMiAyMyAyMSAzNiAyMWgyMDhjMTQgMCAzMC05IDM2LTIxbDEwNC0xNzhjNy0xMSA3LTMwIDAtNDF6TTI3MyAzNDd2NDJoLTM5di00MGMtMjQtMy01Mi0xMy03MC0zMGwyNS0zOWMyMSAxNSAzOCAyMyA1NyAyMyAyMyAwIDMzLTkgMzMtMjggMC00MC0xMDYtMzktMTA2LTExMSAwLTM4IDIzLTY1IDYxLTczVjUxaDM5djQwYzI1IDMgNDQgMTYgNTkgMzJsLTI5IDMzYy0xNS0xMy0yNy0yMC00NC0yMC0xOSAwLTI5IDgtMjkgMjYgMCAzNyAxMDUgMzQgMTA1IDExMCAwIDM3LTIxIDY3LTYyIDc1Ii8+PC9zdmc+",
       "hasDefaultLogo": true,
