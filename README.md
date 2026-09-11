@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/nimiq/validators-api/actions/workflows/sync.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/sync.yml/badge.svg" /></a>
+<a href="https://github.com/nimiq/validators-api/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/nimiq/validators-api/actions/workflows/ci.yml/badge.svg" /></a>
 </p>
 
 <h2 align="center">Dashboards</h2>
 
 <p align="center">
-<a href="https://validators-api-mainnet.pages.dev" target="_blank">Mainnet</a>&nbsp; &nbsp; &nbsp;
-<a href="https://validators-api-testnet.pages.dev" target="_blank">Testnet</a>
+<a href="https://validators-api-main.je-cf9.workers.dev" target="_blank">Mainnet</a>&nbsp; &nbsp; &nbsp;
+<a href="https://validators-api-test.je-cf9.workers.dev" target="_blank">Testnet</a>
 </p>
 
 <br />
@@ -43,7 +43,7 @@ If you operate a staking pool and want to be displayed in the Nimiq Wallet, foll
 3. Review the [Description Guidelines](#recommendations-for-your-validator-description).
 4. Learn about the [JSON Schema](#validator-json-schema).
 5. Submit a PR to this repository. A Nimiq team member will review your submission within 3 days.
-6. Once the PR is submitted, check that the [API endpoint](https://validators-api-mainnet.pages.dev/api/v1/validators) returns your information. This process may take a few minutes.
+6. Once the PR is submitted, check that the [API endpoint](https://validators-api-main.je-cf9.workers.dev/api/v1/validators) returns your information. This process may take a few minutes.
 
 > [!WARNING]
 > Nimiq reserves the right to make minor adjustments to the content submitted by validator owners if necessary.
@@ -83,8 +83,6 @@ Use the following schema to create your validator information file. You can star
     - `payoutAddress`: Provide address you will payout from.
     - `payoutSchedule`: Specify the frequency of payouts using the [cron job format](https://crontab.guru/). Example: `0 */6 * * *` for payouts every 6 hours.
   - `none`: No rewards will be paid out.
-  - `custom`: Custom payout scheme. Requires:
-    - `payoutScheme`: A description of the custom payout method (e.g., "Pays 50% of rewards every 1st of the month").
 - `website`: The URL of your validator's website or any similar source of information (Telegram pinned message, Discord...)
 - `logo`: A logo in SVG or PNG format (min size: 224x224px) with a transparent background, encoded in Base64 to represent your validator. Background colors should be avoided unless they ensure clear contrast.
 - `contact`: At least one contact allowing validators to share contact details so users can easily get in touch.
@@ -105,7 +103,7 @@ The VTS is a metric designed to help stakers evaluate the performance and reliab
 
 The VTS is displayed in the Nimiq Wallet, allowing stakers to compare validators and select the one that best meets their needs.
 
-- [Read the docs](https://nimiq.com/developers/validators/validator-trustscore)
+- [Read the docs](./packages/nimiq-validator-trustscore/)
 - Checkout the [pnpm package](./packages/nimiq-validator-trustscore/)
 
 ## Validators API
@@ -113,16 +111,16 @@ The VTS is displayed in the Nimiq Wallet, allowing stakers to compare validators
 The Validators API provides endpoints to retrieve validator information for integration with tools, dashboards, and other applications.
 | Endpoint | Description |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [/api/v1/validators](https://validators-api-mainnet.pages.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
-| [/api/v1/validators/:validator_address](https://validators-api-mainnet.pages.dev/api/v1/validators/NQ7700000000000000000000000000000001) | Retrieves the validator information |
-| [/api/v1/supply](https://validators-api-mainnet.pages.dev/api/v1/supply) | Retrieves supply status |
+| [/api/v1/validators](https://validators-api-main.je-cf9.workers.dev/api/v1/validators) | Retrieves the validator list. See [query params](./server/utils/schemas.ts#L54) |
+| [/api/v1/validators/:validator_address](https://validators-api-main.je-cf9.workers.dev/api/v1/validators/NQ98%20D3KE%208EQ8%20Y7DK%20G1MT%203P5T%202PHX%2018V5%20UEC1) | Retrieves the validator information |
+| [/api/v1/supply](https://validators-api-main.je-cf9.workers.dev/api/v1/supply) | Retrieves supply status |
 
 ## Validators Dashboard
 
-The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-mainnet.pages.dev/
+The Validators Dashboard is a simple Nuxt application that displays all validators along with their scores. You can access the dashboard here: https://validators-api-main.je-cf9.workers.dev/
 
 > [!TIP]
-> Check also the [deployment](#deployment) section to learn how to access to the `testnet` and `preview` environments.
+> Check also the [deployment](#deployment) section to learn how to access the `testnet` environment.
 
 ## How the API works
 
@@ -203,17 +201,66 @@ The system automatically detects the environment and only sends notifications in
 
 ## Deployment
 
-The deployment is handled by the [`NuxtHub Action`](./.github/workflows/nuxt-hub.yml).
+Deployed via Wrangler CLI with `wrangler.json` config:
 
-There are 4 different environments:
+```bash
+pnpm build && npx wrangler --cwd .output deploy [-e env]
+```
 
-| Nuxt Hub Env | GitHub Env           | Dashboard URL                                                                  | Trigger                       |
-| ------------ | -------------------- | ------------------------------------------------------------------------------ | ----------------------------- |
-| `production` | `production-mainnet` | [Validators API Mainnet](https://validators-api-mainnet.pages.dev)             | Push to `main` branch         |
-| `production` | `production-testnet` | [Validators API Testnet](https://validators-api-testnet.pages.dev)             | Push to `main` branch         |
-| `preview`    | `preview-mainnet`    | [Validators API Mainnet Preview](https://dev.validators-api-mainnet.pages.dev) | Push any commit to any branch |
-| `preview`    | `preview-testnet`    | [Validators API Testnet Preview](https://dev.validators-api-testnet.pages.dev) | Push any commit to any branch |
+Where `env`: `testnet` (omit `-e env` for mainnet production).
 
-Each Nuxt Hub environment has its own database, so effectively we have 4 different databases and there are 4 tasks in the [`sync.yml`](./.github/workflows/sync.yml) workflow that are responsible for syncing the data from the Nimiq network to the database.
+**Required secrets:** `ALBATROSS_RPC_NODE_URL`, `NUXT_SLACK_WEBHOOK_URL`
+
+### D1 Migrations
+
+When adding a new SQL migration under `server/db/migrations/`, apply it to the remote D1 database.
+
+For the `cron_runs` table:
+
+```bash
+pnpm db:apply:cron-runs:mainnet
+```
+
+Testnet:
+
+```bash
+pnpm db:apply:cron-runs:testnet
+```
+
+Required schema:
+
+- `validators.is_listed` must exist in all remote D1 databases.
+
+If the column is missing, apply it manually:
+
+Mainnet:
+
+```bash
+pnpm db:apply:is-listed:mainnet
+```
+
+Testnet:
+
+```bash
+pnpm db:apply:is-listed:testnet
+```
+
+**Environments** (configured in `wrangler.json`):
+
+- `production`: [Validators API Mainnet](https://validators-api-main.je-cf9.workers.dev) via manual `wrangler deploy`
+- `testnet`: [Validators API Testnet](https://validators-api-test.je-cf9.workers.dev) via manual `wrangler deploy --env testnet`
+
+Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every 12 hours via Cloudflare cron triggers (see `server/tasks/sync/`).
+
+### Deployment Migration
+
+Migrated from Cloudflare Pages to Workers for cron job support. Pages URLs remain legacy redirects only and are not active deployment targets.
+
+**Old URLs (redirect to Workers):**
+
+- `validators-api-mainnet.pages.dev` → `validators-api-main.je-cf9.workers.dev`
+- `validators-api-testnet.pages.dev` → `validators-api-test.je-cf9.workers.dev`
+
+Setup redirects per [MIGRATION.md](./MIGRATION.md).
 
 **Write operations to `main` are restricted**, only via PR.

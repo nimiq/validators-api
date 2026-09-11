@@ -10,10 +10,10 @@ import { description, name, version } from './package.json'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', 'reka-ui/nuxt', 'nuxt-safe-runtime-config'],
+  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxthub/core', '@nuxt/image', '@nuxt/fonts', 'reka-ui/nuxt', 'nuxt-safe-runtime-config', 'nuxt-charts'],
 
   hub: {
-    database: true,
+    db: 'sqlite',
     blob: true,
     cache: true,
   },
@@ -33,7 +33,7 @@ export default defineNuxtConfig({
       slackWebhookUrl: z.string().describe('Slack webhook URL must be a valid string'),
       public: z.object({
         gitBranch: z.string().describe('Git branch is required'),
-        nimiqNetwork: z.string().describe('Nimiq network is required').refine(value => ['main-albatross', 'test-albatross'].includes(value), {
+        nimiqNetwork: z.string().describe('Nimiq network is required').refine(value => !value || ['main-albatross', 'test-albatross'].includes(value), {
           message: 'Nimiq network must be one of: main-albatross, test-albatross',
         }),
       }),
@@ -90,9 +90,6 @@ export default defineNuxtConfig({
 
       consola.info(`Nimiq network: \`${nimiqNetwork}\``)
       consola.info(`Git branch: \`${gitBranch}\``)
-
-      const { projectUrl, env } = nuxt.options.runtimeConfig.hub
-      consola.info(`Remote NuxtHub: \`${projectUrl || 'local'}@${env}\``)
     },
   },
 
@@ -137,10 +134,22 @@ export default defineNuxtConfig({
   colorMode: {
     classSuffix: '',
   },
+  fonts: {
+    families: [
+      { name: 'Mulish', weights: [400, 600, 700] },
+      { name: 'Fira Code', weights: [400] },
+    ],
+  },
 
   nitro: {
+    preset: 'cloudflare_module',
     experimental: {
       openAPI: true,
+      tasks: true,
+    },
+    scheduledTasks: {
+      // 12-hour sync: wrapper task records run + executes sync tasks
+      '0 */12 * * *': ['cron:sync'],
     },
     openAPI: {
       meta: { title: name, description, version },
@@ -152,5 +161,5 @@ export default defineNuxtConfig({
     },
   },
 
-  compatibilityDate: '2025-03-21',
+  compatibilityDate: '2026-02-26',
 })

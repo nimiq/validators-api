@@ -3,5 +3,7 @@
   "address": "NQ57 UQJL 5A3H N45M 1FHS 2454 C7L5 BTE6 KEU1",
   "fee": 0.1,
   "payoutType": "restake",
-  "isMaintainedByNimiq": true
+  "isMaintainedByNimiq": true,
+  "accentColor": "#f2a93b",
+  "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IktpZGRpZSBQb29sIGxvZ28iPjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiByeD0iMjgiIGZpbGw9IiNmMmE5M2IiLz48Y2lyY2xlIGN4PSI5NiIgY3k9IjMyIiByPSIxOCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwuMjIpIi8+PHRleHQgeD0iNjQiIHk9Ijc1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0MiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0id2hpdGUiPktQPC90ZXh0Pjwvc3ZnPg=="
 }

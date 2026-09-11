@@ -3,5 +3,7 @@
   "address": "NQ24 DJE3 KX3U HG5X 1BXP 8XQ3 SK7S X364 N7G7",
   "fee": 0.09,
   "payoutType": "restake",
-  "isMaintainedByNimiq": true
+  "isMaintainedByNimiq": true,
+  "accentColor": "#7c5cff",
+  "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlBvb2x5IE1jUG9vbGZhY2UgbG9nbyI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0iIzdjNWNmZiIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iMzIiIHI9IjE4IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4yMikiLz48dGV4dCB4PSI2NCIgeT0iNzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSJ3aGl0ZSI+UE08L3RleHQ+PC9zdmc+"
 }

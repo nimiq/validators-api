@@ -3,5 +3,7 @@
   "address": "NQ87 FEGQ 01TF M29N T03J 3YCB JB5M X5VM XP8Q",
   "fee": 0.09,
   "payoutType": "restake",
-  "isMaintainedByNimiq": true
+  "isMaintainedByNimiq": true,
+  "accentColor": "#1e88e5",
+  "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkNvb2wgUG9vbCBsb2dvIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjMWU4OGU1Ii8+PGNpcmNsZSBjeD0iOTYiIGN5PSIzMiIgcj0iMTgiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsLjIyKSIvPjx0ZXh0IHg9IjY0IiB5PSI3NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IndoaXRlIj5DUDwvdGV4dD48L3N2Zz4="
 }

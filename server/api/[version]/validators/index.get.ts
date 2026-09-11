@@ -1,13 +1,17 @@
 import type { FetchValidatorsOptions } from '~~/server/utils/validators'
 import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { getRange } from '~~/packages/nimiq-validator-trustscore/src/range'
+import { getRpcUrl } from '~~/server/utils/rpc'
 import { cachedFetchValidators, fetchValidators } from '~~/server/utils/validators'
 
 export default defineEventHandler(async (event) => {
   const queryParams = await getValidatedQuery(event, mainQuerySchema.parse)
 
-  initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
-  const { nimiqNetwork: network } = useRuntimeConfig().public
+  const rpcUrl = getRpcUrl()
+  if (!rpcUrl)
+    throw createError('No Albatross RPC Node URL')
+  initRpcClient({ url: rpcUrl })
+  const { nimiqNetwork: network } = useSafeRuntimeConfig().public
 
   const [rangeSuccess, errorRange, range] = await getRange({ network })
   if (!rangeSuccess || !range)

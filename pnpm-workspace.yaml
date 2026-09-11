@@ -5,11 +5,13 @@ catalog:
   '@antfu/eslint-config': ^4.19.0
   '@antfu/ni': ^25.0.0
   '@iconify-json/tabler': ^1.2.20
+  '@libsql/client': ^0.17.0
   '@nimiq/core': ^2.1.1
   '@nimiq/utils': ^0.12.4
   '@nuxt/eslint': ^1.7.1
+  '@nuxt/fonts': ^0.13.0
   '@nuxt/image': ^1.10.0
-  '@nuxthub/core': ^0.9.0
+  '@nuxthub/core': ^0.10.6
   '@nuxtjs/color-mode': ^3.5.2
   '@tanstack/vue-table': ^8.21.3
   '@types/node': ^24.1.0
@@ -34,7 +36,8 @@ catalog:
   nimiq-css: ^1.0.0-beta.61
   nimiq-rpc-client-ts: 1.0.0-beta.28
   nuxt: ^4.0.1
-  nuxt-safe-runtime-config: ^0.0.3
+  nuxt-charts: 2.1.2
+  nuxt-safe-runtime-config: ^0.1.1
   ofetch: ^1.4.1
   pathe: ^2.0.3
   reka-ui: ^2.4.0
@@ -50,6 +53,7 @@ catalog:
   vite-plugin-wasm: ^3.5.0
   vitest: ^3.2.4
   vue: ^3.5.18
+  vue-chrts: ^2.1.2
   vue-router: ^4.5.1
   vue-tsc: ^3.0.3
   wrangler: ^4.25.1

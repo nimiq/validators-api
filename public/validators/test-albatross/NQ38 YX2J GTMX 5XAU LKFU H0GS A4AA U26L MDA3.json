@@ -3,5 +3,7 @@
   "address": "NQ38 YX2J GTMX 5XAU LKFU H0GS A4AA U26L MDA3",
   "fee": 0.1,
   "payoutType": "restake",
-  "isMaintainedByNimiq": true
+  "isMaintainedByNimiq": true,
+  "accentColor": "#2fa7d8",
+  "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlN3aW1taW5nIFBvb2wgbG9nbyI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0iIzJmYTdkOCIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iMzIiIHI9IjE4IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LC4yMikiLz48dGV4dCB4PSI2NCIgeT0iNzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSJ3aGl0ZSI+U1A8L3RleHQ+PC9zdmc+"
 }

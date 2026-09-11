@@ -3,5 +3,7 @@
   "address": "NQ71 CK94 3V7U H62Y 4L0F GUUK DPA4 6SA6 DKKM",
   "fee": 0.11,
   "payoutType": "restake",
-  "isMaintainedByNimiq": true
+  "isMaintainedByNimiq": true,
+  "accentColor": "#d43f8d",
+  "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9Ik1vbm9wb29seSBsb2dvIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjZDQzZjhkIi8+PGNpcmNsZSBjeD0iOTYiIGN5PSIzMiIgcj0iMTgiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsLjIyKSIvPjx0ZXh0IHg9IjY0IiB5PSI3NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IndoaXRlIj5NPC90ZXh0Pjwvc3ZnPg=="
 }

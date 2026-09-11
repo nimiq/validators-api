@@ -1,5 +1,6 @@
 // @ts-check
 import antfu from '@antfu/eslint-config'
+import safeRuntimeConfig from 'nuxt-safe-runtime-config/eslint'
 import withNuxt from './.nuxt/eslint.config.mjs'
 
 export default withNuxt(
@@ -14,4 +15,5 @@ export default withNuxt(
       'vue/object-property-newline': ['error', { allowAllPropertiesOnSameLine: false }],
     },
   }),
+  safeRuntimeConfig.configs.recommended,
 )

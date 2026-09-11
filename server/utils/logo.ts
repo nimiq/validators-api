@@ -11,17 +11,15 @@ function getDefaultBranding(address: string) {
   return { logo, accentColor, hasDefaultLogo: true }
 }
 
-export async function handleValidatorLogo(address: string, { logo: _logo, accentColor }: ValidatorJSON) {
-  if (!_logo) {
+export async function handleValidatorLogo(address: string, { logo, accentColor }: ValidatorJSON) {
+  if (!logo) {
     const params = getDefaultBranding(address)
     // const path = await uploadLogo(address, params.logo)
     return { ...params }
   }
 
   if (!accentColor)
-    throw new Error(`The validator ${address} does have an logo but not an accent color`)
-
-  const logo: string = _logo
+    throw new Error(`The validator ${address} does have a logo but no accent color`)
 
   if (logo.startsWith('data:image/svg+xml')) {
     // Handle both base64 and URL-encoded SVGs
@@ -40,13 +38,13 @@ export async function handleValidatorLogo(address: string, { logo: _logo, accent
     }
     catch (error) {
       consola.error(`Error decoding SVG content for ${address}: ${error}`)
-      return { logo: _logo, accentColor: accentColor!, hasDefaultLogo: false }
+      return { logo, accentColor: accentColor!, hasDefaultLogo: false }
     }
 
     // Validate SVG content
     if (!svgContent.startsWith('<svg') && !svgContent.startsWith('<?xml')) {
       consola.error(`Invalid SVG content for ${address}. Starting with: ${svgContent.slice(0, 50)}. Ending with: ${svgContent.slice(-50)}`)
-      return { logo: _logo, accentColor: accentColor!, hasDefaultLogo: false }
+      return { logo, accentColor: accentColor!, hasDefaultLogo: false }
     }
 
     // Optimize with error handling
@@ -60,7 +58,7 @@ export async function handleValidatorLogo(address: string, { logo: _logo, accent
     // }
     // catch (error) {
     //   consola.error(`Error optimizing SVG for ${address}: ${error}`)
-    //   return { logo: _logo, accentColor: accentColor!, hasDefaultLogo: false }
+    //   return { logo, accentColor: accentColor!, hasDefaultLogo: false }
     // }
 
     // if (!optimizedSvg) {

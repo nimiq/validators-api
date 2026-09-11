@@ -1,6 +1,7 @@
 import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { getBlockNumber } from 'nimiq-rpc-client-ts/http'
 import { getRange } from 'nimiq-validator-trustscore/range'
+import { getRpcUrl } from '~~/server/utils/rpc'
 
 /**
  * This endpoint returns the status of the API:
@@ -12,6 +13,7 @@ import { getRange } from 'nimiq-validator-trustscore/range'
  *   - The addresses of the active validators in the current epoch
  *   - The addresses of inactive validators
  *   - The addresses of untracked validators (new validators)
+ *   - The addresses of active validators with removed profile metadata (`unlistedActiveValidators`)
  *   - The addresses of all validators regardless of their status
  *
  *   Blockchain information:
@@ -22,11 +24,12 @@ import { getRange } from 'nimiq-validator-trustscore/range'
  */
 
 export default defineCachedEventHandler(async () => {
-  if (!useRuntimeConfig().albatrossRpcNodeUrl)
+  const rpcUrl = getRpcUrl()
+  if (!rpcUrl)
     throw createError('No Albatross RPC Node URL')
-  initRpcClient({ url: useRuntimeConfig().albatrossRpcNodeUrl })
+  initRpcClient({ url: rpcUrl })
 
-  const { nimiqNetwork: network } = useRuntimeConfig().public
+  const { nimiqNetwork: network } = useSafeRuntimeConfig().public
 
   // We get a "window" whose size is determined by the range
   const [rangeSuccess, errorRange, range] = await getRange({ network })
@@ -41,14 +44,24 @@ export default defineCachedEventHandler(async () => {
   if (!headBlockOk)
     throw createError(errorHeadBlockNumber || 'No head block number')
 
+  const allowedScoreLagEpochs = 1
+  const latestScoreEpoch = await getLatestScoreEpoch()
+  const scoreLagEpochs = getScoreLagEpochs({
+    toEpoch: range.toEpoch,
+    latestScoreEpoch,
+  })
+
   const missingEpochs = await findMissingEpochs(range)
-  const missingScore = await isMissingScore(range)
+  const missingScore = await isScoreMissingWithLag(range, allowedScoreLagEpochs, latestScoreEpoch)
 
   return {
     range,
     validators: validatorsEpoch,
     missingEpochs,
     missingScore,
+    latestScoreEpoch,
+    scoreLagEpochs,
+    allowedScoreLagEpochs,
     blockchain: { network, headBlockNumber },
   }
 })

@@ -6,14 +6,17 @@ export const validatorSchema = z.object({
   name: z.string(),
   address: z.string().regex(/^NQ\d{2}(\s\w{4}){8}$/, 'Invalid Nimiq address format'),
   fee: z.literal(null).or(z.number().min(0).max(1)).default(null),
-  payoutType: z.nativeEnum(PayoutType).default(PayoutType.None),
+  payoutType: z.enum(PayoutType).default(PayoutType.None),
   payoutSchedule: z.string().optional().default(''),
   isMaintainedByNimiq: z.boolean().optional(),
   description: z.string().optional(),
   website: z.string().url().optional(),
   logo: z.string().regex(logoFormatRe).optional(),
   hasDefaultLogo: z.boolean().default(true),
-  accentColor: z.string().optional(),
+  accentColor: z.string().refine(
+    val => val.startsWith('#') && val.length === 7,
+    { error: 'accentColor must be a HEX color value' },
+  ).optional(),
   contact: z.object({
     email: z.string().email().optional(),
     twitter: z.string().regex(/^@?(\w){1,15}$/).optional(),
@@ -26,6 +29,16 @@ export const validatorSchema = z.object({
     instagram: z.string().regex(/^@?(\w){1,30}$/).optional(),
     youtube: z.string().regex(/^@?(\w){1,50}$/).optional(),
   }).optional(),
+}).superRefine((data, ctx) => {
+  // If logo is provided, accentColor must also be provided
+  if (data.logo && !data.accentColor) {
+    ctx.addIssue({
+      code: 'invalid_value',
+      message: 'accentColor is required when logo is provided',
+      values: ['Provide a valid accent color in hex format, e.g. #FF5733.'],
+      input: data.accentColor,
+    })
+  }
 })
 export const validatorsSchema = z.array(validatorSchema)
 export type ValidatorJSON = z.infer<typeof validatorSchema>
@@ -45,7 +58,7 @@ export const defaultValidatorJSON = getDefaults(validatorSchema) as ValidatorJSO
 export const mainQuerySchema = z.object({
   'payout-type': z.nativeEnum(PayoutType).optional(),
   'only-known': z.literal('true').or(z.literal('false')).default('true').transform(v => v === 'true'),
-  'with-identicons': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
+  'with-identicons': z.literal('true').or(z.literal('false')).optional().transform(v => v === undefined ? undefined : v === 'true'),
   'force': z.literal('true').or(z.literal('false')).default('false').transform(v => v === 'true'),
   'epoch-number': z.coerce.number().min(1).default(1),
 })

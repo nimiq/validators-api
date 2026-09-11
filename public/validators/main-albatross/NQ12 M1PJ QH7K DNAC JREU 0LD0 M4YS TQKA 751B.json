@@ -3,5 +3,7 @@
   "name": "Techbits Validator",
   "description": "reliable staking, low fees",
   "payoutType": "direct",
-  "fee": 0.01
+  "fee": 0.01,
+  "accentColor": "#1f8fcb",
+  "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlRlY2hiaXRzIFZhbGlkYXRvciBsb2dvIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjMWY4ZmNiIi8+PGNpcmNsZSBjeD0iOTYiIGN5PSIzMiIgcj0iMTgiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsLjIyKSIvPjx0ZXh0IHg9IjY0IiB5PSI3NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IndoaXRlIj5UVjwvdGV4dD48L3N2Zz4="
 }

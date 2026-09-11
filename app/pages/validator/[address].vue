@@ -1,20 +1,33 @@
 <script setup lang="ts">
-const route = useRoute()
-const { data: validator } = await useFetch(`/api/v1/validators/${route.params.address}`)
+import type { Component } from 'vue'
+import type { FetchedValidatorDetails } from '~~/server/utils/validators'
 
-const scores = computed<[number, number][]>(() => {
-  if (!validator.value?.scores)
-    return []
-  return validator.value.scores.map(({ total, epochNumber }) => [total, epochNumber])
-})
+type LayoutKey = 'dashboard' | 'deep-dive' | 'profile'
+type ValidatorDetail = FetchedValidatorDetails & { range?: unknown }
+
+const route = useRoute()
+const address = computed(() => Array.isArray(route.params.address) ? route.params.address.join('/') : String(route.params.address || ''))
+const { data: validator } = await useFetch<ValidatorDetail>(() => `/api/v1/validators/${encodeURIComponent(address.value)}`)
+const layout = shallowRef<LayoutKey>('dashboard')
+const layouts = [
+  { key: 'dashboard' as const, label: 'Dashboard' },
+  { key: 'deep-dive' as const, label: 'Deep Dive' },
+  { key: 'profile' as const, label: 'Profile' },
+]
+const layoutComponents = {
+  'dashboard': defineAsyncComponent(() => import('~/components/validator/LayoutDashboard.vue')),
+  'deep-dive': defineAsyncComponent(() => import('~/components/validator/LayoutDeepDive.vue')),
+  'profile': defineAsyncComponent(() => import('~/components/validator/LayoutProfile.vue')),
+} satisfies Record<LayoutKey, Component>
+const activeLayoutComponent = computed(() => layoutComponents[layout.value])
 </script>
 
 <template>
   <div v-if="validator">
+    <!-- Shared header -->
     <div flex="~ gap-16 items-center">
       <Identicon
-        v-bind="validator"
-        size-64 shrink-0 object-contain
+        v-bind="validator" size-64 shrink-0 object-contain
         :style="{ 'view-transition-name': `logo-${validator.id}` }"
       />
       <div flex="~ col gap-12" relative>
@@ -25,13 +38,13 @@ const scores = computed<[number, number][]>(() => {
       </div>
       <div flex-auto />
       <div
-        v-if="validator.isMaintainedByNimiq" nq-pill-sm self-start bg-green-400 text-green-1100 nq-pill-secondary
+        v-if="validator.isMaintainedByNimiq" nq-pill self-start bg-green-400 text-green-1100 nq-pill-secondary
         flex="~ items-center gap-8"
       >
-        <div aria-hidden i-nimiq:verified-filled />
+        <div aria-hidden class="i-nimiq:verified-filled" />
         <span>Maintained by Nimiq</span>
       </div>
-      <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill-sm ml-auto self-start nq-arrow nq-pill-tertiary>
+      <NuxtLink v-if="validator.website" :to="validator.website" target="_blank" nq-pill ml-auto self-start nq-arrow nq-pill-tertiary>
         {{ validator.website?.replace(/https?:\/\//, '') }}
       </NuxtLink>
     </div>
@@ -39,30 +52,22 @@ const scores = computed<[number, number][]>(() => {
       {{ validator.description }}
     </p>
 
-    <div flex="~ col items-center justify-center" mt-96>
-      <h3 text="center neutral-900" mb-0 font-bold>
-        {{ validator.name }}'s score is
-      </h3>
-      <ScorePie
-        mx-auto mt-32 size-128 text-40 :score="validator.score?.total || 0"
-        :style="{ 'view-transition-name': `score-${validator.id}` }"
-      />
-
-      <ScorePies v-if="validator.score" v-bind="validator.score" f-mt-md text-28 />
-
-      <ChartLine :data="scores" f-mt-md />
-
-      <Batches :activity="validator.activity" f-mt-md />
-
-      <details>
-        <summary text-neutral-900 font-semibold mt-32 w-full>
-          More details
-        </summary>
-        <code nq-prose mt-32 block max-w-700 text-neutral-900>
-          {{ JSON.stringify(validator, null, 2) }}
-        </code>
-      </details>
+    <!-- Layout switcher -->
+    <div flex="~ gap-4" mt-24 bg-neutral-100 rounded-8 p-4 w-fit>
+      <button
+        v-for="l in layouts" :key="l.key"
+        text-14 font-semibold px-16 py-8 rounded-6 transition-colors
+        :class="layout === l.key ? 'bg-neutral-0 text-neutral-900 shadow' : 'text-neutral-600 hover:text-neutral-800'"
+        @click="layout = l.key"
+      >
+        {{ l.label }}
+      </button>
     </div>
+
+    <!-- Active layout -->
+    <ClientOnly>
+      <component :is="activeLayoutComponent" :validator="validator" />
+    </ClientOnly>
   </div>
 
   <div v-else>

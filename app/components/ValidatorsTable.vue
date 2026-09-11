@@ -187,7 +187,7 @@ const filteredRowsCount = computed(() => {
         </NuxtLink>
 
         <NuxtLink
-          to="https://www.nimiq.com/developers/validators/validator-trustscore" external class="flex items-center"
+          to="https://github.com/nimiq/validators-api/tree/main/packages/nimiq-validator-trustscore" external class="flex items-center"
           target="_blank" nq-arrow un-text="f-xs neutral-700 hocus:neutral-800" font-semibold transition-colors
         >
           <div i-nimiq:verified mr-8 />
@@ -313,7 +313,7 @@ const filteredRowsCount = computed(() => {
                 {{ row.original.name }}
               </h2>
               <div
-                v-if="row.original.isMaintainedByNimiq" i-nimiq:verified-filled text="13 green/70"
+                v-if="row.original.isMaintainedByNimiq" class="i-nimiq:verified-filled" text="13 green/70"
                 title="Maintained by Nimiq"
               />
             </td>
