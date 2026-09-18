@@ -1,8 +1,8 @@
 {
   "name": "Nimiq Base Staking",
-  "description": "Low-fee Nimiq staking pool. Stake, earn rewards, and get loyalty cashback on top. Restake by default — or take payouts to your wallet.",
+  "description": "Zero-fee Nimiq staking pool for an extended period. Stake, earn rewards, and get loyalty cashback on top. Restake by default — or take payouts to your wallet.",
   "address": "NQ49 N8MB XYCR XBUP 404C KXKK L49M A7BT F082",
-  "fee": 0.05,
+  "fee": 0.00,
   "payoutType": "restake",
   "website": "https://nimiqbase.com",
   "accentColor": "#F09008",
