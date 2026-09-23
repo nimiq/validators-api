@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { FetchedValidatorDetails } from '~~/server/utils/validators'
 import { CurveType } from 'vue-chrts'
+import { mapScoreDisplay } from '~/utils/score-display'
 
 const props = defineProps<{ validator: FetchedValidatorDetails }>()
 const validatorRef = computed(() => props.validator)
 const { scoreTrendData, scoreTrendXFormatter, balanceData, balanceXFormatter, balanceYDomain, stakersData, stakersXFormatter, stakersYDomain, activityStats, feeDisplay, payoutDisplay, currentBalance, currentStakers } = useValidatorCharts(validatorRef)
+const scoreState = computed(() => mapScoreDisplay(props.validator.score))
 
 const scoreCategories = { total: { name: 'Score', color: 'var(--colors-green)' } }
 const balanceCategories = { balance: { name: 'Balance (NIM)', color: 'var(--colors-gold)' } }
@@ -43,9 +45,12 @@ const stakersCategories = { stakers: { name: 'Stakers', color: 'var(--colors-blu
       <!-- Left 60% -->
       <div flex="~ col gap-16">
         <!-- Score card -->
-        <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md flex="~ items-center gap-24">
-          <ScorePie size-96 text-32 :score="validator.score?.total || 0" />
-          <ScorePies v-if="validator.score" v-bind="validator.score" text-24 />
+        <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md flex="~ items-center gap-24 wrap">
+          <div flex="~ col items-center gap-8">
+            <ScorePie size-96 text-32 :score="scoreState.value" />
+            <span text="11 neutral-600">{{ scoreState.versionLabel }} · {{ scoreState.statusLabel }}</span>
+          </div>
+          <ScorePies v-bind="validator.score" text-24 />
         </div>
 
         <!-- Score trend -->

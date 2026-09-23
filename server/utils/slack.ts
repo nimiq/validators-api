@@ -120,7 +120,7 @@ export async function sendSlackNotification(options: SlackNotificationOptions): 
 
 // Specific notification functions for different scenarios
 export async function sendSyncFailureNotification(
-  syncType: 'missing-epoch' | 'snapshot',
+  syncType: 'missing-epoch' | 'snapshot' | 'scores',
   error: any,
   endpoint?: string,
 ): Promise<void> {

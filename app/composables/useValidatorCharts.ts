@@ -1,15 +1,78 @@
-import type { Activity, Score } from '~~/server/utils/drizzle'
+import type { Activity } from '~~/server/utils/drizzle'
+import type { ScoreApiValue } from '~~/server/utils/types'
 
 interface ValidatorData {
-  scores: Score[]
+  scores: ScoreApiValue[]
   activity: Activity[]
-  score?: Score
+  score: ScoreApiValue
   fee: number | null
   payoutType: string | null
 }
 
 interface EpochData {
   epoch: number
+}
+
+interface ScoreHistoryRow {
+  epochNumber: number | null
+  scoreVersion: 1 | 2
+}
+
+interface ActivityHistoryRow {
+  epochNumber: number | null
+  inferred?: boolean
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
+function isNonNegativeFiniteNumber(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= 0
+}
+
+export function prepareActivityHistory<
+  T extends ActivityHistoryRow,
+  K extends keyof T,
+>(activity: readonly T[], requiredFields: readonly K[]): T[] {
+  return activity
+    .filter(row =>
+      !row.inferred
+      && isFiniteNumber(row.epochNumber)
+      && Number.isInteger(row.epochNumber)
+      && requiredFields.every(field => isNonNegativeFiniteNumber(row[field])),
+    )
+    .sort((left, right) => {
+      if (!isFiniteNumber(left.epochNumber) || !isFiniteNumber(right.epochNumber))
+        return 0
+      return left.epochNumber - right.epochNumber
+    })
+}
+
+export function prepareScoreHistory<
+  T extends ScoreHistoryRow,
+  K extends keyof T,
+>(scores: readonly T[], scoreVersion: 1 | 2, requiredFields: readonly K[]): T[] {
+  return scores
+    .filter((score) => {
+      if (
+        score.scoreVersion !== scoreVersion
+        || !isFiniteNumber(score.epochNumber)
+        || !Number.isInteger(score.epochNumber)
+      ) {
+        return false
+      }
+
+      return requiredFields.every((field) => {
+        const value = score[field]
+        return isFiniteNumber(value)
+      })
+    })
+    .sort((left, right) => {
+      if (!isFiniteNumber(left.epochNumber) || !isFiniteNumber(right.epochNumber))
+        return 0
+      return left.epochNumber - right.epochNumber
+    })
 }
 
 export function createEpochFormatter(data: readonly EpochData[]) {
@@ -42,40 +105,71 @@ export function createPaddedDomain<T extends Record<string, number>>(data: reado
 }
 
 export function useValidatorCharts(validator: Ref<ValidatorData | null>) {
+  const selectedScoreVersion = computed(() => validator.value?.score.scoreVersion ?? 1)
+
   const scoreTrendData = computed(() => {
     if (!validator.value?.scores)
       return []
-    return ensureDrawableLineData(validator.value.scores.map(s => ({ epoch: s.epochNumber, total: s.total })))
+    const scores = prepareScoreHistory(
+      validator.value.scores,
+      selectedScoreVersion.value,
+      ['total'],
+    )
+    return ensureDrawableLineData(scores.flatMap(score =>
+      isFiniteNumber(score.epochNumber) && isFiniteNumber(score.total)
+        ? [{ epoch: score.epochNumber, total: score.total }]
+        : [],
+    ))
   })
 
   const scoreTrendAllData = computed(() => {
     if (!validator.value?.scores)
       return []
-    return ensureDrawableLineData(validator.value.scores.map(s => ({
-      epoch: s.epochNumber,
-      total: s.total,
-      availability: s.availability,
-      dominance: s.dominance,
-      reliability: s.reliability,
-    })))
+    const scores = prepareScoreHistory(
+      validator.value.scores,
+      selectedScoreVersion.value,
+      ['total', 'availability', 'dominance', 'reliability'],
+    )
+    return ensureDrawableLineData(scores.flatMap(score =>
+      isFiniteNumber(score.epochNumber)
+      && isFiniteNumber(score.total)
+      && isFiniteNumber(score.availability)
+      && isFiniteNumber(score.dominance)
+      && isFiniteNumber(score.reliability)
+        ? [{
+            epoch: score.epochNumber,
+            total: score.total,
+            availability: score.availability,
+            dominance: score.dominance,
+            reliability: score.reliability,
+          }]
+        : [],
+    ))
   })
 
   const balanceData = computed(() => {
     if (!validator.value?.activity)
       return []
-    return validator.value.activity.map(a => ({ epoch: a.epochNumber, balance: a.balance / 1e5 }))
+    return prepareActivityHistory(validator.value.activity, ['balance'])
+      .map(activity => ({ epoch: activity.epochNumber, balance: activity.balance / 1e5 }))
   })
 
   const stakersData = computed(() => {
     if (!validator.value?.activity)
       return []
-    return validator.value.activity.map(a => ({ epoch: a.epochNumber, stakers: a.stakers }))
+    return prepareActivityHistory(validator.value.activity, ['stakers'])
+      .map(activity => ({ epoch: activity.epochNumber, stakers: activity.stakers }))
   })
 
   const activityData = computed(() => {
     if (!validator.value?.activity)
       return []
-    return validator.value.activity.map(a => ({ epoch: a.epochNumber, rewarded: a.rewarded, missed: a.missed }))
+    return prepareActivityHistory(validator.value.activity, ['rewarded', 'missed'])
+      .map(activity => ({
+        epoch: activity.epochNumber,
+        rewarded: activity.rewarded,
+        missed: activity.missed,
+      }))
   })
 
   const scoreTrendXFormatter = computed(() => createEpochFormatter(scoreTrendData.value))
@@ -114,22 +208,28 @@ export function useValidatorCharts(validator: Ref<ValidatorData | null>) {
   })
 
   const currentBalance = computed(() => {
-    if (!validator.value?.activity?.length)
-      return 0
-    return validator.value.activity.at(-1)!.balance / 1e5
+    return balanceData.value.at(-1)?.balance ?? 0
   })
 
   const currentStakers = computed(() => {
-    if (!validator.value?.activity?.length)
-      return 0
-    return validator.value.activity.at(-1)!.stakers
+    return stakersData.value.at(-1)?.stakers ?? 0
   })
 
   // Donut data for sub-scores
   const donutScoreData = computed(() => {
-    if (!validator.value?.score)
-      return [0, 0, 0]
-    return [validator.value.score.availability, validator.value.score.dominance, validator.value.score.reliability]
+    const score = validator.value?.score
+    if (
+      !score
+      || typeof score.availability !== 'number'
+      || !Number.isFinite(score.availability)
+      || typeof score.dominance !== 'number'
+      || !Number.isFinite(score.dominance)
+      || typeof score.reliability !== 'number'
+      || !Number.isFinite(score.reliability)
+    ) {
+      return []
+    }
+    return [score.availability, score.dominance, score.reliability]
   })
 
   return {

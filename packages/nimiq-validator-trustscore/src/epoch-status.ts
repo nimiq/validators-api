@@ -3,6 +3,7 @@ export enum ValidatorEpochStatus {
   ElectedOnline = 'elected_online',
   ElectedDegraded = 'elected_degraded',
   ElectedFailedOrOffline = 'elected_failed_or_offline',
+  InferredOffline = 'inferred_offline',
   UnknownPlaceholder = 'unknown_placeholder',
   InactiveByChoiceOrRemoved = 'inactive_by_choice_or_removed',
 }

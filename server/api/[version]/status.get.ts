@@ -1,7 +1,12 @@
+import type { Range } from 'nimiq-validator-trustscore/types'
+import type { SnapshotEpochValidators } from '~~/server/utils/types'
+import { consola } from 'consola'
 import { initRpcClient } from 'nimiq-rpc-client-ts/client'
 import { getBlockNumber } from 'nimiq-rpc-client-ts/http'
 import { getRange } from 'nimiq-validator-trustscore/range'
 import { getRpcUrl } from '~~/server/utils/rpc'
+import { scoreVersionQuerySchema } from '~~/server/utils/schemas'
+import { deriveMarkerScoreStatus, resolveScoreVersion } from '~~/server/utils/score-api'
 
 /**
  * This endpoint returns the status of the API:
@@ -23,43 +28,96 @@ import { getRpcUrl } from '~~/server/utils/rpc'
  *   - Duration of epoch
  */
 
-export default defineCachedEventHandler(async () => {
+export default defineCachedEventHandler(async (event) => {
+  const queryParams = await getValidatedQuery(event, scoreVersionQuerySchema.parse)
+  const runtimeConfig = useSafeRuntimeConfig() as ReturnType<typeof useSafeRuntimeConfig> & {
+    scoreV2Mode?: string
+  }
+  const { nimiqNetwork: network } = runtimeConfig.public
+  const scoreV2Mode = runtimeConfig.scoreV2Mode ?? 'off'
+  if (scoreV2Mode !== 'off' && scoreV2Mode !== 'shadow' && scoreV2Mode !== 'active')
+    throw new Error(`Invalid score v2 mode: ${scoreV2Mode}`)
+  const activeScoreVersion = resolveScoreVersion(undefined, scoreV2Mode)
+  const selectedScoreVersion = resolveScoreVersion(queryParams['score-version'], scoreV2Mode)
+  const [markers, latestScore] = await Promise.all([
+    getActivityEpochMarkers(),
+    getLatestScoreState(selectedScoreVersion),
+  ])
+
   const rpcUrl = getRpcUrl()
-  if (!rpcUrl)
-    throw createError('No Albatross RPC Node URL')
-  initRpcClient({ url: rpcUrl })
+  let rpcReady = false
+  if (rpcUrl) {
+    try {
+      initRpcClient({ url: rpcUrl })
+      rpcReady = true
+    }
+    catch (error) {
+      consola.warn('Failed to initialize optional status RPC client', error)
+      rpcReady = false
+    }
+  }
 
-  const { nimiqNetwork: network } = useSafeRuntimeConfig().public
+  let range: Range | null = null
+  let validatorsEpoch: SnapshotEpochValidators | null = null
+  let headBlockNumber: number | null = null
+  if (rpcReady) {
+    try {
+      const [rangeSuccess, , liveRange] = await getRange({ network })
+      if (rangeSuccess && liveRange)
+        range = liveRange
+    }
+    catch (error) {
+      consola.warn('Failed to fetch optional status range', error)
+    }
 
-  // We get a "window" whose size is determined by the range
-  const [rangeSuccess, errorRange, range] = await getRange({ network })
-  if (!rangeSuccess || !range)
-    throw createError(errorRange || 'No range')
+    try {
+      const [validatorsSuccess, , liveValidators] = await categorizeValidatorsSnapshotEpoch()
+      if (validatorsSuccess && liveValidators)
+        validatorsEpoch = liveValidators
+    }
+    catch (error) {
+      consola.warn('Failed to fetch optional validator snapshot', error)
+    }
 
-  const [validatorsSuccess, error, validatorsEpoch] = await categorizeValidatorsSnapshotEpoch()
-  if (!validatorsSuccess || !validatorsEpoch)
-    throw createError(error || 'No data')
+    try {
+      const [headBlockOk, , liveHeadBlockNumber] = await getBlockNumber()
+      if (headBlockOk && liveHeadBlockNumber !== undefined)
+        headBlockNumber = liveHeadBlockNumber
+    }
+    catch (error) {
+      consola.warn('Failed to fetch optional head block', error)
+    }
+  }
 
-  const [headBlockOk, errorHeadBlockNumber, headBlockNumber] = await getBlockNumber()
-  if (!headBlockOk)
-    throw createError(errorHeadBlockNumber || 'No head block number')
-
-  const allowedScoreLagEpochs = 1
-  const latestScoreEpoch = await getLatestScoreEpoch()
-  const scoreLagEpochs = getScoreLagEpochs({
-    toEpoch: range.toEpoch,
-    latestScoreEpoch,
+  const markerStatus = deriveMarkerScoreStatus({
+    markers,
+    recentRange: range ? getRecentEpochRange(range) : null,
+    longTermRange: range,
+    activeScoreVersion,
+    selectedScoreVersion,
+    latestScore,
   })
 
-  const missingEpochs = await findMissingEpochs(range)
-  const missingScore = await isScoreMissingWithLag(range, allowedScoreLagEpochs, latestScoreEpoch)
+  const allowedScoreLagEpochs = 1
+  const scoreLagEpochs = range
+    ? getScoreLagEpochs({
+        toEpoch: range.toEpoch,
+        latestScoreEpoch: latestScore?.epochNumber ?? null,
+      })
+    : null
+  const missingScore = range
+    ? await isScoreMissingWithLag(
+        range,
+        allowedScoreLagEpochs,
+        latestScore?.epochNumber ?? null,
+      )
+    : null
 
   return {
     range,
     validators: validatorsEpoch,
-    missingEpochs,
+    ...markerStatus,
     missingScore,
-    latestScoreEpoch,
     scoreLagEpochs,
     allowedScoreLagEpochs,
     blockchain: { network, headBlockNumber },

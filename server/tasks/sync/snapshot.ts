@@ -5,7 +5,7 @@ import { sendSyncFailureNotification } from '~~/server/utils/slack'
 export default defineTask({
   meta: {
     name: 'sync:snapshot',
-    description: 'Sync validator snapshot and calculate scores',
+    description: 'Sync validator snapshot',
   },
   async run() {
     const config = useSafeRuntimeConfig()
@@ -31,15 +31,23 @@ export default defineTask({
         await sendSyncFailureNotification('snapshot', error)
         return { result: { success: false, error: fetchActiveEpochError } }
       }
-
-      const [scoresSuccess, errorScores, scores] = await upsertScoresSnapshotEpoch()
-      if (!scoresSuccess || !scores) {
-        const error = new Error(errorScores || 'Unable to fetch scores')
-        await sendSyncFailureNotification('snapshot', error)
-        return { result: { success: false, error: errorScores } }
+      if (fetchActiveEpochData.storageOutcome === 'provisioning') {
+        return {
+          result: {
+            success: true,
+            epochNumber: fetchActiveEpochData.epochNumber,
+            storageOutcome: 'provisioning',
+          },
+        }
       }
 
-      return { result: { success: true, epochNumber: fetchActiveEpochData.epochNumber } }
+      return {
+        result: {
+          success: true,
+          epochNumber: fetchActiveEpochData.epochNumber,
+          storageOutcome: 'stored',
+        },
+      }
     }
     catch (error) {
       await sendSyncFailureNotification('snapshot', error)

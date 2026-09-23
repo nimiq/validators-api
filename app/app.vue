@@ -1,17 +1,93 @@
 <script setup lang="ts">
 import type { EnvItemType } from './utils/environments'
 import { environments, getEnvironmentItem } from './utils/environments'
+import { mergeScoreVersionQuery, resolveDashboardScoreVersion } from './utils/score-version'
 
-const { data: status, status: statusRequest, refresh: refreshStatus, error } = await useFetch('/api/v1/status', { server: true, lazy: false })
+const route = useRoute()
+const { scoreVersionRequestQuery, setScoreVersion } = useScoreVersionQuery()
+const { data: status, status: statusRequest, refresh: refreshStatus, error } = await useFetch('/api/v1/status', {
+  server: true,
+  lazy: false,
+  query: scoreVersionRequestQuery,
+})
+const selectedScoreVersion = computed(() =>
+  resolveDashboardScoreVersion(
+    route.query['score-version'],
+    status.value?.selectedScoreVersion,
+  ),
+)
+const scoreVersionLinkQuery = computed(() =>
+  mergeScoreVersionQuery({}, selectedScoreVersion.value),
+)
 
 const colorMode = useColorMode()
 const toggleDark = () => colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
 
-const route = useRoute()
 const validatorDetail = computed(() => !!route.params.address)
-const isActivitySync = computed(() => Boolean(status.value?.missingEpochs?.length === 0))
-const isScoreSync = computed(() => status.value?.missingScore === false)
-const isSynced = computed(() => isActivitySync.value && isScoreSync.value)
+
+type HealthKind = 'current' | 'synchronizing' | 'failed' | 'stale' | 'no_score' | 'live_unavailable'
+
+const health = computed<{ kind: HealthKind, label: string }>(() => {
+  if (statusRequest.value === 'pending')
+    return { kind: 'synchronizing', label: 'Synchronizing' }
+  if (error.value || status.value?.failedEpochs.length)
+    return { kind: 'failed', label: 'Failed' }
+  if (status.value?.syncingEpochs.length)
+    return { kind: 'synchronizing', label: 'Synchronizing' }
+  if (!status.value?.range)
+    return { kind: 'live_unavailable', label: 'Live unavailable' }
+  if (status.value.scoreStatus === 'no_score')
+    return { kind: 'no_score', label: 'No score' }
+  if (
+    status.value.recentCoverage !== 1
+    || status.value.longTermCoverage !== 1
+    || status.value.scoreStatus === 'stale'
+  ) {
+    return { kind: 'stale', label: 'Stale' }
+  }
+  return { kind: 'current', label: 'Current' }
+})
+
+const healthClasses = computed(() => {
+  if (health.value.kind === 'current') {
+    return {
+      container: 'outline-green-500 text-green-1100',
+      badge: 'bg-green-400',
+    }
+  }
+  if (health.value.kind === 'synchronizing' || health.value.kind === 'live_unavailable') {
+    return {
+      container: 'outline-neutral-400 text-neutral-800',
+      badge: 'bg-neutral-400',
+    }
+  }
+  return {
+    container: 'outline-red-500 text-red-1100',
+    badge: 'bg-red-400',
+  }
+})
+
+const healthDetails = computed(() => {
+  const details: string[] = []
+  if (error.value)
+    details.push('Status request failed.')
+  if (!status.value)
+    return details
+  if (!status.value.range)
+    details.push('Live blockchain range is unavailable. Stored synchronization state is shown.')
+  if (status.value.failedEpochs.length)
+    details.push(`Failed activity epochs: ${status.value.failedEpochs.map(epoch => epoch.epochNumber).join(', ')}.`)
+  if (status.value.syncingEpochs.length)
+    details.push(`Synchronizing activity epochs: ${status.value.syncingEpochs.map(epoch => epoch.epochNumber).join(', ')}.`)
+  details.push(`Recent activity coverage: ${status.value.recentCoverage === null ? 'unavailable' : percentageFormatter.format(status.value.recentCoverage)}.`)
+  details.push(`Long-term activity coverage: ${status.value.longTermCoverage === null ? 'unavailable' : percentageFormatter.format(status.value.longTermCoverage)}.`)
+  details.push(`Score v${status.value.selectedScoreVersion}: ${status.value.scoreStatus.replace('_', ' ')}.`)
+  return details
+})
+
+const showHealthWarning = computed(() =>
+  statusRequest.value !== 'pending' && (health.value.kind !== 'current' || Boolean(error.value)),
+)
 
 const { nimiqNetwork } = useSafeRuntimeConfig().public
 const [DefineEnvItem, EnvItem] = createReusableTemplate<{ item: EnvItemType, component: string }>()
@@ -30,16 +106,34 @@ const currentEnvItem = getEnvironmentItem(nimiqNetwork) ?? { network: nimiqNetwo
   </DefineEnvItem>
 
   <div flex="~ col gap-64" mx-auto size-screen max-h-screen max-w-1200 px-32 py-20>
-    <header flex="~ gap-32 row items-center">
-      <NuxtLink to="/" flex>
+    <header flex="~ gap-32 row items-center" class="max-sm:flex-wrap max-sm:gap-12">
+      <NuxtLink
+        :to="{
+          path: '/',
+          query: scoreVersionLinkQuery,
+        }"
+        flex
+      >
         <div aria-hidden class="i-nimiq:logos-nimiq-horizontal dark:i-nimiq:logos-nimiq-white-horizontal !ml-16 !h-24 !w-90" />
         <span ml-8 text-16 font-light tracking-0.75>Validators</span>
       </NuxtLink>
-      <NuxtLink v-if="validatorDetail" to="/" block w-max nq-arrow-back nq-ghost-btn>
+      <NuxtLink
+        v-if="validatorDetail"
+        :to="{
+          path: '/',
+          query: scoreVersionLinkQuery,
+        }"
+        block w-max nq-arrow-back nq-ghost-btn
+      >
         Go back
       </NuxtLink>
-      <div ml-auto>
-        <div flex="~ items-center gap-8" outline="~ 1.5" :class="statusRequest === 'pending' ? 'outline-neutral/10 text-neutral-800' : isSynced ? 'outline-green-500 text-green-1100' : 'outline-red-500 text-red-1100'" rounded-6 f-text-2xs font-semibold of-clip>
+      <div ml-auto flex="~ items-center gap-12" class="max-sm:order-2 max-sm:ml-0 max-sm:w-full max-sm:justify-between">
+        <ScoreVersionSelect
+          :model-value="selectedScoreVersion"
+          :disabled="statusRequest === 'pending'"
+          @update:model-value="setScoreVersion"
+        />
+        <div flex="~ items-center gap-8" outline="~ 1.5" :class="healthClasses.container" rounded-6 f-text-2xs font-semibold of-clip>
           <CollapsibleRoot w-full>
             <CollapsibleTrigger bg-transparent w-full relative group rounded="6 reka-open:b-0" transition-border-radius of-clip>
               <EnvItem :item="currentEnvItem" component="div" />
@@ -53,18 +147,18 @@ const currentEnvItem = getEnvironmentItem(nimiqNetwork) ?? { network: nimiqNetwo
             </CollapsibleContent>
           </CollapsibleRoot>
 
-          <div flex="~ items-center gap-8" f-px-2xs py-6 whitespace-nowrap :title="`Status for nimiq+${nimiqNetwork}`" :class="statusRequest === 'pending' ? 'bg-neutral-400' : isSynced ? 'bg-green-400' : 'bg-red-400'">
-            <template v-if="statusRequest === 'pending'">
+          <div flex="~ items-center gap-8" f-px-2xs py-6 whitespace-nowrap :title="`Status for nimiq+${nimiqNetwork}`" :class="healthClasses.badge">
+            <template v-if="health.kind === 'synchronizing'">
               <div class="i-nimiq:spinner" />
-              Getting health
+              {{ health.label }}
             </template>
-            <template v-else-if="isSynced">
+            <template v-else-if="health.kind === 'current'">
               <div i-nimiq:duotone-fluctuations f-text-xl />
-              API synced
+              {{ health.label }}
             </template>
             <template v-else>
               <div i-nimiq:alert op-70 f-text-xs />
-              Error
+              {{ health.label }}
             </template>
           </div>
         </div>
@@ -73,19 +167,19 @@ const currentEnvItem = getEnvironmentItem(nimiqNetwork) ?? { network: nimiqNetwo
       <button class="i-nimiq:moon" @click="() => toggleDark()" />
     </header>
     <main flex-1>
-      <div v-if="(!isSynced || error) && $route.path === '/'" bg="red/8" outline="1.5 ~ red-600" rounded-12 f-p-md text="14 red-1100" nq-prose-compact children:max-w-none f-mb-lg>
+      <div v-if="showHealthWarning && $route.path === '/'" bg="red/8" outline="1.5 ~ red-600" rounded-12 f-p-md text="14 red-1100" nq-prose-compact children:max-w-none f-mb-lg>
         <h1 flex="~ items-center gap-12" text-red-1100 f-text-lg>
           <div i-nimiq:alert op-70 text-0.9em m-0 />
-          <template v-if="!isActivitySync">
-            Activity out of sync
-          </template>
-          <template v-else-if="!isScoreSync">
-            Score not computed
-          </template>
+          {{ health.label }}
         </h1>
         <p f-mt-2xs>
-          The database is not fully synchronized with the blockchain. The API may not return the most recent data.
+          API data is not fully current. Stored data remains available where possible.
         </p>
+        <ul v-if="healthDetails.length" f-mt-xs>
+          <li v-for="detail in healthDetails" :key="detail">
+            {{ detail }}
+          </li>
+        </ul>
 
         <pre v-if="error" bg="red/6" text="f-2xs red-1100" outline="red/30" w-inherit>{{ JSON.stringify(error, null, 2) }}</pre>
 
@@ -113,7 +207,7 @@ const currentEnvItem = getEnvironmentItem(nimiqNetwork) ?? { network: nimiqNetwo
         <hr f-my-sm border-red-600>
 
         <p f-mt-md text="f-sm red-1100/80">
-          <strong>Note:</strong> Data synchronization is handled automatically by scheduled tasks that run every 12 hours. A score lag of up to 1 epoch can be expected between sync cycles.
+          <strong>Note:</strong> Data synchronization is handled automatically by scheduled tasks that run every six hours. A score lag of up to 1 epoch can be expected between sync cycles.
         </p>
       </div>
 

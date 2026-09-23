@@ -1,7 +1,7 @@
 import type { Activity } from './drizzle'
 import { describe, expect, it } from 'vitest'
 import { ValidatorEpochStatus } from '../../packages/nimiq-validator-trustscore/src/epoch-status'
-import { withValidatorEpochStatus } from './validator-activity-status'
+import { buildValidatorActivityTimeline, withValidatorEpochStatus } from './validator-activity-status'
 
 const baseActivity: Activity = {
   validatorId: 1,
@@ -34,5 +34,32 @@ describe('validator activity status', () => {
       status: ValidatorEpochStatus.ElectedFailedOrOffline,
       missRate: 1,
     })
+  })
+
+  it('does not infer a missing validator row for an unfinalized epoch', () => {
+    const activities = [
+      {
+        ...baseActivity,
+        epochNumber: 10,
+        likelihood: 33,
+        rewarded: 720,
+        missed: 0,
+        dominanceRatioViaSlots: 0.064,
+      },
+      {
+        ...baseActivity,
+        epochNumber: 12,
+        likelihood: 33,
+        rewarded: 720,
+        missed: 0,
+        dominanceRatioViaSlots: 0.064,
+      },
+    ]
+
+    expect(buildValidatorActivityTimeline(
+      { fromEpoch: 10, toEpoch: 12 },
+      activities,
+      new Set([10, 12]),
+    ).map(activity => activity.epochNumber)).toEqual([10, 12])
   })
 })

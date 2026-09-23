@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { FetchedValidatorDetails } from '~~/server/utils/validators'
 import { CurveType } from 'vue-chrts'
+import { mapScoreDisplay } from '~/utils/score-display'
 
 const props = defineProps<{ validator: FetchedValidatorDetails }>()
 const validatorRef = computed(() => props.validator)
-const { scoreTrendData, scoreTrendXFormatter, balanceData, balanceXFormatter, balanceYDomain, activityData, activityXFormatter, feeDisplay, payoutDisplay, currentStakers, donutScoreData } = useValidatorCharts(validatorRef)
+const { scoreTrendData, scoreTrendXFormatter, balanceData, balanceXFormatter, balanceYDomain, activityData, activityXFormatter, feeDisplay, payoutDisplay, currentBalance, currentStakers, donutScoreData } = useValidatorCharts(validatorRef)
+const scoreState = computed(() => mapScoreDisplay(props.validator.score))
 
 const scoreCategories = { total: { name: 'Score', color: 'var(--colors-green)' } }
 const balanceCategories = { balance: { name: 'Balance (NIM)', color: 'var(--colors-gold)' } }
@@ -31,7 +33,7 @@ const donutCategories = { 0: { name: 'Availability', color: 'var(--colors-blue)'
       <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>
         <span nq-label text="11 neutral-800">Balance</span>
         <p text-24 font-bold text-gold lh-none mt-4>
-          {{ formatLunaAsNim(validator.activity?.at(-1)?.balance ?? 0) }} NIM
+          {{ nimFormatter.format(currentBalance) }} NIM
         </p>
       </div>
       <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>
@@ -44,10 +46,13 @@ const donutCategories = { 0: { name: 'Availability', color: 'var(--colors-blue)'
         <div>
           <span nq-label text="11 neutral-800">Score</span>
           <p text-24 font-bold text-green lh-none mt-4>
-            {{ Math.round((validator.score?.total ?? 0) * 100) }}
+            {{ scoreState.value === null ? 'N/A' : Math.round(scoreState.value * 100) }}
+          </p>
+          <p text="10 neutral-600" mt-4>
+            {{ scoreState.versionLabel }} · {{ scoreState.statusLabel }}
           </p>
         </div>
-        <ScorePie size-40 text-14 :score="validator.score?.total || 0" />
+        <ScorePie size-40 text-14 :score="scoreState.value" />
       </div>
     </div>
 
@@ -56,11 +61,15 @@ const donutCategories = { 0: { name: 'Availability', color: 'var(--colors-blue)'
       <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>
         <span nq-label text="11 neutral-800" mb-8 block>Sub-Scores</span>
         <DonutChart
+          v-if="donutScoreData.length"
           :data="donutScoreData" :radius="80" :arc-width="16" :pad-angle="0.03"
           :categories="donutCategories" hide-legend
         />
+        <p v-else text="center neutral-600" py-24>
+          N/A
+        </p>
         <div flex="~ justify-center gap-16" mt-12>
-          <ScorePies v-if="validator.score" v-bind="validator.score" text-20 />
+          <ScorePies v-bind="validator.score" text-20 />
         </div>
       </div>
       <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>

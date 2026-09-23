@@ -1,3 +1,5 @@
+import type { ValidatorEpochStatus } from './epoch-status'
+
 export enum ValidatorEpochState {
   Active = 1,
   Inactive = 0,
@@ -96,6 +98,12 @@ export interface SnapshotEpoch {
   validators: (UnelectedValidator | ElectedValidator)[]
 }
 
+export interface ElectionSet {
+  epochIndex: number
+  electionBlockNumber: number
+  validators: Array<{ address: string, numSlots: number }>
+}
+
 // A map of validator addresses to their activities in a single epoch
 export type EpochActivity<T = ElectedValidator | UnelectedValidator> = Record<string, T>
 
@@ -103,6 +111,31 @@ export type EpochActivity<T = ElectedValidator | UnelectedValidator> = Record<st
 export type EpochsActivities<T = ElectedValidator | UnelectedValidator> = Record<number /* election block */, EpochActivity<T>>
 
 export interface ScoreValues { availability: number, reliability: number, dominance: number, total: number }
+
+export interface ScoreV2Epoch {
+  epochNumber: number
+  status: ValidatorEpochStatus
+  rewarded: number
+  missed: number
+}
+
+export interface ScoreV2Params {
+  dominance: ScoreParams['dominance']
+  recentEpochs: readonly ScoreV2Epoch[]
+  longTermEpochs: readonly ScoreV2Epoch[]
+  longTermAvailability?: {
+    weightFactor?: number
+  }
+  reliability?: {
+    weightFactor?: number
+    curveCenter?: number
+  }
+}
+
+export interface ScoreV2Values extends ScoreValues {
+  recentAvailability: number
+  longTermAvailability: number
+}
 
 export interface Range {
   /**

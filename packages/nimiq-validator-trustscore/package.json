@@ -22,6 +22,10 @@
       "types": "./dist/score.d.mts",
       "import": "./dist/score.mjs"
     },
+    "./score-v2": {
+      "types": "./dist/score-v2.d.mts",
+      "import": "./dist/score-v2.mjs"
+    },
     "./types": {
       "types": "./dist/types.d.mts",
       "import": "./dist/types.mjs"
