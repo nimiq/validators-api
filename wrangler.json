@@ -14,7 +14,7 @@
     }
   },
   "triggers": { "crons": ["0 */6 * * *"] },
-  "vars": { "NUXT_PUBLIC_NIMIQ_NETWORK": "main-albatross", "NUXT_SCORE_V2_MODE": "shadow" },
+  "vars": { "NUXT_PUBLIC_NIMIQ_NETWORK": "main-albatross", "NUXT_SCORE_V2_MODE": "off" },
   "d1_databases": [{ "binding": "DB", "database_id": "cc9f1d25-676b-4cb3-8af6-887e85a08baa", "database_name": "validators-api-mainnet" }],
   "kv_namespaces": [{ "binding": "CACHE", "id": "4be4d10e6d3444eca6e7c02cdbcd275f" }],
   "r2_buckets": [{ "binding": "BLOB", "bucket_name": "validators-api-mainnet" }],
