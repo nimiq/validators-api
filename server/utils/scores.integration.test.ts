@@ -278,6 +278,48 @@ describe('marker-gated v1 score persistence', () => {
 })
 
 describe('score v2 rollout persistence', () => {
+  it('backfills finalized history without historical v1 scores', async () => {
+    const [validator] = await insertValidators(1, 'fresh-history-validator')
+    const range = createRange(1, 5)
+    runtimeConfigState.scoreV2Mode = 'active'
+    mocks.getRange.mockResolvedValue([true, undefined, range])
+    await insertFinalizedRange(1, 5)
+    await harness.db.insert(schema.activity).values(
+      [1, 2, 3, 4, 5].map(epoch => activityRow(validator!.id, epoch)),
+    ).execute()
+
+    const first = await scores.upsertScoresSnapshotEpoch()
+    expect(first[0]).toBe(true)
+    expect(first[2]!.backfilledEpochs).toEqual([4, 3])
+    expect((await scores.upsertScoresSnapshotEpoch())[2]!.backfilledEpochs).toEqual([2, 1])
+    expect((await scores.upsertScoresSnapshotEpoch())[2]!.backfilledEpochs).toEqual([])
+
+    const stored = await harness.db.select().from(schema.scores).orderBy(asc(schema.scores.epochNumber)).all()
+    expect(stored.filter(row => row.scoreVersion === 1).map(row => row.epochNumber)).toEqual([5])
+    expect(stored.filter(row => row.scoreVersion === 2).map(row => row.epochNumber)).toEqual([1, 2, 3, 4, 5])
+  })
+
+  it('plans missing historical coverage before bootstrapping v2 without v1 history', async () => {
+    const [validator] = await insertValidators(1, 'fresh-coverage-validator')
+    const range = createRange(4, 6)
+    runtimeConfigState.scoreV2Mode = 'active'
+    mocks.getRange.mockResolvedValue([true, undefined, range])
+    await insertFinalizedRange(4, 6)
+    await harness.db.insert(schema.activity).values(
+      [4, 5, 6].map(epoch => activityRow(validator!.id, epoch)),
+    ).execute()
+
+    expect(await scores.getOldestV2BackfillEpoch(range)).toBe(4)
+    expect((await scores.upsertScoresSnapshotEpoch())[2]!.backfilledEpochs).toEqual([])
+    await insertFinalizedRange(2, 3)
+    await harness.db.insert(schema.activity).values(
+      [2, 3].map(epoch => activityRow(validator!.id, epoch)),
+    ).execute()
+
+    expect((await scores.upsertScoresSnapshotEpoch())[2]!.backfilledEpochs).toEqual([5, 4])
+    expect(await scores.getOldestV2BackfillEpoch(range)).toBeNull()
+  })
+
   it('does not infer offline across an unfinalized historical epoch', async () => {
     const range = createRange(1, 30)
     const [validator] = await insertValidators(1, 'unfinalized-gap-validator')
@@ -365,9 +407,14 @@ describe('score v2 rollout persistence', () => {
     mocks.getRange.mockResolvedValue([true, undefined, createRange(1, 32)])
 
     expect(await scores.getOldestV2BackfillEpoch()).toBe(30)
-    const second = await scores.upsertScoresSnapshotEpoch()
-    expect(second[0]).toBe(true)
-    expect(second[2]!.backfilledEpochs).toContain(30)
+    const refreshedEpochs: number[] = []
+    // New activity-only targets share the bounded cursor; allow one full scan before retrying epoch 30.
+    for (let attempt = 0; attempt < 16; attempt++) {
+      const next = await scores.upsertScoresSnapshotEpoch()
+      expect(next[0]).toBe(true)
+      refreshedEpochs.push(...next[2]!.backfilledEpochs)
+    }
+    expect(refreshedEpochs).toContain(30)
     expect(await harness.db.select().from(schema.scores).where(and(
       eq(schema.scores.validatorId, validator!.id),
       eq(schema.scores.epochNumber, 30),
@@ -390,6 +437,7 @@ describe('score v2 rollout persistence', () => {
     const stored = await harness.db.select().from(schema.scores).where(and(
       eq(schema.scores.validatorId, validator!.id),
       eq(schema.scores.scoreVersion, 2),
+      eq(schema.scores.epochNumber, 100),
     )).get()
     expect(stored!.recentAvailability).toBeCloseTo(1 / 28, 12)
   })
@@ -436,7 +484,7 @@ describe('score v2 rollout persistence', () => {
       eq(schema.scores.validatorId, active!.id),
       eq(schema.scores.scoreVersion, 2),
     )).all()
-    expect(rows.map(row => row.epochNumber).sort((a, b) => a - b)).toEqual([97, 98, 99, 100])
+    expect(rows.map(row => row.epochNumber)).toEqual(expect.arrayContaining([97, 98, 99, 100]))
   })
 
   it('retries a skipped backfill epoch after marker coverage is repaired', async () => {
@@ -492,7 +540,9 @@ describe('score v2 rollout persistence', () => {
     }).execute()
 
     expect(await scores.getOldestV2BackfillEpoch()).toBe(50)
-    expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
+    // Ten newer activity-only epochs precede the legacy target in the bounded scan.
+    for (let attempt = 0; attempt < 6; attempt++)
+      expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
     expect(await harness.db.select().from(schema.scores).where(and(
       eq(schema.scores.validatorId, validator!.id),
       eq(schema.scores.epochNumber, 50),
@@ -777,10 +827,10 @@ describe('score v2 rollout persistence', () => {
       'stored current v1 rows 2/2',
       'calculating current v2 for 2 validator(s) at epoch 42',
       'stored current v2 rows 2/2',
-      'backfill found 1 candidate epoch(s)',
-      'backfill epoch 41 (1/1): checking coverage',
-      'backfill epoch 41 (1/1): calculating 1 validator(s)',
-      'backfill epoch 41 (1/1): prepared 1 score(s)',
+      'backfill found 2 candidate epoch(s)',
+      'backfill epoch 41 (1/2): checking coverage',
+      'backfill epoch 41 (1/2): calculating 1 validator(s)',
+      'backfill epoch 41 (1/2): prepared 1 score(s)',
       'stored v2 backfill rows 1/1',
     ]))
     const historicalV2 = await harness.db.select().from(schema.scores).where(and(

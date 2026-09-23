@@ -563,11 +563,32 @@ function createHistoricalRange(range: Range, targetEpoch: number): Range {
   }
 }
 
+function getV2BackfillTargets(range?: Pick<Range, 'fromEpoch' | 'toEpoch'>) {
+  const storedTargets = useDrizzle()
+    .selectDistinct({ validatorId: tables.scores.validatorId, epochNumber: tables.scores.epochNumber })
+    .from(tables.scores)
+  if (!range)
+    return storedTargets.as('backfill_targets')
+
+  // Bound new history to the live window so repairing its inputs does not expand targets forever.
+  const activityTargets = useDrizzle()
+    .select({ validatorId: tables.validators.id, epochNumber: tables.activityEpochs.epochNumber })
+    .from(tables.activityEpochs)
+    .innerJoin(tables.validators, sql`true`)
+    .where(and(
+      eq(tables.activityEpochs.status, 'finalized'),
+      gte(tables.activityEpochs.epochNumber, range.fromEpoch),
+      lt(tables.activityEpochs.epochNumber, range.toEpoch),
+    ))
+  return storedTargets.union(activityTargets).as('backfill_targets')
+}
+
 async function prepareV2Backfill(
   range: Range,
   options: ScoreSyncOptions,
 ): Promise<ResultSync<{ epochs: number[], scores: Score[], lastScannedEpoch: number | null }>> {
   const v2Scores = alias(tables.scores, 'v2_scores')
+  const targets = getV2BackfillTargets(range)
   options.onProgress?.('checking v2 backfill candidates')
   const backfillState = await useDrizzle()
     .select({ lastScannedEpoch: tables.scoreBackfillState.lastScannedEpoch })
@@ -575,24 +596,23 @@ async function prepareV2Backfill(
     .where(eq(tables.scoreBackfillState.id, 1))
     .get()
   const getCandidates = (beforeEpoch: number) => useDrizzle()
-    .selectDistinct({ epochNumber: tables.scores.epochNumber })
-    .from(tables.scores)
+    .selectDistinct({ epochNumber: targets.epochNumber })
+    .from(targets)
     .leftJoin(v2Scores, and(
-      eq(v2Scores.validatorId, tables.scores.validatorId),
-      eq(v2Scores.epochNumber, tables.scores.epochNumber),
+      eq(v2Scores.validatorId, targets.validatorId),
+      eq(v2Scores.epochNumber, targets.epochNumber),
       eq(v2Scores.scoreVersion, 2),
     ))
     .where(and(
-      eq(tables.scores.scoreVersion, 1),
-      lt(tables.scores.epochNumber, range.toEpoch),
-      lt(tables.scores.epochNumber, beforeEpoch),
+      lt(targets.epochNumber, range.toEpoch),
+      lt(targets.epochNumber, beforeEpoch),
       or(
         isNull(v2Scores.validatorId),
         isNull(v2Scores.longTermCoverage),
         lt(v2Scores.longTermCoverage, 1),
       ),
     ))
-    .orderBy(desc(tables.scores.epochNumber))
+    .orderBy(desc(targets.epochNumber))
     .limit(SCORE_V2_BACKFILL_LIMIT)
     .execute()
   let candidates = await getCandidates(backfillState?.lastScannedEpoch ?? range.toEpoch)
@@ -613,8 +633,10 @@ async function prepareV2Backfill(
       recentRange.toEpoch,
       finalizedEpochs,
     )
-    if (recentCoverage.coverage !== 1)
+    if (recentCoverage.coverage !== 1) {
+      options.onProgress?.(`${progress}: deferred; ${recentCoverage.missingEpochs.length} recent epoch(s) missing`)
       continue
+    }
 
     const longTermCoverage = calculateActivityCoverage(
       historicalRange.fromEpoch,
@@ -622,16 +644,15 @@ async function prepareV2Backfill(
       finalizedEpochs,
     )
     const missingValidatorRows = await useDrizzle()
-      .select({ validatorId: tables.scores.validatorId })
-      .from(tables.scores)
+      .select({ validatorId: targets.validatorId })
+      .from(targets)
       .leftJoin(v2Scores, and(
-        eq(v2Scores.validatorId, tables.scores.validatorId),
-        eq(v2Scores.epochNumber, tables.scores.epochNumber),
+        eq(v2Scores.validatorId, targets.validatorId),
+        eq(v2Scores.epochNumber, targets.epochNumber),
         eq(v2Scores.scoreVersion, 2),
       ))
       .where(and(
-        eq(tables.scores.scoreVersion, 1),
-        eq(tables.scores.epochNumber, targetEpoch),
+        eq(targets.epochNumber, targetEpoch),
         longTermCoverage.coverage === 1
           ? or(
               isNull(v2Scores.validatorId),
@@ -664,8 +685,10 @@ async function prepareV2Backfill(
     })
     if (!success)
       return [false, error, undefined]
-    if (scores.length === 0)
+    if (scores.length === 0) {
+      options.onProgress?.(`${progress}: no eligible scores; long-term coverage ${(longTermCoverage.coverage * 100).toFixed(1)}%`)
       continue
+    }
 
     options.onProgress?.(`${progress}: prepared ${scores.length} score(s)`)
     backfilledEpochs.push(targetEpoch)
@@ -858,23 +881,21 @@ export async function getLatestScoreEpoch(scoreVersion: ScoreVersion = 1): Promi
   return latestScoreEpoch
 }
 
-export async function getOldestV2BackfillEpoch(): Promise<number | null> {
+export async function getOldestV2BackfillEpoch(range?: Pick<Range, 'fromEpoch' | 'toEpoch'>): Promise<number | null> {
   const v2Scores = alias(tables.scores, 'v2_scores')
+  const targets = getV2BackfillTargets(range)
   const result = await useDrizzle()
-    .select({ epochNumber: sql<number | null>`min(${tables.scores.epochNumber})` })
-    .from(tables.scores)
+    .select({ epochNumber: sql<number | null>`min(${targets.epochNumber})` })
+    .from(targets)
     .leftJoin(v2Scores, and(
-      eq(v2Scores.validatorId, tables.scores.validatorId),
-      eq(v2Scores.epochNumber, tables.scores.epochNumber),
+      eq(v2Scores.validatorId, targets.validatorId),
+      eq(v2Scores.epochNumber, targets.epochNumber),
       eq(v2Scores.scoreVersion, 2),
     ))
-    .where(and(
-      eq(tables.scores.scoreVersion, 1),
-      or(
-        isNull(v2Scores.validatorId),
-        isNull(v2Scores.longTermCoverage),
-        lt(v2Scores.longTermCoverage, 1),
-      ),
+    .where(or(
+      isNull(v2Scores.validatorId),
+      isNull(v2Scores.longTermCoverage),
+      lt(v2Scores.longTermCoverage, 1),
     ))
     .get()
   return result?.epochNumber ?? null

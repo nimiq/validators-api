@@ -74,7 +74,7 @@ export default defineTask({
       }
 
       const oldestBackfillEpoch = config.scoreV2Mode === 'shadow' || config.scoreV2Mode === 'active'
-        ? await getOldestV2BackfillEpoch()
+        ? await getOldestV2BackfillEpoch(range)
         : null
       const plannerRange = {
         fromEpoch: oldestBackfillEpoch === null

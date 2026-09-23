@@ -135,6 +135,7 @@ describe('planned completed-epoch synchronization', () => {
 
     await task.run()
 
+    expect(mocks.getOldestV2BackfillEpoch).toHaveBeenCalledWith(expect.objectContaining({ fromEpoch: 90, toEpoch: 100 }))
     expect(mocks.getActivityEpochMarkers).toHaveBeenCalledWith({ fromEpoch: 40, toEpoch: 100 })
     expect(mocks.planEpochSync).toHaveBeenCalledWith(expect.objectContaining({
       range: { fromEpoch: 40, toEpoch: 100 },
