@@ -21,8 +21,6 @@
   "env": {
     "testnet": {
       "name": "validators-api-test",
-      "main": "dist/server/index.mjs",
-      "assets": { "directory": "dist/public" },
       "compatibility_flags": ["nodejs_compat"],
       "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": true } },
       "triggers": { "crons": ["0 */6 * * *"] },

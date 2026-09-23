@@ -247,6 +247,21 @@ describe('marker-derived score status', () => {
     })
   })
 
+  it('reports stale when live completed epochs advance beyond stored markers', () => {
+    const status = deriveMarkerScoreStatus({
+      markers: [markers[markers.length - 1]!],
+      recentRange: { fromEpoch: 73, toEpoch: 100 },
+      longTermRange: { fromEpoch: 1, toEpoch: 100 },
+      activeScoreVersion: 1,
+      selectedScoreVersion: 1,
+      latestScore: { epochNumber: 14, dataStatus: 'complete' },
+    })
+
+    expect(status.latestCompletedEpoch).toBe(100)
+    expect(status.latestFinalizedEpoch).toBe(14)
+    expect(status.scoreStatus).toBe('stale')
+  })
+
   it('keeps stored marker and score state when live ranges are unavailable', () => {
     expect(deriveMarkerScoreStatus({
       markers,

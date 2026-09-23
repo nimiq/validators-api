@@ -278,6 +278,229 @@ describe('marker-gated v1 score persistence', () => {
 })
 
 describe('score v2 rollout persistence', () => {
+  it('does not infer offline across an unfinalized historical epoch', async () => {
+    const range = createRange(1, 30)
+    const [validator] = await insertValidators(1, 'unfinalized-gap-validator')
+    runtimeConfigState.scoreV2Mode = 'shadow'
+    mocks.getRange.mockResolvedValue([true, undefined, range])
+    await insertFinalizedRange(1, 30)
+    await harness.db.delete(schema.activityEpochs).where(eq(schema.activityEpochs.epochNumber, 2)).execute()
+    await harness.db.insert(schema.activity).values([
+      activityRow(validator!.id, 1, 720, 0, { dominanceRatioViaBalance: 0.01, dominanceRatioViaSlots: 0.01 }),
+      ...Array.from({ length: 27 }, (_, index) => activityRow(validator!.id, index + 4, 720, 0, {
+        dominanceRatioViaBalance: 0.01,
+        dominanceRatioViaSlots: 0.01,
+      })),
+    ]).execute()
+    await harness.db.insert(schema.scores).values({
+      validatorId: validator!.id,
+      epochNumber: 29,
+      scoreVersion: 2,
+      total: 0.8,
+      availability: 0.8,
+      recentAvailability: 1,
+      longTermAvailability: 0.6,
+      dominance: 1,
+      reliability: 1,
+      longTermCoverage: 1,
+      longTermAsOfEpoch: 1,
+    }).execute()
+
+    expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
+    const stored = await harness.db.select().from(schema.scores).where(and(
+      eq(schema.scores.validatorId, validator!.id),
+      eq(schema.scores.epochNumber, 30),
+      eq(schema.scores.scoreVersion, 2),
+    )).get()
+    expect(stored!.recentAvailability).toBe(1)
+  })
+
+  it('refreshes retained historical v2 scores after their marker coverage becomes complete', async () => {
+    const [validator] = await insertValidators(1, 'retained-backfill-validator')
+    runtimeConfigState.scoreV2Mode = 'shadow'
+    mocks.getRange.mockResolvedValue([true, undefined, createRange(1, 30)])
+    await insertFinalizedRange(1, 30)
+    await harness.db.delete(schema.activityEpochs).where(eq(schema.activityEpochs.epochNumber, 2)).execute()
+    await harness.db.insert(schema.activity).values([
+      activityRow(validator!.id, 1),
+      ...Array.from({ length: 28 }, (_, index) => activityRow(validator!.id, index + 3)),
+    ]).execute()
+    await harness.db.insert(schema.scores).values({
+      validatorId: validator!.id,
+      epochNumber: 1,
+      scoreVersion: 2,
+      total: 0.8,
+      availability: 0.8,
+      recentAvailability: 1,
+      longTermAvailability: 0.6,
+      dominance: 1,
+      reliability: 1,
+      longTermCoverage: 1,
+      longTermAsOfEpoch: 1,
+    }).execute()
+
+    expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
+    expect(await harness.db.select().from(schema.scores).where(and(
+      eq(schema.scores.validatorId, validator!.id),
+      eq(schema.scores.epochNumber, 30),
+      eq(schema.scores.scoreVersion, 2),
+    )).get()).toMatchObject({ longTermAvailability: 0.6, longTermCoverage: 29 / 30, longTermAsOfEpoch: 1 })
+
+    await harness.db.insert(schema.activityEpochs).values(finalizedMarker(31, 1)).execute()
+    await harness.db.insert(schema.activity).values(activityRow(validator!.id, 31)).execute()
+    mocks.getRange.mockResolvedValue([true, undefined, createRange(1, 31)])
+
+    const incomplete = await scores.upsertScoresSnapshotEpoch()
+    expect(incomplete[0]).toBe(true)
+    expect(incomplete[2]!.backfilledEpochs).not.toContain(30)
+    expect(await harness.db.select().from(schema.scores).where(and(
+      eq(schema.scores.validatorId, validator!.id),
+      eq(schema.scores.epochNumber, 30),
+      eq(schema.scores.scoreVersion, 2),
+    )).get()).toMatchObject({ longTermAvailability: 0.6, longTermCoverage: 29 / 30, longTermAsOfEpoch: 1 })
+
+    await harness.db.insert(schema.activityEpochs).values(finalizedMarker(2, 0)).execute()
+    await harness.db.insert(schema.activityEpochs).values(finalizedMarker(32, 1)).execute()
+    await harness.db.insert(schema.activity).values(activityRow(validator!.id, 32)).execute()
+    mocks.getRange.mockResolvedValue([true, undefined, createRange(1, 32)])
+
+    expect(await scores.getOldestV2BackfillEpoch()).toBe(30)
+    const second = await scores.upsertScoresSnapshotEpoch()
+    expect(second[0]).toBe(true)
+    expect(second[2]!.backfilledEpochs).toContain(30)
+    expect(await harness.db.select().from(schema.scores).where(and(
+      eq(schema.scores.validatorId, validator!.id),
+      eq(schema.scores.epochNumber, 30),
+      eq(schema.scores.scoreVersion, 2),
+    )).get()).toMatchObject({ longTermAvailability: 1, longTermCoverage: 1, longTermAsOfEpoch: 30 })
+  })
+
+  it('counts an offline gap that starts before the recent window', async () => {
+    const range = createRange(1, 100)
+    const [validator] = await insertValidators(1, 'window-crossing-offline-validator')
+    runtimeConfigState.scoreV2Mode = 'shadow'
+    mocks.getRange.mockResolvedValue([true, undefined, range])
+    await insertFinalizedRange(1, 100)
+    await harness.db.insert(schema.activity).values([
+      activityRow(validator!.id, 40, 720, 0, { dominanceRatioViaBalance: 0.1, dominanceRatioViaSlots: 0.1 }),
+      activityRow(validator!.id, 100, 720, 0, { dominanceRatioViaBalance: 0.1, dominanceRatioViaSlots: 0.1 }),
+    ]).execute()
+
+    expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
+    const stored = await harness.db.select().from(schema.scores).where(and(
+      eq(schema.scores.validatorId, validator!.id),
+      eq(schema.scores.scoreVersion, 2),
+    )).get()
+    expect(stored!.recentAvailability).toBeCloseTo(1 / 28, 12)
+  })
+
+  it('keeps inferring offline after the last election before the recent window', async () => {
+    const range = createRange(1, 100)
+    const [validator] = await insertValidators(1, 'ongoing-offline-validator')
+    runtimeConfigState.scoreV2Mode = 'shadow'
+    mocks.getRange.mockResolvedValue([true, undefined, range])
+    await insertFinalizedRange(1, 100)
+    await harness.db.insert(schema.activity).values(activityRow(validator!.id, 40, 720, 0, {
+      dominanceRatioViaBalance: 0.1,
+      dominanceRatioViaSlots: 0.1,
+    })).execute()
+
+    expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
+    const stored = await harness.db.select().from(schema.scores).where(eq(schema.scores.scoreVersion, 2)).get()
+    expect(stored!.recentAvailability).toBe(0)
+  })
+
+  it('moves backfill past never-elected validators within two runs', async () => {
+    const [active, neverElected] = await insertValidators(2, 'progress-backfill-validator')
+    runtimeConfigState.scoreV2Mode = 'shadow'
+    mocks.getRange.mockResolvedValue([true, undefined, createRange(1, 100)])
+    await insertFinalizedRange(1, 100)
+    await harness.db.insert(schema.activity).values(Array.from(
+      { length: 100 },
+      (_, index) => activityRow(active!.id, index + 1),
+    )).execute()
+    await harness.db.insert(schema.scores).values([97, 98, 99].flatMap(epochNumber => [active!, neverElected!].map(validator => ({
+      validatorId: validator.id,
+      epochNumber,
+      scoreVersion: 1 as const,
+      total: 1,
+      availability: 1,
+      dominance: 1,
+      reliability: 1,
+    })))).execute()
+
+    expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
+    expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
+
+    const rows = await harness.db.select().from(schema.scores).where(and(
+      eq(schema.scores.validatorId, active!.id),
+      eq(schema.scores.scoreVersion, 2),
+    )).all()
+    expect(rows.map(row => row.epochNumber).sort((a, b) => a - b)).toEqual([97, 98, 99, 100])
+  })
+
+  it('retries a skipped backfill epoch after marker coverage is repaired', async () => {
+    const [active, neverElected] = await insertValidators(2, 'retry-backfill-validator')
+    runtimeConfigState.scoreV2Mode = 'shadow'
+    mocks.getRange.mockResolvedValue([true, undefined, createRange(1, 100)])
+    await insertFinalizedRange(1, 100)
+    await harness.db.delete(schema.activityEpochs).where(eq(schema.activityEpochs.epochNumber, 50)).execute()
+    await harness.db.insert(schema.activity).values(Array.from(
+      { length: 100 },
+      (_, index) => activityRow(active!.id, index + 1),
+    )).execute()
+    await harness.db.insert(schema.scores).values([97, 98, 99].flatMap(epochNumber => [active!, neverElected!].map(validator => ({
+      validatorId: validator.id,
+      epochNumber,
+      scoreVersion: 1 as const,
+      total: 1,
+      availability: 1,
+      dominance: 1,
+      reliability: 1,
+    })))).execute()
+
+    const first = await scores.upsertScoresSnapshotEpoch()
+    expect(first[2]!.backfilledEpochs).toEqual([])
+    await harness.db.insert(schema.activityEpochs).values(finalizedMarker(50, 1)).execute()
+    for (let attempt = 0; attempt < 3; attempt++)
+      expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
+
+    const rows = await harness.db.select().from(schema.scores).where(and(
+      eq(schema.scores.validatorId, active!.id),
+      eq(schema.scores.scoreVersion, 2),
+    )).all()
+    expect(rows.some(row => row.epochNumber === 97)).toBe(true)
+  })
+
+  it('backfills v1 epochs older than the live score range', async () => {
+    const [validator] = await insertValidators(1, 'historical-bootstrap-validator')
+    runtimeConfigState.scoreV2Mode = 'shadow'
+    mocks.getRange.mockResolvedValue([true, undefined, createRange(90, 100)])
+    await insertFinalizedRange(40, 100)
+    await harness.db.insert(schema.activity).values([
+      activityRow(validator!.id, 50),
+      activityRow(validator!.id, 100),
+    ]).execute()
+    await harness.db.insert(schema.scores).values({
+      validatorId: validator!.id,
+      epochNumber: 50,
+      scoreVersion: 1,
+      total: 1,
+      availability: 1,
+      dominance: 1,
+      reliability: 1,
+    }).execute()
+
+    expect(await scores.getOldestV2BackfillEpoch()).toBe(50)
+    expect((await scores.upsertScoresSnapshotEpoch())[0]).toBe(true)
+    expect(await harness.db.select().from(schema.scores).where(and(
+      eq(schema.scores.validatorId, validator!.id),
+      eq(schema.scores.epochNumber, 50),
+      eq(schema.scores.scoreVersion, 2),
+    )).get()).toBeDefined()
+    expect(await scores.getOldestV2BackfillEpoch()).toBeNull()
+  })
+
   it('penalizes improbable high-stake non-election only in score v2', async () => {
     const range = createRange(10, 12)
     const [validator] = await insertValidators(1, 'offline-inference-validator')

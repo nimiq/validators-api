@@ -223,13 +223,19 @@ The system automatically detects the environment and only sends notifications in
 
 ## Deployment
 
-Deployed via Wrangler CLI with `wrangler.json` config:
+Build and deploy each environment with its `wrangler.json` bindings:
 
 ```bash
-pnpm build && npx wrangler --cwd .output deploy [-e env]
+# Mainnet
+pnpm build
+pnpm exec wrangler --cwd .output deploy
+
+# Testnet
+CLOUDFLARE_ENV=testnet pnpm build
+pnpm exec wrangler --cwd .output deploy
 ```
 
-Where `env`: `testnet` (omit `-e env` for mainnet production).
+NuxtHub selects the testnet bindings at build time. Deploy the matching `.output` without `--env`; rebuild when switching environments or changing `NUXT_SCORE_V2_MODE`.
 
 **Required secrets:** `ALBATROSS_RPC_NODE_URL`, `NUXT_SLACK_WEBHOOK_URL`
 
@@ -250,8 +256,8 @@ This implementation does not run any remote migration or deployment.
 
 **Environments** (configured in `wrangler.json`):
 
-- `production`: [Validators API Mainnet](https://validators-api-main.je-cf9.workers.dev) via manual `wrangler deploy`
-- `testnet`: [Validators API Testnet](https://validators-api-test.je-cf9.workers.dev) via manual `wrangler deploy --env testnet`
+- `production`: [Validators API Mainnet](https://validators-api-main.je-cf9.workers.dev) via the mainnet build above
+- `testnet`: [Validators API Testnet](https://validators-api-test.je-cf9.workers.dev) via the testnet build above
 
 Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every six hours via Cloudflare cron triggers (see `server/tasks/sync/`).
 

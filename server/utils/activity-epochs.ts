@@ -482,12 +482,23 @@ export async function finalizeVerifiedCompletedEpoch(
         eq(tables.activity.epochNumber, epochNumber),
         sql`${tables.activity.validatorId} NOT IN (${sql.raw(expectedValidatorIds.join(', '))})`,
       ))
+  const storedCount = sql`(SELECT count(*) FROM ${tables.activity} WHERE ${tables.activity.epochNumber} = ${epochNumber})`
+  const finalizedCount = sql`(SELECT count(*) FROM ${tables.activity} WHERE
+    ${tables.activity.epochNumber} = ${epochNumber}
+    AND ${tables.activity.likelihood} >= 0
+    AND ${tables.activity.rewarded} >= 0
+    AND ${tables.activity.missed} >= 0)`
   const finalizeStatement = db.update(tables.activityEpochs).set({
     status: ActivityEpochStatus.Finalized,
     expectedElectedCount,
     storedElectedCount: expectedElectedCount,
     electedSetHash,
-    finalizedAt,
+    // The finalized-marker constraint aborts the batch if snapshot rows changed after verification.
+    finalizedAt: sql`CASE
+      WHEN ${storedCount} = ${expectedElectedCount} AND ${finalizedCount} = ${expectedElectedCount}
+      THEN ${finalizedAt}
+      ELSE NULL
+    END`,
     lastError: null,
   }).where(and(
     eq(tables.activityEpochs.epochNumber, epochNumber),

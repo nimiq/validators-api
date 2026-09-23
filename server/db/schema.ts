@@ -63,6 +63,13 @@ export const scoresRelations = relations(scores, ({ one }) => ({
   }),
 }))
 
+export const scoreBackfillState = sqliteTable('score_backfill_state', {
+  id: integer('id').primaryKey(),
+  lastScannedEpoch: integer('last_scanned_epoch').notNull(),
+}, table => [
+  check('score_backfill_state_singleton_check', sql`${table.id} = 1`),
+])
+
 export const activity = sqliteTable('activity', {
   validatorId: integer('validator_id').notNull().references(() => validators.id, { onDelete: 'cascade' }),
   epochNumber: integer('epoch_number').notNull(),

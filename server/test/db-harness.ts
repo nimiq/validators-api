@@ -43,6 +43,11 @@ CREATE TABLE scores (
 CREATE INDEX idx_validator_id ON scores(validator_id);
 CREATE INDEX idx_scores_validator_version_epoch ON scores(validator_id, score_version, epoch_number);
 
+CREATE TABLE score_backfill_state (
+  id integer PRIMARY KEY NOT NULL CHECK(id = 1),
+  last_scanned_epoch integer NOT NULL
+);
+
 CREATE TABLE activity (
   validator_id integer NOT NULL REFERENCES validators(id) ON DELETE CASCADE,
   epoch_number integer NOT NULL,

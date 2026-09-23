@@ -99,4 +99,17 @@ describe('validator chart helpers', () => {
     expect(prepareActivityHistory(activity, ['rewarded', 'missed']).map(row => row.epochNumber))
       .toEqual([1246, 1247, 1248, 1249, 1250, 1251, 1252])
   })
+
+  it('ignores inferred metadata in staker history and keeps observed zero', () => {
+    const activity = [
+      { epochNumber: 99, balance: 1e12, stakers: 10 },
+      { epochNumber: 100, balance: -1, stakers: 0, inferred: true as const },
+      { epochNumber: 101, balance: 0, stakers: 0 },
+    ]
+
+    expect(prepareActivityHistory(activity, ['stakers']).map(row => row.epochNumber))
+      .toEqual([99, 101])
+    expect(prepareActivityHistory(activity, ['balance']).map(row => row.epochNumber))
+      .toEqual([99, 101])
+  })
 })

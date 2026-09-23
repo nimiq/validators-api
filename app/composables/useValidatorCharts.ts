@@ -20,6 +20,7 @@ interface ScoreHistoryRow {
 
 interface ActivityHistoryRow {
   epochNumber: number | null
+  inferred?: boolean
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -36,7 +37,8 @@ export function prepareActivityHistory<
 >(activity: readonly T[], requiredFields: readonly K[]): T[] {
   return activity
     .filter(row =>
-      isFiniteNumber(row.epochNumber)
+      !row.inferred
+      && isFiniteNumber(row.epochNumber)
       && Number.isInteger(row.epochNumber)
       && requiredFields.every(field => isNonNegativeFiniteNumber(row[field])),
     )

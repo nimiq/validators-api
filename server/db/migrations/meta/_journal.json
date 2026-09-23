@@ -43,6 +43,13 @@
       "when": 1785251589431,
       "tag": "0005_validator_activity_integrity_score_v2",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1790156370298,
+      "tag": "0006_score_backfill_cursor",
+      "breakpoints": true
     }
   ]
 }

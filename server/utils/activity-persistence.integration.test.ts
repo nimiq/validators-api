@@ -607,6 +607,56 @@ describe('atomic completed epoch persistence', () => {
 })
 
 describe('finalized activity store path', () => {
+  it('rejects verification if a delayed snapshot replaces finalized counters before commit', async () => {
+    const validator = await insertValidator(ADDRESS_A)
+    const epochNumber = 89
+    const electionSet = {
+      epochIndex: epochNumber,
+      electionBlockNumber: 123_456,
+      validators: [{ address: ADDRESS_A, numSlots: 10 }],
+    }
+    await activityEpochs.beginActivityEpochAttempt(epochNumber, STARTED_AT)
+    await harness.db.insert(schema.activity).values({
+      validatorId: validator.id,
+      epochNumber,
+      likelihood: 10,
+      rewarded: 718,
+      missed: 2,
+      dominanceRatioViaBalance: -1,
+      dominanceRatioViaSlots: 10 / 512,
+      balance: 100,
+      stakers: 1,
+    }).execute()
+    await harness.db.update(schema.activity).set({ rewarded: -1, missed: -1 }).where(and(
+      eq(schema.activity.validatorId, validator.id),
+      eq(schema.activity.epochNumber, epochNumber),
+    )).execute()
+
+    await expect(activityEpochs.finalizeVerifiedCompletedEpoch(
+      epochNumber,
+      electionSet,
+      new Map([[ADDRESS_A, validator.id]]),
+      STARTED_AT,
+      FINALIZED_AT,
+    )).rejects.toThrow()
+    expect(await harness.db.select().from(schema.activityEpochs).where(eq(schema.activityEpochs.epochNumber, epochNumber)).get())
+      .toMatchObject({ status: 'syncing', finalizedAt: null })
+
+    await harness.db.update(schema.activity).set({ rewarded: 718, missed: 2 }).where(and(
+      eq(schema.activity.validatorId, validator.id),
+      eq(schema.activity.epochNumber, epochNumber),
+    )).execute()
+    await activityEpochs.finalizeVerifiedCompletedEpoch(
+      epochNumber,
+      electionSet,
+      new Map([[ADDRESS_A, validator.id]]),
+      STARTED_AT,
+      FINALIZED_AT,
+    )
+    expect(await harness.db.select().from(schema.activityEpochs).where(eq(schema.activityEpochs.epochNumber, epochNumber)).get())
+      .toMatchObject({ status: 'finalized', finalizedAt: FINALIZED_AT })
+  })
+
   it('marks a claimed epoch failed when strict validator insertion aborts finalization', async () => {
     const epochNumber = 80
     await harness.execute(`

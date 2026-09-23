@@ -5,7 +5,7 @@ import { mapScoreDisplay } from '~/utils/score-display'
 
 const props = defineProps<{ validator: FetchedValidatorDetails }>()
 const validatorRef = computed(() => props.validator)
-const { scoreTrendData, scoreTrendXFormatter, balanceData, balanceXFormatter, balanceYDomain, activityData, activityXFormatter, feeDisplay, payoutDisplay, currentStakers, donutScoreData } = useValidatorCharts(validatorRef)
+const { scoreTrendData, scoreTrendXFormatter, balanceData, balanceXFormatter, balanceYDomain, activityData, activityXFormatter, feeDisplay, payoutDisplay, currentBalance, currentStakers, donutScoreData } = useValidatorCharts(validatorRef)
 const scoreState = computed(() => mapScoreDisplay(props.validator.score))
 
 const scoreCategories = { total: { name: 'Score', color: 'var(--colors-green)' } }
@@ -33,7 +33,7 @@ const donutCategories = { 0: { name: 'Availability', color: 'var(--colors-blue)'
       <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>
         <span nq-label text="11 neutral-800">Balance</span>
         <p text-24 font-bold text-gold lh-none mt-4>
-          {{ formatLunaAsNim(validator.activity?.at(-1)?.balance ?? 0) }} NIM
+          {{ nimFormatter.format(currentBalance) }} NIM
         </p>
       </div>
       <div bg-neutral-0 outline="~ 1.5 neutral/6" rounded-8 shadow f-p-md>

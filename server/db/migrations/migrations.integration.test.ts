@@ -59,6 +59,12 @@ describe('database migrations', () => {
     `)
 
     await executeMigration(client, '0005_validator_activity_integrity_score_v2.sql')
+    await executeMigration(client, '0006_score_backfill_cursor.sql')
+
+    await client.execute('INSERT INTO score_backfill_state (id, last_scanned_epoch) VALUES (1, 99)')
+    expect((await client.execute('SELECT last_scanned_epoch FROM score_backfill_state')).rows).toEqual([
+      { last_scanned_epoch: 99 },
+    ])
 
     const migrated = await client.execute(`
       SELECT

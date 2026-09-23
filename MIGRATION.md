@@ -111,11 +111,19 @@ Repeat inspection and backup with `validators-api-mainnet` and without `--env te
    This uses NuxtHub's basename-compatible `_hub_migrations` ledger. Do not substitute `wrangler d1 migrations apply`; Wrangler records full filenames and can replay an existing NuxtHub baseline.
 
 3. Inspect `_hub_migrations` and relevant schemas again.
-4. Deploy testnet while v2 remains off.
+4. Build and deploy testnet while v2 remains off:
+
+   ```bash
+   CLOUDFLARE_ENV=testnet pnpm build
+   pnpm exec wrangler --cwd .output deploy
+   ```
+
+   NuxtHub selects the testnet bindings during the build. Rebuild after each `NUXT_SCORE_V2_MODE` change; deploy the matching `.output` without `--env`.
+
 5. Let the six-hour job discover epochs, repair recent activity, store the snapshot, then calculate v1 scores.
 6. Set `NUXT_SCORE_V2_MODE=shadow`, deploy, and validate v1/v2 rows, activity coverage, score versions, and `current`, `stale`, or `no_score` API states.
 7. Set `NUXT_SCORE_V2_MODE=active` only after shadow results pass.
-8. Repeat the same inspect, backup, migrate, off, repair, shadow, validate, and active sequence for mainnet.
+8. Repeat the same inspect, backup, migrate, off, repair, shadow, validate, and active sequence for mainnet. Build mainnet with `pnpm build` and deploy with `pnpm exec wrangler --cwd .output deploy` after each mode change.
 
 Activity marker interpretation during validation:
 

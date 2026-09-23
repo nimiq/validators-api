@@ -10,6 +10,7 @@ import {
 } from '~~/server/utils/activity-epochs'
 import { synchronizeCompletedEpoch } from '~~/server/utils/activity-sync'
 import { getRpcUrl } from '~~/server/utils/rpc'
+import { getOldestV2BackfillEpoch } from '~~/server/utils/scores'
 import { sendSyncFailureNotification } from '~~/server/utils/slack'
 
 const MAX_PRODUCTION_EPOCH_CANDIDATES_PER_RUN = 50
@@ -72,7 +73,15 @@ export default defineTask({
         return { result: { success: false, error: rangeError } }
       }
 
-      const plannerRange = { fromEpoch: range.fromEpoch, toEpoch: range.toEpoch }
+      const oldestBackfillEpoch = config.scoreV2Mode === 'shadow' || config.scoreV2Mode === 'active'
+        ? await getOldestV2BackfillEpoch()
+        : null
+      const plannerRange = {
+        fromEpoch: oldestBackfillEpoch === null
+          ? range.fromEpoch
+          : Math.min(range.fromEpoch, Math.max(1, oldestBackfillEpoch - range.epochCount + 1)),
+        toEpoch: range.toEpoch,
+      }
       const markers = await getActivityEpochMarkers(plannerRange)
       const recentRange = getRecentEpochRange(range)
       const plannedEpochs = planEpochSync({

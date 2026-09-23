@@ -134,7 +134,9 @@ export function deriveMarkerScoreStatus(
     .map(marker => marker.epochNumber)
   const finalizedSet = new Set(finalizedEpochs)
   const completedEpochs = input.markers.map(marker => marker.epochNumber)
-  const latestCompletedEpoch = completedEpochs.length > 0 ? Math.max(...completedEpochs) : null
+  const latestCompletedEpoch = input.longTermRange?.toEpoch
+    ?? input.recentRange?.toEpoch
+    ?? (completedEpochs.length > 0 ? Math.max(...completedEpochs) : null)
   const coverage = (fromEpoch: number, toEpoch: number) => {
     const expectedEpochCount = toEpoch - fromEpoch + 1
     let finalizedEpochCount = 0

@@ -1,5 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+const runtimeConfigState = vi.hoisted(() => ({ scoreV2Mode: 'off' }))
 const mocks = vi.hoisted(() => ({
   initRpcClient: vi.fn(),
   fetchElectionSet: vi.fn(),
@@ -11,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   getActivityEpochMarkers: vi.fn(),
   getRecentEpochRange: vi.fn(),
   planEpochSync: vi.fn(),
+  getOldestV2BackfillEpoch: vi.fn(),
   synchronizeCompletedEpoch: vi.fn(),
   sendNewEpochNotification: vi.fn(),
   sendSyncFailureNotification: vi.fn(),
@@ -54,6 +56,10 @@ vi.mock('../../utils/activity-sync', () => ({
   synchronizeCompletedEpoch: mocks.synchronizeCompletedEpoch,
 }))
 
+vi.mock('../../utils/scores', () => ({
+  getOldestV2BackfillEpoch: mocks.getOldestV2BackfillEpoch,
+}))
+
 vi.mock('../../utils/rpc', () => ({
   getRpcUrl: mocks.getRpcUrl,
 }))
@@ -64,7 +70,10 @@ vi.mock('../../utils/slack', () => ({
 }))
 
 vi.stubGlobal('defineTask', (task: unknown) => task)
-vi.stubGlobal('useSafeRuntimeConfig', () => ({ public: { nimiqNetwork: 'testnet' } }))
+vi.stubGlobal('useSafeRuntimeConfig', () => ({
+  scoreV2Mode: runtimeConfigState.scoreV2Mode,
+  public: { nimiqNetwork: 'testnet' },
+}))
 vi.stubGlobal('findMissingEpochs', mocks.findMissingEpochs)
 
 type EpochSyncTask = typeof import('./epochs')['default']
@@ -75,8 +84,10 @@ let isFullRepairAllowed: typeof import('./epochs')['isFullRepairAllowed']
 
 beforeEach(async () => {
   vi.resetAllMocks()
+  runtimeConfigState.scoreV2Mode = 'off'
   mocks.getRpcUrl.mockReturnValue('http://rpc.test')
   mocks.findMissingEpochs.mockResolvedValue([])
+  mocks.getOldestV2BackfillEpoch.mockResolvedValue(null)
   mocks.getRange.mockResolvedValue([true, undefined, {
     fromEpoch: 1,
     toEpoch: 100,
@@ -110,6 +121,27 @@ afterAll(() => {
 })
 
 describe('planned completed-epoch synchronization', () => {
+  it('extends marker repair through the full window for the oldest pending v2 score', async () => {
+    runtimeConfigState.scoreV2Mode = 'shadow'
+    mocks.getRange.mockResolvedValue([true, undefined, {
+      fromEpoch: 90,
+      toEpoch: 100,
+      epochCount: 11,
+      epochDurationMs: 12 * 60 * 60 * 1000,
+    }])
+    mocks.getRecentEpochRange.mockReturnValue({ fromEpoch: 90, toEpoch: 100 })
+    mocks.getOldestV2BackfillEpoch.mockResolvedValue(50)
+    mocks.planEpochSync.mockReturnValue([])
+
+    await task.run()
+
+    expect(mocks.getActivityEpochMarkers).toHaveBeenCalledWith({ fromEpoch: 40, toEpoch: 100 })
+    expect(mocks.planEpochSync).toHaveBeenCalledWith(expect.objectContaining({
+      range: { fromEpoch: 40, toEpoch: 100 },
+      recentRange: { fromEpoch: 90, toEpoch: 100 },
+    }))
+  })
+
   it('processes every candidate and repair in development while keeping production bounded', () => {
     expect(getEpochCandidateLimit(true)).toBe(Infinity)
     expect(getEpochCandidateLimit(false)).toBe(50)

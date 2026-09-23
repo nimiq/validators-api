@@ -6,7 +6,7 @@ import type {
   ScoreV2Epoch,
 } from 'nimiq-validator-trustscore/types'
 import type { NewScore, ScoreVersion, Score as StoredScore } from './drizzle'
-import { and, desc, eq, gte, isNull, lt, lte, sql } from 'drizzle-orm'
+import { and, desc, eq, gte, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 import {
   classifyValidatorEpoch,
@@ -76,6 +76,7 @@ interface BuildScoreV2EpochsParams {
   validatorId: number
   range: Pick<Range, 'fromEpoch' | 'toEpoch'>
   activities: readonly ScoreV2ActivityRow[]
+  finalizedEpochs?: ReadonlySet<number>
 }
 
 interface LongTermPair {
@@ -122,7 +123,7 @@ export function getScoreRollout(mode: ScoreV2Mode): ScoreRollout {
 export function buildScoreV2Epochs(
   params: BuildScoreV2EpochsParams,
 ): ResultSync<ScoreV2Epoch[]> {
-  const { validatorId, range, activities } = params
+  const { validatorId, range, activities, finalizedEpochs } = params
   if (!Number.isInteger(validatorId) || validatorId < 1)
     return [false, `Invalid validator id: ${validatorId}`, undefined]
   if (
@@ -149,6 +150,7 @@ export function buildScoreV2Epochs(
   const inferredNonElections = inferMissingNonElections({
     fromEpoch: range.fromEpoch,
     toEpoch: range.toEpoch,
+    finalizedEpochs,
     activities: activities.map(row => ({
       epochNumber: row.epoch,
       dominanceRatioViaBalance: row.dominanceViaBalance,
@@ -432,6 +434,7 @@ interface CalculateV2ScoresParams {
   longTermCoverage: number
   validatorIds: readonly number[]
   activities: readonly ScoreActivityRow[]
+  finalizedEpochs: ReadonlySet<number>
 }
 
 async function calculateV2Scores(
@@ -444,6 +447,7 @@ async function calculateV2Scores(
     longTermCoverage,
     validatorIds,
     activities,
+    finalizedEpochs,
   } = params
   const activityByValidatorId = groupActivityByValidator(activities)
   const priorByValidatorId = longTermCoverage < 1
@@ -453,16 +457,18 @@ async function calculateV2Scores(
 
   for (const validatorId of validatorIds) {
     const validatorActivity = activityByValidatorId.get(validatorId) || []
-    const recentActivity = validatorActivity.filter(
-      row => row.epoch >= recentRange.fromEpoch && row.epoch <= recentRange.toEpoch,
+    const recentInferenceActivity = validatorActivity.filter(
+      row => row.epoch >= longTermRange.fromEpoch && row.epoch <= recentRange.toEpoch,
     )
-    const [recentEpochsSuccess, recentEpochsError, recentEpochs] = buildScoreV2Epochs({
+    const [recentEpochsSuccess, recentEpochsError, inferredEpochs] = buildScoreV2Epochs({
       validatorId,
-      range: recentRange,
-      activities: recentActivity,
+      range: { fromEpoch: longTermRange.fromEpoch, toEpoch: recentRange.toEpoch },
+      activities: recentInferenceActivity,
+      finalizedEpochs,
     })
     if (!recentEpochsSuccess)
       return [false, recentEpochsError, undefined]
+    const recentEpochs = inferredEpochs.filter(epoch => epoch.epochNumber >= recentRange.fromEpoch)
 
     if (recentEpochs.every(epoch => epoch.status === ValidatorEpochStatus.NotElectedRandomness))
       continue
@@ -560,10 +566,15 @@ function createHistoricalRange(range: Range, targetEpoch: number): Range {
 async function prepareV2Backfill(
   range: Range,
   options: ScoreSyncOptions,
-): Promise<ResultSync<{ epochs: number[], scores: Score[] }>> {
+): Promise<ResultSync<{ epochs: number[], scores: Score[], lastScannedEpoch: number | null }>> {
   const v2Scores = alias(tables.scores, 'v2_scores')
   options.onProgress?.('checking v2 backfill candidates')
-  const candidates = await useDrizzle()
+  const backfillState = await useDrizzle()
+    .select({ lastScannedEpoch: tables.scoreBackfillState.lastScannedEpoch })
+    .from(tables.scoreBackfillState)
+    .where(eq(tables.scoreBackfillState.id, 1))
+    .get()
+  const getCandidates = (beforeEpoch: number) => useDrizzle()
     .selectDistinct({ epochNumber: tables.scores.epochNumber })
     .from(tables.scores)
     .leftJoin(v2Scores, and(
@@ -574,11 +585,19 @@ async function prepareV2Backfill(
     .where(and(
       eq(tables.scores.scoreVersion, 1),
       lt(tables.scores.epochNumber, range.toEpoch),
-      isNull(v2Scores.validatorId),
+      lt(tables.scores.epochNumber, beforeEpoch),
+      or(
+        isNull(v2Scores.validatorId),
+        isNull(v2Scores.longTermCoverage),
+        lt(v2Scores.longTermCoverage, 1),
+      ),
     ))
     .orderBy(desc(tables.scores.epochNumber))
     .limit(SCORE_V2_BACKFILL_LIMIT)
     .execute()
+  let candidates = await getCandidates(backfillState?.lastScannedEpoch ?? range.toEpoch)
+  if (candidates.length === 0 && backfillState)
+    candidates = await getCandidates(range.toEpoch)
   options.onProgress?.(`backfill found ${candidates.length} candidate epoch(s)`)
   const backfilledEpochs: number[] = []
   const backfillScores: Score[] = []
@@ -613,7 +632,13 @@ async function prepareV2Backfill(
       .where(and(
         eq(tables.scores.scoreVersion, 1),
         eq(tables.scores.epochNumber, targetEpoch),
-        isNull(v2Scores.validatorId),
+        longTermCoverage.coverage === 1
+          ? or(
+              isNull(v2Scores.validatorId),
+              isNull(v2Scores.longTermCoverage),
+              lt(v2Scores.longTermCoverage, 1),
+            )
+          : isNull(v2Scores.validatorId),
       ))
       .execute()
     const validatorIds = [...new Set(missingValidatorRows.map(row => row.validatorId))]
@@ -635,6 +660,7 @@ async function prepareV2Backfill(
       longTermCoverage: longTermCoverage.coverage,
       validatorIds,
       activities: finalizedActivities,
+      finalizedEpochs: finalizedEpochSet,
     })
     if (!success)
       return [false, error, undefined]
@@ -649,6 +675,7 @@ async function prepareV2Backfill(
   return [true, undefined, {
     epochs: backfilledEpochs,
     scores: backfillScores,
+    lastScannedEpoch: candidates.at(-1)?.epochNumber ?? null,
   }]
 }
 
@@ -770,6 +797,7 @@ export async function upsertScoresSnapshotEpoch(
       longTermCoverage: longTermCoverage.coverage,
       validatorIds: validatorsId,
       activities: finalizedActivityRows,
+      finalizedEpochs: finalizedEpochSet,
     })
     if (!v2Success)
       return [false, v2Error, undefined]
@@ -781,6 +809,16 @@ export async function upsertScoresSnapshotEpoch(
       return [false, backfillError, undefined]
     backfilledEpochs = backfill.epochs
     await upsertScoreRows(backfill.scores, 'v2 backfill', options)
+    if (backfill.lastScannedEpoch !== null) {
+      await useDrizzle()
+        .insert(tables.scoreBackfillState)
+        .values({ id: 1, lastScannedEpoch: backfill.lastScannedEpoch })
+        .onConflictDoUpdate({
+          target: tables.scoreBackfillState.id,
+          set: { lastScannedEpoch: backfill.lastScannedEpoch },
+        })
+        .execute()
+    }
   }
 
   return [true, undefined, {
@@ -818,6 +856,28 @@ export async function getLatestScoreEpoch(scoreVersion: ScoreVersion = 1): Promi
     })
 
   return latestScoreEpoch
+}
+
+export async function getOldestV2BackfillEpoch(): Promise<number | null> {
+  const v2Scores = alias(tables.scores, 'v2_scores')
+  const result = await useDrizzle()
+    .select({ epochNumber: sql<number | null>`min(${tables.scores.epochNumber})` })
+    .from(tables.scores)
+    .leftJoin(v2Scores, and(
+      eq(v2Scores.validatorId, tables.scores.validatorId),
+      eq(v2Scores.epochNumber, tables.scores.epochNumber),
+      eq(v2Scores.scoreVersion, 2),
+    ))
+    .where(and(
+      eq(tables.scores.scoreVersion, 1),
+      or(
+        isNull(v2Scores.validatorId),
+        isNull(v2Scores.longTermCoverage),
+        lt(v2Scores.longTermCoverage, 1),
+      ),
+    ))
+    .get()
+  return result?.epochNumber ?? null
 }
 
 export async function getLatestScoreState(
