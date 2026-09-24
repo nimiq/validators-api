@@ -17,7 +17,7 @@
     "generate": "nuxt generate",
     "worker:dev": "npx wrangler --cwd .output dev",
     "worker:dev:mainnet:prod": "tsx scripts/dev-mainnet-prod-worker.ts",
-    "worker:trigger-sync": "curl 'http://localhost:8787/__scheduled?cron=0+*/6+*+*+*'",
+    "worker:trigger-sync": "curl 'http://localhost:8787/__scheduled?cron=0+*+*+*+*'",
     "postinstall": "nuxt prepare",
     "prepublishOnly": "nr build",
     "typecheck": "nuxt typecheck && nr -r typecheck",

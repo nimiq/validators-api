@@ -14,6 +14,8 @@ import { getOldestV2BackfillEpoch } from '~~/server/utils/scores'
 import { sendSyncFailureNotification } from '~~/server/utils/slack'
 
 const MAX_PRODUCTION_EPOCH_CANDIDATES_PER_RUN = 50
+const MAX_PRODUCTION_REPAIR_ATTEMPTS_PER_RUN = 4
+const PRODUCTION_EPOCH_START_BUDGET_MS = 8 * 60 * 1000
 const DEVELOPMENT_SYNCING_LEASE_DURATION_MS = 5 * 60 * 1000
 
 export function getEpochCandidateLimit(isDevelopment: boolean): number {
@@ -27,7 +29,7 @@ export function getSyncingLeaseDurationMs(isDevelopment: boolean): number {
 }
 
 export function isFullRepairAllowed(fullRepairAttempts: number, isDevelopment: boolean): boolean {
-  return isDevelopment || fullRepairAttempts === 0
+  return isDevelopment || fullRepairAttempts < MAX_PRODUCTION_REPAIR_ATTEMPTS_PER_RUN
 }
 
 function formatError(error: unknown): string {
@@ -59,6 +61,7 @@ export default defineTask({
   },
   async run() {
     const config = useSafeRuntimeConfig()
+    const startedAt = Date.now()
 
     try {
       const rpcUrl = getRpcUrl()
@@ -97,11 +100,15 @@ export default defineTask({
       let fullRepairAttempts = 0
 
       for (const epochNumber of plannedEpochs) {
+        // Leave unstarted epochs eligible for the next run instead of claiming and failing them.
+        if (!isFullRepairAllowed(fullRepairAttempts, import.meta.dev)
+          || (!import.meta.dev && Date.now() - startedAt >= PRODUCTION_EPOCH_START_BUDGET_MS)) {
+          break
+        }
+
         let outcome: EpochSyncOutcome
         try {
-          outcome = await synchronizeCompletedEpoch(epochNumber, config.public.nimiqNetwork, {
-            allowRepair: isFullRepairAllowed(fullRepairAttempts, import.meta.dev),
-          })
+          outcome = await synchronizeCompletedEpoch(epochNumber, config.public.nimiqNetwork)
         }
         catch (error) {
           outcome = { epochNumber, status: 'failed', error: formatError(error), repairAttempted: false }
@@ -113,6 +120,9 @@ export default defineTask({
         if (outcome.status === 'repaired' || (outcome.status === 'failed' && outcome.repairAttempted))
           fullRepairAttempts++
       }
+
+      const deferredEpochs = plannedEpochs.slice(outcomes.length)
+      consola.info(`[sync:epochs] finalized ${epochsSynced.length}, repair attempts ${fullRepairAttempts}, deferred ${deferredEpochs.length} planned epoch(s)`)
 
       const failures = outcomes.filter((outcome): outcome is Extract<EpochSyncOutcome, { status: 'failed' }> => outcome.status === 'failed')
       const recentFailure = failures.find(outcome => outcome.epochNumber >= recentRange.fromEpoch)
@@ -135,6 +145,7 @@ export default defineTask({
           ...(failureSummaries.length > 0 ? { error: failureSummaries.join('; ') } : {}),
           totalSynced: epochsSynced.length,
           epochsSynced,
+          deferredEpochs,
           outcomes,
         },
       }

@@ -83,7 +83,6 @@ function createDependencies() {
     repairCompletedEpoch: vi.fn().mockResolvedValue(undefined),
     markActivityEpochFailed: vi.fn().mockResolvedValue(undefined),
     now: vi.fn().mockReturnValue(new Date('2026-07-29T12:00:00.000Z')),
-    allowRepair: true,
   }
 }
 
@@ -123,6 +122,7 @@ describe('synchronizeCompletedEpoch', () => {
     expect(dependencies.fetchActivity).toHaveBeenCalledWith(EPOCH, expect.objectContaining({
       network: 'testnet',
       electionSet,
+      maxRetries: 1,
     }))
     expect(dependencies.repairCompletedEpoch).toHaveBeenCalledWith(
       EPOCH,
@@ -151,28 +151,6 @@ describe('synchronizeCompletedEpoch', () => {
       '2026-07-29T12:00:00.000Z',
     )
     expect(dependencies.repairCompletedEpoch).not.toHaveBeenCalled()
-  })
-
-  it('defers a mismatched epoch without fetching activity when repair is disallowed', async () => {
-    const dependencies = createDependencies()
-    dependencies.getStoredFinalizedElectedAddresses.mockResolvedValue([ADDRESS_A])
-    dependencies.allowRepair = false
-
-    const outcome = await synchronizeCompletedEpoch(EPOCH, 'testnet', dependencies)
-
-    expect(outcome).toEqual({
-      epochNumber: EPOCH,
-      status: 'failed',
-      error: expect.stringMatching(/repair|defer|budget/i),
-      repairAttempted: false,
-    })
-    expect(dependencies.fetchActivity).not.toHaveBeenCalled()
-    expect(dependencies.repairCompletedEpoch).not.toHaveBeenCalled()
-    expect(dependencies.markActivityEpochFailed).toHaveBeenCalledWith(
-      EPOCH,
-      expect.objectContaining({ message: expect.stringMatching(/repair|defer|budget/i) }),
-      '2026-07-29T12:00:00.000Z',
-    )
   })
 
   it('returns already_finalized without fetching when attempt claim is refused', async () => {

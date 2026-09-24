@@ -4,7 +4,7 @@ import { runTask } from 'nitropack/runtime'
 import { runTasksBestEffort } from '~~/server/utils/cron-task-runner'
 import { eq, tables, useDrizzle } from '~~/server/utils/drizzle'
 
-const CRON_EXPRESSION = '0 */6 * * *'
+const CRON_EXPRESSION = '0 * * * *'
 const TASKS: string[] = ['sync:epochs', 'sync:snapshot', 'sync:scores']
 
 interface FailedTask {
