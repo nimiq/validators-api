@@ -25,13 +25,12 @@ type ActivityResult = [success: boolean, error?: string, activity?: EpochActivit
 export interface ActivitySyncDependencies {
   beginActivityEpochAttempt: (epochNumber: number, startedAt: string) => Promise<boolean>
   fetchElectionSet: (epochNumber: number, options: { network: string }) => Promise<ElectionSetResult>
-  fetchActivity: (epochNumber: number, options: { network: string, electionSet: ElectionSet, maxBatchSize?: number }) => Promise<ActivityResult>
+  fetchActivity: (epochNumber: number, options: { network: string, electionSet: ElectionSet, maxBatchSize?: number, maxRetries?: number }) => Promise<ActivityResult>
   getStoredFinalizedElectedAddresses: (epochNumber: number) => Promise<string[]>
   finalizeVerifiedEpoch: (epochNumber: number, electionSet: ElectionSet, startedAt: string) => Promise<void>
   repairCompletedEpoch: (epochNumber: number, electionSet: ElectionSet, activity: EpochActivity, startedAt: string) => Promise<void>
   markActivityEpochFailed: (epochNumber: number, error: Error, startedAt: string) => Promise<void>
   now: () => Date
-  allowRepair: boolean
 }
 
 async function getStoredFinalizedElectedAddresses(epochNumber: number): Promise<string[]> {
@@ -87,7 +86,6 @@ const defaultDependencies: ActivitySyncDependencies = {
   repairCompletedEpoch: repairCompletedEpochDefault,
   markActivityEpochFailed,
   now: () => new Date(),
-  allowRepair: true,
 }
 
 export async function synchronizeCompletedEpoch(
@@ -116,14 +114,12 @@ export async function synchronizeCompletedEpoch(
       return { epochNumber, status: 'verified' }
     }
 
-    if (!dependencies.allowRepair)
-      throw new Error(`Repair budget exhausted; epoch ${epochNumber} deferred`)
-
     repairAttempted = true
     const [activityOk, activityError, activity] = await dependencies.fetchActivity(epochNumber, {
       network,
       electionSet,
       maxBatchSize: import.meta.dev ? 120 : 6,
+      maxRetries: import.meta.dev ? 5 : 1,
     })
     if (!activityOk || !activity)
       throw new Error(activityError || 'Unable to fetch activity')

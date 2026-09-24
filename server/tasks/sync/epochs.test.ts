@@ -103,7 +103,7 @@ beforeEach(async () => {
   mocks.synchronizeCompletedEpoch
     .mockResolvedValueOnce({ epochNumber: 100, status: 'failed', error: 'first RPC failure', repairAttempted: true })
     .mockResolvedValueOnce({ epochNumber: 99, status: 'verified' })
-    .mockResolvedValueOnce({ epochNumber: 98, status: 'failed', error: 'repair budget exhausted', repairAttempted: false })
+    .mockResolvedValueOnce({ epochNumber: 98, status: 'verified' })
     .mockResolvedValueOnce({ epochNumber: 97, status: 'verified' })
     .mockResolvedValueOnce({ epochNumber: 96, status: 'already_finalized' })
   mocks.sendSyncFailureNotification.mockResolvedValue(undefined)
@@ -151,7 +151,8 @@ describe('planned completed-epoch synchronization', () => {
     expect(isFullRepairAllowed(0, true)).toBe(true)
     expect(isFullRepairAllowed(5, true)).toBe(true)
     expect(isFullRepairAllowed(0, false)).toBe(true)
-    expect(isFullRepairAllowed(1, false)).toBe(false)
+    expect(isFullRepairAllowed(1, false)).toBe(true)
+    expect(isFullRepairAllowed(4, false)).toBe(false)
   })
 
   it('limits production repairs while returning the failed epoch details', async () => {
@@ -173,27 +174,83 @@ describe('planned completed-epoch synchronization', () => {
       limit: 50,
       syncingLeaseDurationMs: 6 * 60 * 60 * 1000,
     }))
-    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(1, 100, 'testnet', { allowRepair: true })
-    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(2, 99, 'testnet', { allowRepair: false })
-    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(3, 98, 'testnet', { allowRepair: false })
-    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(4, 97, 'testnet', { allowRepair: false })
-    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(5, 96, 'testnet', { allowRepair: false })
+    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(1, 100, 'testnet')
+    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(2, 99, 'testnet')
+    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(3, 98, 'testnet')
+    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(4, 97, 'testnet')
+    expect(mocks.synchronizeCompletedEpoch).toHaveBeenNthCalledWith(5, 96, 'testnet')
     expect(mocks.synchronizeCompletedEpoch).toHaveBeenCalledTimes(5)
 
     expect(result).toEqual({
       result: {
         success: false,
         error: '[sync:epochs] epoch 100 failed: first RPC failure',
-        totalSynced: 2,
-        epochsSynced: [99, 97],
+        totalSynced: 3,
+        epochsSynced: [99, 98, 97],
+        deferredEpochs: [],
         outcomes: [
           { epochNumber: 100, status: 'failed', error: 'first RPC failure', repairAttempted: true },
           { epochNumber: 99, status: 'verified' },
-          { epochNumber: 98, status: 'failed', error: 'repair budget exhausted', repairAttempted: false },
+          { epochNumber: 98, status: 'verified' },
           { epochNumber: 97, status: 'verified' },
           { epochNumber: 96, status: 'already_finalized' },
         ],
       },
     })
+  })
+  it('repairs a bounded batch and leaves the remaining epochs untouched for the next run', async () => {
+    mocks.planEpochSync.mockReturnValue([100, 99, 98, 97, 96, 95])
+    mocks.synchronizeCompletedEpoch.mockReset().mockImplementation(async (epochNumber: number) => ({
+      epochNumber,
+      status: 'repaired',
+    }))
+
+    const { result } = await task.run()
+
+    expect(result).toMatchObject({
+      success: true,
+      totalSynced: 4,
+      epochsSynced: [100, 99, 98, 97],
+      deferredEpochs: [96, 95],
+    })
+    expect(mocks.synchronizeCompletedEpoch.mock.calls.map(([epoch]) => epoch)).toEqual([100, 99, 98, 97])
+    expect(mocks.sendSyncFailureNotification).not.toHaveBeenCalled()
+  })
+
+  it('counts failed repair attempts toward the batch limit and retains real failures', async () => {
+    mocks.synchronizeCompletedEpoch.mockReset().mockImplementation(async (epochNumber: number) => ({
+      epochNumber,
+      status: 'failed',
+      error: 'RPC unavailable',
+      repairAttempted: true,
+    }))
+
+    const { result } = await task.run()
+
+    expect(result).toMatchObject({ success: false, totalSynced: 0, deferredEpochs: [96] })
+    expect(mocks.synchronizeCompletedEpoch).toHaveBeenCalledTimes(4)
+    expect(mocks.sendSyncFailureNotification).toHaveBeenCalledWith('missing-epoch', expect.objectContaining({
+      message: expect.stringContaining('RPC unavailable'),
+    }))
+  })
+
+  it('stops starting epochs after the runtime budget while preserving completed progress', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(new Date('2026-09-24T10:00:00Z'))
+      mocks.synchronizeCompletedEpoch.mockReset().mockImplementation(async (epochNumber: number) => {
+        vi.setSystemTime(new Date('2026-09-24T10:08:00Z'))
+        return { epochNumber, status: 'repaired' }
+      })
+
+      const { result } = await task.run()
+
+      expect(result).toMatchObject({ success: true, epochsSynced: [100], deferredEpochs: [99, 98, 97, 96] })
+      expect(mocks.synchronizeCompletedEpoch).toHaveBeenCalledTimes(1)
+      expect(mocks.sendSyncFailureNotification).not.toHaveBeenCalled()
+    }
+    finally {
+      vi.useRealTimers()
+    }
   })
 })

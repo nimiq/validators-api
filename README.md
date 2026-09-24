@@ -149,11 +149,13 @@ We also do have an UI component to visualize the range, check the status, and de
 
 ### Fetcher
 
-The fetcher retrieves data from the Nimiq network and stores it in D1. It runs every six hours in this order:
+The fetcher retrieves data from the Nimiq network and stores it in D1. It runs every hour in this order:
 
 1. Discover completed epochs and verify or repair activity snapshots.
 2. Store the current validator snapshot.
 3. Calculate scores from finalized activity markers.
+
+Each production run considers up to 50 epochs and attempts at most four full repairs, prioritizing recent gaps. After eight minutes it stops starting epochs so snapshot and score tasks can still run. Each activity batch gets one retry in production. Unstarted epochs remain available for the next run and are reported as `deferredEpochs`, without writing failure markers. Existing failure markers clear only after successful verification or repair. Scores remain stale until recent activity coverage reaches 100%.
 
 Completed-epoch activity uses marker-backed integrity checks. Operator-facing marker states are:
 
@@ -259,7 +261,7 @@ This implementation does not run any remote migration or deployment.
 - `production`: [Validators API Mainnet](https://validators-api-main.je-cf9.workers.dev) via the mainnet build above
 - `testnet`: [Validators API Testnet](https://validators-api-test.je-cf9.workers.dev) via the testnet build above
 
-Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every six hours via Cloudflare cron triggers (see `server/tasks/sync/`).
+Each environment has its own D1 database, KV cache, and R2 blob. Sync runs every hour via Cloudflare cron triggers (see `server/tasks/sync/`).
 
 ### Score v2 rollout
 

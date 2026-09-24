@@ -162,8 +162,8 @@ export default defineNuxtConfig({
       tasks: true,
     },
     scheduledTasks: {
-      // Six-hour sync: wrapper task records run + executes sync tasks
-      '0 */6 * * *': ['cron:sync'],
+      // Hourly sync: wrapper task records run + executes sync tasks
+      '0 * * * *': ['cron:sync'],
     },
     openAPI: {
       meta: { title: name, description, version },

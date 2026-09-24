@@ -69,11 +69,11 @@ afterAll(() => {
 })
 
 describe('scheduled synchronization order', () => {
-  it('records the six-hour schedule', async () => {
+  it('records the hourly schedule', async () => {
     await task.run({ payload: {}, context: {} } as never)
 
     expect(mocks.insertValues).toHaveBeenCalledWith(expect.objectContaining({
-      cron: '0 */6 * * *',
+      cron: '0 * * * *',
     }))
   })
 
