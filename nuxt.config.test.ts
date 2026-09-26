@@ -17,9 +17,9 @@ describe('score v2 runtime configuration', () => {
     expect(config.runtimeConfig?.scoreV2Mode).toBe('shadow')
   })
 
-  it('keeps v2 off for the initial rollout in both Wrangler environments', () => {
+  it('runs mainnet in shadow mode while testnet stays off', () => {
     expect(wranglerConfig.vars).toEqual(expect.objectContaining({
-      NUXT_SCORE_V2_MODE: 'off',
+      NUXT_SCORE_V2_MODE: 'shadow',
     }))
     expect(wranglerConfig.env.testnet.vars).toEqual(expect.objectContaining({
       NUXT_SCORE_V2_MODE: 'off',
