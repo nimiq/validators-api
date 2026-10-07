@@ -23,7 +23,8 @@ function formatLunaAsNim(lunaValue: number): string {
 }
 
 // Filter and search state
-const showUnknown = useLocalStorage('show-unknown-validators', false)
+// Read the saved filter after hydration so server and client render the same rows.
+const showUnknown = useLocalStorage('show-unknown-validators', false, { initOnMounted: true })
 const globalFilter = ref('')
 const sorting = ref<SortingState>([{ id: 'balance', desc: true }])
 
@@ -316,6 +317,7 @@ function getScoreDisplay(validator: FetchedValidator) {
             <td class="cell-identicon">
               <Identicon
                 v-bind="row.original" size-32 object-contain my-6
+                :logo="row.original.name === 'Unknown validator' ? undefined : row.original.logo"
                 :style="{ 'view-transition-name': `logo-${row.original.id}-${globalFilter}` }"
               />
             </td>
