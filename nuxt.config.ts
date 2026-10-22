@@ -31,7 +31,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    albatrossRpcNodeUrl: process.env.ALBATROSS_RPC_NODE_URL || '',
+    albatrossRpcNodeUrl: '',
     scoreV2Mode: process.env.NUXT_SCORE_V2_MODE || 'off',
     slackWebhookUrl: process.env.NUXT_SLACK_WEBHOOK_URL || '',
     public: {
