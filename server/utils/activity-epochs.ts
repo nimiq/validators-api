@@ -79,7 +79,7 @@ export interface PreparedCompletedEpoch {
   activities: NewActivity[]
 }
 
-export function getRecentEpochRange(range: Range, durationMs = RECENT_ACTIVITY_DURATION_MS): { fromEpoch: number, toEpoch: number } {
+export function getRecentEpochRange(range: Pick<Range, 'fromEpoch' | 'toEpoch' | 'epochDurationMs'>, durationMs = RECENT_ACTIVITY_DURATION_MS): { fromEpoch: number, toEpoch: number } {
   if (!Number.isFinite(durationMs) || durationMs <= 0)
     throw new RangeError('Recent activity duration must be positive')
   if (!Number.isFinite(range.epochDurationMs) || range.epochDurationMs <= 0)
