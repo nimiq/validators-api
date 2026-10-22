@@ -7,6 +7,17 @@ afterEach(() => {
   vi.resetModules()
 })
 
+describe('private RPC runtime configuration', () => {
+  it('does not embed the RPC secret in build-time runtime defaults', async () => {
+    vi.stubEnv('ALBATROSS_RPC_NODE_URL', 'https://rpc.invalid/?token=build-secret')
+    vi.stubGlobal('defineNuxtConfig', (config: unknown) => config)
+
+    const { default: config } = await import('./nuxt.config')
+
+    expect(JSON.stringify(config.runtimeConfig)).not.toContain('build-secret')
+  })
+})
+
 describe('score v2 runtime configuration', () => {
   it('uses the Nitro-compatible NUXT_SCORE_V2_MODE environment variable', async () => {
     vi.stubEnv('NUXT_SCORE_V2_MODE', 'shadow')
